@@ -5,7 +5,12 @@
       :key="i"
       class="grid-overlay-item"
       :class="{ 'grid-overlay-item-active': activeItems.has(i - 1) }"
-    ></div>
+    >
+      <GridCounter 
+        v-if="neighborItems.has(i - 1)" 
+        :variant="neighborItems.get(i - 1)!" 
+      />
+    </div>
   </div>
 </template>
 
@@ -65,11 +70,23 @@
 </style>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import GridCounter from './GridCounter.vue'
 
 const gridSize = 10
 const totalItems = 100
 const activeItems = ref<Set<number>>(new Set())
+const neighborItems = computed(() => {
+  const neighbors = new Map<number, 'before' | 'after'>()
+  activeItems.value.forEach(index => {
+    // Item at index-1 is BEFORE the active item (index)
+    if (index - 1 >= 0) neighbors.set(index - 1, 'before')
+    // Item at index+1 is AFTER the active item (index)
+    if (index + 1 < totalItems) neighbors.set(index + 1, 'after')
+  })
+  activeItems.value.forEach(index => neighbors.delete(index))
+  return neighbors
+})
 const animationDuration = 8000 // 12 seconds total cycle (6s forward + 6s reverse)
 let animationFrameId: number | null = null
 let startTime: number | null = null
