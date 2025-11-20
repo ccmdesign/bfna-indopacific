@@ -1,0 +1,21 @@
+[build]
+  # Build command for SSG
+  command = "npm run generate"
+  # The directory containing the static files to deploy
+  publish = ".output/public"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+
+[[redirects]]
+  # Fallback for SPA-like routing
+  from = "/*"
+  to = "/index.html"
+  status = 200
