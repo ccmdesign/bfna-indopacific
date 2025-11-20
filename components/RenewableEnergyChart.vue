@@ -65,7 +65,7 @@
 
 .axis-line {
   stroke-width: 1;
-  stroke: rgba(255, 255, 255, );
+  stroke-dasharray: 1 4;
 }
 
 .axis-domain {
@@ -79,11 +79,15 @@
   stroke-dasharray: 1 4;
 }
 
+.axis-y .tick line:first-child {
+  stroke: transparent;
+}
+
 /* Chart title */
 .chart-title {
   fill: #fff;
   font-family: 'Encode Sans', sans-serif;
-  font-size: 12px;
+  font-size: 16px;
 }
 
 /* Chart lines */
@@ -95,7 +99,7 @@
 
 .chart-line {
   mix-blend-mode: normal;
-  stroke: #fff;
+  stroke: rgba(255, 255, 255, 0.8);
   opacity: 1;
   transition: opacity 0.3s ease;
 }
@@ -108,7 +112,7 @@
 .line-label {
   fill: #fff;
   font-family: 'Encode Sans', sans-serif;
-  font-size: 12px;
+  font-size: 16px;
   font-weight: 300;
   cursor: pointer;
 }
@@ -193,50 +197,47 @@ onMounted(async () => {
     
     const xAxis = d3.axisBottom(x)
       .tickValues(evenYears)
+      .tickSize(0) // Remove default tick size
       .tickSizeOuter(0);
-    svg.append('g')
+    
+    const xAxisGroup = svg.append('g')
       .attr('class', 'axis axis-x')
       .attr('transform', `translate(0,${height - marginBottom})`)
       .call(xAxis)
-      .call((g: any) => g.selectAll('text').attr('class', 'axis-label'))
-      .call((g: any) => g.selectAll('line').attr('class', 'axis-line'))
+      .call((g: any) => g.selectAll('text')
+        .attr('class', 'axis-label')
+        .attr('dy', '1.25em')) // Move labels 4px down (adding to default offset)
       .call((g: any) => g.select('.domain').attr('class', 'axis-domain'));
+    
+    // Add custom vertical tick lines that span the full chart height
+    xAxisGroup.selectAll('.tick')
+      .append('line')
+      .attr('class', 'axis-line')
+      .attr('x1', 0)
+      .attr('x2', 0)
+      .attr('y1', -(height - marginBottom - marginTop)) // Extend to top
+      .attr('y2', 0)
+      .attr('stroke', 'url(#axisLineGradient)')
+      .attr('stroke-dasharray', '1 4');
 
-    // Add Y axis
+    // Add Y axis with % formatting
     svg.append('g')
       .attr('class', 'axis axis-y')
       .attr('transform', `translate(${marginLeft},0)`)
-      .call(d3.axisLeft(y).ticks(5)) // limit to a few percentage ticks
+      .call(d3.axisLeft(y).ticks(5).tickFormat((d: any) => `${d}%`)) // Add % to tick labels
       .call((g: any) => g.select('.domain').remove())
       .call((g: any) => g.selectAll('.tick line').clone()
           .attr('class', 'axis-grid-line')
           .attr('x2', width - marginLeft - marginRight))
-      .call((g: any) => g.selectAll('text').attr('class', 'axis-label'))
-      .call((g: any) => g.append('text')
-          .attr('class', 'chart-title')
-          .attr('x', -marginLeft)
-          .attr('y', height - marginBottom + 30) // Position at bottom
-          .attr('text-anchor', 'start')
-          .text('Renewable Energy Share (%)'));
+      .call((g: any) => g.selectAll('text').attr('class', 'axis-label'));
 
-    // Add gradient definitions for vertical year lines
-    const defs = svg.append('defs');
-    const gradient = defs.append('linearGradient')
-      .attr('id', 'yearLineGradient')
-      .attr('x1', '0%')
-      .attr('y1', '0%')
-      .attr('x2', '0%')
-      .attr('y2', '100%');
-    
-    gradient.append('stop')
-      .attr('offset', '0%')
-      .attr('stop-color', 'white')
-      .attr('stop-opacity', 0.3);
-    
-    gradient.append('stop')
-      .attr('offset', '100%')
-      .attr('stop-color', 'white')
-      .attr('stop-opacity', 0);
+    // Add chart title at the top center
+    svg.append('text')
+      .attr('class', 'chart-title')
+      .attr('x', width / 2)
+      .attr('y', marginTop + 20)
+      .attr('text-anchor', 'middle')
+      .text('Renewable Energy Share');
 
     // Add vertical gradient lines for each year
     const allYears = data.map(d => d.year);
@@ -269,13 +270,28 @@ onMounted(async () => {
     
     const color = (name: string) => colorMap[name] || '#ccc';
 
-    // Line generator
+    // Line generator with smooth curves
     const line = d3.line<any>()
       .defined(d => !isNaN(d))
       .x((d, i) => x(data[i].year))
-      .y(d => y(d));
+      .y(d => y(d))
+      .curve(d3.curveCatmullRom); // Makes lines smooth with bezier curves
 
-    // Draw lines
+    // Draw invisible hover paths with 6px width for easier interaction
+    const hoverPaths = svg.append('g')
+      .attr('class', 'chart-hover-areas')
+      .attr('fill', 'none')
+      .selectAll('path')
+      .data(series)
+      .join('path')
+      .attr('d', (d: any) => line(d.values))
+      .attr('stroke', 'transparent')
+      .attr('stroke-width', 6)
+      .attr('stroke-linejoin', 'round')
+      .attr('stroke-linecap', 'round')
+      .style('cursor', 'pointer');
+
+    // Draw visible lines
     const path = svg.append('g')
       .attr('class', 'chart-lines')
       .attr('fill', 'none')
@@ -284,11 +300,16 @@ onMounted(async () => {
       .join('path')
       .attr('class', 'chart-line')
       .attr('d', (d: any) => line(d.values))
+      .style('pointer-events', 'none'); // Disable pointer events on visible lines
+
+    // Add hover events to invisible hover paths
+    hoverPaths
       .on('mouseenter', function(event, d) {
         // Fade all other lines to 30% opacity
         path.classed('chart-line-dimmed', true);
         // Keep hovered line at full opacity
-        d3.select(this).classed('chart-line-dimmed', false);
+        path.filter((pathData: any) => pathData.name === d.name)
+          .classed('chart-line-dimmed', false);
       })
       .on('mouseleave', function() {
         // Restore all lines to full opacity
@@ -302,7 +323,7 @@ onMounted(async () => {
       .data(series)
       .join('text')
       .attr('class', 'line-label')
-      .attr('x', (d: any) => width - marginRight + 5) // Position label within right margin space
+      .attr('x', (d: any) => width - marginRight + 9) // Position label 9px to the right (was 5px)
       .attr('y', (d: any) => y(d.values[d.values.length - 1])) // Use numeric last value for vertical position
       .attr('dy', '0') // No vertical offset
       .attr('dominant-baseline', 'middle') // Center text vertically on the point
@@ -319,6 +340,73 @@ onMounted(async () => {
         // Restore all lines to full opacity
         path.classed('chart-line-dimmed', false);
       });
+
+    // Collision detection and resolution for labels
+    const minSpacing = 8; // Minimum spacing between labels in pixels
+    const labelHeight = 16; // Font size of labels
+    
+    // Get label positions and bounding boxes
+    const labelData = labels.nodes().map((node: any, i: number) => {
+      const bbox = node.getBBox();
+      if (!bbox) return null;
+      const yAttr = node.getAttribute('y');
+      if (!yAttr) return null;
+      const seriesItem = series[i];
+      if (!seriesItem) return null;
+      
+      return {
+        node,
+        index: i,
+        y: parseFloat(yAttr),
+        originalY: parseFloat(yAttr),
+        height: bbox.height,
+        name: seriesItem.name
+      };
+    }).filter((item): item is NonNullable<typeof item> => item !== null);
+
+    // Sort by y position
+    labelData.sort((a, b) => a.y - b.y);
+
+    // Iterative collision resolution
+    const maxIterations = 10;
+    for (let iteration = 0; iteration < maxIterations; iteration++) {
+      let hadCollision = false;
+
+      for (let i = 0; i < labelData.length - 1; i++) {
+        const current = labelData[i];
+        const next = labelData[i + 1];
+        
+        if (!current || !next) continue;
+        
+        const currentBottom = current.y + current.height / 2;
+        const nextTop = next.y - next.height / 2;
+        const gap = nextTop - currentBottom;
+
+        if (gap < minSpacing) {
+          hadCollision = true;
+          // Calculate how much we need to move them apart
+          const overlap = minSpacing - gap;
+          const moveAmount = overlap / 2;
+
+          // Move current up and next down
+          current.y -= moveAmount;
+          next.y += moveAmount;
+        }
+      }
+
+      // If no collisions detected, we're done
+      if (!hadCollision) break;
+
+      // Re-sort after adjustments
+      labelData.sort((a, b) => a.y - b.y);
+    }
+
+    // Apply adjusted positions
+    labelData.forEach(item => {
+      if (item && item.node) {
+        d3.select(item.node).attr('y', item.y);
+      }
+    });
 
     // Hover interaction
     const hoverGroup = svg.append('g')
