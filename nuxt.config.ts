@@ -2,6 +2,13 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
+
+  // Force static generation for SSG deployment
+  ssr: true,
+  nitro: {
+    preset: 'static'
+  },
+
   app: {
     head: {
       link: [
