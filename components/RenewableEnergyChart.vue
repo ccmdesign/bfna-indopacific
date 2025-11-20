@@ -21,6 +21,13 @@
   height: 100%;
 }
 
+.chart-svg {
+  max-width: 100%;
+  height: auto;
+  overflow: visible;
+  font: 16px sans-serif;
+}
+
 .tooltip {
   position: absolute;
   background: rgba(0, 0, 0, 0.9); /* Dark background */
@@ -34,6 +41,83 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.5);
   border: 1px solid #333;
   min-width: 150px;
+}
+
+/* Axis styles */
+.axis-label {
+  fill: rgba(255, 255, 255, 0.5);
+  font-size: 16px;
+  font-family: 'Encode Sans', sans-serif;
+}
+
+.axis-x .axis-label {
+  font-size: 16px;
+}
+
+
+.axis-y .axis-label {
+  font-size: 16px;
+}
+
+.line-label {
+  fill: red;
+}
+
+.axis-line {
+  stroke-width: 1;
+  stroke: rgba(255, 255, 255, );
+}
+
+.axis-domain {
+  stroke-width: 1;
+  stroke: rgba(255, 255, 255, 1);
+  opacity: 0.2;
+}
+
+.axis-grid-line {
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-dasharray: 1 4;
+}
+
+/* Chart title */
+.chart-title {
+  fill: #fff;
+  font-family: 'Encode Sans', sans-serif;
+  font-size: 12px;
+}
+
+/* Chart lines */
+.chart-lines {
+  stroke-width: 2;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.chart-line {
+  mix-blend-mode: normal;
+  stroke: #fff;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.chart-line-dimmed {
+  opacity: 0.3;
+}
+
+/* Line labels */
+.line-label {
+  fill: #fff;
+  font-family: 'Encode Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 300;
+  cursor: pointer;
+}
+
+/* Hover line */
+.hover-line {
+  stroke: #fff;
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
 }
 </style>
 
@@ -96,10 +180,10 @@ onMounted(async () => {
     // SVG container
     const svg = d3.select(chartContainer.value)
       .append('svg')
+      .attr('class', 'chart-svg')
       .attr('width', width)
       .attr('height', height)
-      .attr('viewBox', [0, 0, width, height])
-      .attr('style', 'max-width: 100%; height: auto; overflow: visible; font: 10px sans-serif;');
+      .attr('viewBox', [0, 0, width, height]);
 
     // Add X axis with even-year ticks only
     const minYear = d3.min(data, d => d.year.getFullYear())!;
@@ -111,29 +195,28 @@ onMounted(async () => {
       .tickValues(evenYears)
       .tickSizeOuter(0);
     svg.append('g')
+      .attr('class', 'axis axis-x')
       .attr('transform', `translate(0,${height - marginBottom})`)
       .call(xAxis)
-      .call((g: any) => g.selectAll('text').attr('fill', '#fff').style('font-family', 'Encode Sans, sans-serif').style('font-size', '12px'))
-      .call((g: any) => g.selectAll('line').attr('stroke', 'rgba(255, 255, 255, 0.2)'))
-      .call((g: any) => g.select('.domain').attr('stroke', 'rgba(255, 255, 255, 0.2)'));
+      .call((g: any) => g.selectAll('text').attr('class', 'axis-label'))
+      .call((g: any) => g.selectAll('line').attr('class', 'axis-line'))
+      .call((g: any) => g.select('.domain').attr('class', 'axis-domain'));
 
     // Add Y axis
     svg.append('g')
+      .attr('class', 'axis axis-y')
       .attr('transform', `translate(${marginLeft},0)`)
       .call(d3.axisLeft(y).ticks(5)) // limit to a few percentage ticks
       .call((g: any) => g.select('.domain').remove())
       .call((g: any) => g.selectAll('.tick line').clone()
-          .attr('x2', width - marginLeft - marginRight)
-          .attr('stroke-opacity', 0.1)
-          .attr('stroke', '#fff'))
-      .call((g: any) => g.selectAll('text').attr('fill', '#fff').style('font-family', 'Encode Sans, sans-serif').style('font-size', '12px'))
+          .attr('class', 'axis-grid-line')
+          .attr('x2', width - marginLeft - marginRight))
+      .call((g: any) => g.selectAll('text').attr('class', 'axis-label'))
       .call((g: any) => g.append('text')
+          .attr('class', 'chart-title')
           .attr('x', -marginLeft)
           .attr('y', height - marginBottom + 30) // Position at bottom
-          .attr('fill', '#fff')
           .attr('text-anchor', 'start')
-          .style('font-family', 'Encode Sans, sans-serif')
-          .style('font-size', '12px')
           .text('Renewable Energy Share (%)'));
 
     // Add gradient definitions for vertical year lines
@@ -194,65 +277,56 @@ onMounted(async () => {
 
     // Draw lines
     const path = svg.append('g')
+      .attr('class', 'chart-lines')
       .attr('fill', 'none')
-      .attr('stroke-width', 2)
-      .attr('stroke-linejoin', 'round')
-      .attr('stroke-linecap', 'round')
       .selectAll('path')
       .data(series)
       .join('path')
-      .style('mix-blend-mode', 'normal')
-      .attr('stroke', '#fff')
+      .attr('class', 'chart-line')
       .attr('d', (d: any) => line(d.values))
-      .style('opacity', 1)
-      .style('transition', 'opacity 0.3s ease')
       .on('mouseenter', function(event, d) {
         // Fade all other lines to 30% opacity
-        path.style('opacity', 0.3);
+        path.classed('chart-line-dimmed', true);
         // Keep hovered line at full opacity
-        d3.select(this).style('opacity', 1);
+        d3.select(this).classed('chart-line-dimmed', false);
       })
       .on('mouseleave', function() {
         // Restore all lines to full opacity
-        path.style('opacity', 1);
+        path.classed('chart-line-dimmed', false);
       });
 
     // Add Labels at the end of lines
     const labels = svg.append('g')
+      .attr('class', 'line-labels')
       .selectAll('text')
       .data(series)
       .join('text')
+      .attr('class', 'line-label')
       .attr('x', (d: any) => width - marginRight + 5) // Position label within right margin space
       .attr('y', (d: any) => y(d.values[d.values.length - 1])) // Use numeric last value for vertical position
       .attr('dy', '0') // No vertical offset
       .attr('dominant-baseline', 'middle') // Center text vertically on the point
       .attr('text-anchor', 'start') // Align text to the left
-      .attr('fill', '#fff')
-      .style('font-family', 'Encode Sans, sans-serif')
-      .style('font-size', '12px')
-      .style('font-weight', '300')
-      .style('cursor', 'pointer') // Show pointer cursor on hover
       .text((d: any) => d.name)
       .on('mouseenter', function(event, d) {
         // Fade all lines to 30% opacity
-        path.style('opacity', 0.3);
+        path.classed('chart-line-dimmed', true);
         // Find and highlight the corresponding line
         path.filter((pathData: any) => pathData.name === d.name)
-          .style('opacity', 1);
+          .classed('chart-line-dimmed', false);
       })
       .on('mouseleave', function() {
         // Restore all lines to full opacity
-        path.style('opacity', 1);
+        path.classed('chart-line-dimmed', false);
       });
 
     // Hover interaction
     const hoverGroup = svg.append('g')
+      .attr('class', 'hover-group')
       .style('display', 'none');
 
     hoverGroup.append('line')
-      .attr('stroke', '#fff')
-      .attr('stroke-width', 1)
-      .attr('stroke-dasharray', '4 4')
+      .attr('class', 'hover-line')
       .attr('y1', marginTop)
       .attr('y2', height - marginBottom);
 

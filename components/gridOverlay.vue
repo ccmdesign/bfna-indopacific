@@ -32,8 +32,8 @@
   left: -2px;
   width: 4px;
   height: 4px;
-  border-left: 1px solid rgba(255, 255, 255, .2);
-  border-top: 1px solid rgba(255, 255, 255, .2);
+  border-left: 1px solid rgba(255, 255, 255, .5);
+  border-top: 1px solid rgba(255, 255, 255, .5);
 }
 
 .grid-overlay-item:after {
@@ -43,12 +43,12 @@
   right: -1px;
   width: 4px;
   height: 4px;
-  border-right: 1px solid rgba(255, 255, 255, .2);
-  border-bottom: 1px solid rgba(255, 255, 255, .2);
+  border-right: 1px solid rgba(255, 255, 255, .5);
+  border-bottom: 1px solid rgba(255, 255, 255, .5);
 }
 
 .grid-overlay-item-active {
-  background: linear-gradient(45deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.1));
+  background: linear-gradient(-45deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.2));
   animation: fadeGradient 4s ease-in-out infinite alternate;
 
 }
