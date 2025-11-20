@@ -30,17 +30,19 @@
 
 .tooltip {
   position: absolute;
-  background: rgba(0, 0, 0, 0.9); /* Dark background */
+  background: rgba(2, 38, 64, 0.95); /* Deep blue matching the theme */
+  backdrop-filter: blur(8px); /* Glass effect */
   color: white;
-  padding: 10px;
-  border-radius: 4px;
+  padding: 16px;
+  border-radius: 12px;
   pointer-events: none;
-  font-size: 12px;
+  font-size: 13px;
   font-family: 'Encode Sans', sans-serif;
-  z-index: 10;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  border: 1px solid #333;
-  min-width: 150px;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  min-width: 180px;
+  line-height: 1.5;
 }
 
 /* Axis styles */
@@ -99,7 +101,6 @@
 
 .chart-line {
   mix-blend-mode: normal;
-  stroke: rgba(255, 255, 255, 0.8);
   opacity: 1;
   transition: opacity 0.3s ease;
 }
@@ -254,18 +255,18 @@ onMounted(async () => {
       .attr('stroke-width', 1)
       .attr('stroke-dasharray', '4 4');
 
-    // Custom Color Palette - Refined for better visibility on dark background
+    // Custom Color Palette - HSL with 60% saturation for a refined look
     const colorMap: Record<string, string> = {
-      'European Union': '#00E5FF', // Cyan Accent
-      'Australia': '#FF4081', // Pink Accent
-      'China': '#FF9100', // Orange Accent
-      'United States': '#D500F9', // Purple Accent
-      'Japan': '#2979FF', // Blue Accent
-      'India': '#FFEA00', // Yellow Accent
-      'Indonesia': '#00E676', // Green Accent
-      'Thailand': '#FF1744', // Red Accent
-      'Taiwan': '#18FFFF', // Light Cyan Accent
-      'South Korea': '#651FFF' // Deep Purple Accent
+      'European Union': 'hsl(186, 60%, 50%)', // Cyan Accent
+      'Australia': 'hsl(340, 60%, 63%)', // Pink Accent
+      'China': 'hsl(34, 60%, 50%)', // Orange Accent
+      'United States': 'hsl(291, 60%, 49%)', // Purple Accent
+      'Japan': 'hsl(218, 60%, 58%)', // Blue Accent
+      'India': 'hsl(55, 60%, 50%)', // Yellow Accent
+      'Indonesia': 'hsl(151, 60%, 45%)', // Green Accent
+      'Thailand': 'hsl(348, 60%, 55%)', // Red Accent
+      'Taiwan': 'hsl(180, 60%, 55%)', // Light Cyan Accent
+      'South Korea': 'hsl(259, 60%, 56%)' // Deep Purple Accent
     };
     
     const color = (name: string) => colorMap[name] || '#ccc';
@@ -300,6 +301,7 @@ onMounted(async () => {
       .join('path')
       .attr('class', 'chart-line')
       .attr('d', (d: any) => line(d.values))
+      .attr('stroke', (d: any) => color(d.name))
       .style('pointer-events', 'none'); // Disable pointer events on visible lines
 
     // Add hover events to invisible hover paths
@@ -328,7 +330,7 @@ onMounted(async () => {
       .attr('dy', '0') // No vertical offset
       .attr('dominant-baseline', 'middle') // Center text vertically on the point
       .attr('text-anchor', 'start') // Align text to the left
-      .text((d: any) => d.name)
+      .text((d: any) => `${d.name} | ${Math.round(d.values[d.values.length - 1])}%`)
       .on('mouseenter', function(event, d) {
         // Fade all lines to 30% opacity
         path.classed('chart-line-dimmed', true);
@@ -434,17 +436,24 @@ onMounted(async () => {
       })
       .on('pointermove', (event) => {
         const [xm] = d3.pointer(event);
-        const i = d3.bisectCenter(data.map(d => x(d.year)), xm);
         
-        hoverGroup.attr('transform', `translate(${x(data[i].year)},0)`);
+        // Clamp xm to the chart bounds
+        const clampedX = Math.max(marginLeft, Math.min(width - marginRight, xm));
+        
+        // Move hover line smoothly to mouse position
+        hoverGroup.attr('transform', `translate(${clampedX},0)`);
+
+        // Find nearest data point for tooltip
+        const i = d3.bisectCenter(data.map(d => x(d.year)), xm);
 
         const sortedSeries = series.slice().sort((a, b) => b.values[i] - a.values[i]);
         
-        let tooltipHtml = `<strong>${data[i].year.getFullYear()}</strong><br>`;
+        let tooltipHtml = `<div style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: rgba(255,255,255,0.9);">${data[i].year.getFullYear()}</div>`;
         sortedSeries.forEach(s => {
-            tooltipHtml += `<div style="display: flex; align-items: center; gap: 5px;">
-              <span style="width: 10px; height: 10px; background-color: ${color(s.name)}; display: inline-block;"></span>
-              <span>${s.name}: ${s.values[i]}%</span>
+            tooltipHtml += `<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <span style="width: 8px; height: 8px; background-color: ${color(s.name)}; display: inline-block; border-radius: 50%; box-shadow: 0 0 4px ${color(s.name)};"></span>
+              <span style="color: rgba(255,255,255,0.7);">${s.name}</span>
+              <span style="margin-left: auto; font-weight: 600; color: white;">${Math.round(s.values[i])}%</span>
             </div>`;
         });
 
