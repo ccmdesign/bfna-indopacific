@@ -8,6 +8,11 @@
       <img src="@/assets/images/planet.png" alt="Planet Background" />
     </div>
     <img src="@/assets/images/bfna.svg" alt="BFNA Logo" class="bfna-logo" />
+
+    <footer>
+      <h4>Indo-Pacific Project</h4>
+      <img src="@/assets/images/bfna.svg" alt="BFNA Logo" class="bfna-logo-footer" />
+    </footer>
   </div>
 </template>
 
@@ -18,7 +23,15 @@
   left: 3rem;
   width: 140px;
   z-index: 20;
-  opacity: 0.8;
+  opacity: 1;
+
+  @media (max-width: 900px) {
+    top: 2rem;
+    right: 2rem;
+    width: 100px;
+    left: auto;
+    bottom: auto;
+  }
 }
 
 .page-wrapper {
@@ -26,6 +39,11 @@
   max-height: 100vh;
   background: linear-gradient(to bottom, #022640 5%, #0B4672 105%);
   position: relative;
+
+  @media (max-width: 900px) {
+    max-height: 100%;
+    height: 100%;
+  }
 }
 
 .page-wrapper:before {
@@ -51,6 +69,24 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0) 100%);
+}
+
+footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.2);
+  height: 4rem;
+  padding: 0 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  
+  img {
+    max-width: 100px;
+  }
 
 }
 
