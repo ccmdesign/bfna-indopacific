@@ -81,12 +81,16 @@ footer {
   background: rgba(0, 0, 0, 0.2);
   height: 4rem;
   padding: 0 2rem;
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: space-between;
   
   img {
     max-width: 100px;
+  }
+
+  @media (max-width: 900px) {
+    display: flex;
   }
 
 }
