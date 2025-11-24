@@ -17,6 +17,7 @@ html {
   display: grid;
   grid-template-columns: repeat(12, 1fr);
   grid-template-rows: repeat(7, 1fr);
+  overflow: hidden;
 }
 
 .layout-1 {
