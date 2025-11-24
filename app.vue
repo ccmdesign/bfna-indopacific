@@ -7,10 +7,20 @@
     <div class="bg-image">
       <img src="@/assets/images/planet.png" alt="Planet Background" />
     </div>
+    <img src="@/assets/images/bfna.svg" alt="BFNA Logo" class="bfna-logo" />
   </div>
 </template>
 
 <style scoped>
+.bfna-logo {
+  position: absolute;
+  bottom: 3rem;
+  left: 3rem;
+  width: 140px;
+  z-index: 20;
+  opacity: 0.8;
+}
+
 .page-wrapper {
   max-width: 100vw;
   max-height: 100vh;
