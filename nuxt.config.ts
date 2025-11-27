@@ -8,6 +8,9 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'static'
   },
+  gtag: {
+    id: 'G-F377FSB69V'
+  },
 
   app: {
     head: {
