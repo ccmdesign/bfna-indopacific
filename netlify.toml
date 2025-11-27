@@ -2,7 +2,7 @@
   # Build command for SSG
   command = "npm run generate"
   # The directory containing the static files to deploy
-  publish = "dist"
+  publish = ".output/public"
 
 [build.environment]
   NODE_VERSION = "20"
