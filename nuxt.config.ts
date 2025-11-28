@@ -9,7 +9,14 @@ export default defineNuxtConfig({
     preset: 'static'
   },
 
-  plugins: ['~/plugins/gtag.client'],
+  modules: ['nuxt-gtag'],
+
+  gtag: {
+    id: 'G-F377FSB69V',
+    config: {
+      send_page_view: false
+    }
+  },
 
   app: {
     head: {
@@ -18,15 +25,6 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;600&display=swap' },
         { rel: 'stylesheet', href: '/styles.css' }
-      ],
-      script: [
-        { src: 'https://www.googletagmanager.com/gtag/js?id=G-F377FSB69V', async: true },
-        {
-          children: `window.dataLayer = window.dataLayer || [];
-function gtag(){dataLayer.push(arguments);}
-gtag('js', new Date());
-gtag('config', 'G-F377FSB69V', { send_page_view: false });`
-        }
       ]
     }
   },

@@ -1,23 +1,27 @@
+import { useRouter, useTrackEvent } from '#imports';
+
 export default defineNuxtPlugin(() => {
   const router = useRouter();
 
-  const sendPageView = (path: string) => {
-    const gtag = (window as Window & { gtag?: (...args: unknown[]) => void }).gtag;
-
-    if (typeof gtag !== 'function') {
+  const trackPageView = (path: string) => {
+    if (!path) {
       return;
     }
 
-    gtag('event', 'page_view', {
+    useTrackEvent('page_view', {
       page_path: path
     });
   };
 
-  router.afterEach((to) => {
-    sendPageView(to.fullPath);
+  router.afterEach((to, from) => {
+    if (to.fullPath === from.fullPath) {
+      return;
+    }
+
+    trackPageView(to.fullPath);
   });
 
-  if (router.currentRoute.value.fullPath) {
-    sendPageView(router.currentRoute.value.fullPath);
-  }
+  router.isReady().then(() => {
+    trackPageView(router.currentRoute.value.fullPath);
+  });
 });
