@@ -8,9 +8,8 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'static'
   },
-  gtag: {
-    id: 'G-F377FSB69V'
-  },
+
+  plugins: ['~/plugins/gtag.client'],
 
   app: {
     head: {
@@ -19,9 +18,17 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;600&display=swap' },
         { rel: 'stylesheet', href: '/styles.css' }
+      ],
+      script: [
+        { src: 'https://www.googletagmanager.com/gtag/js?id=G-F377FSB69V', async: true },
+        {
+          children: `window.dataLayer = window.dataLayer || [];
+function gtag(){dataLayer.push(arguments);}
+gtag('js', new Date());
+gtag('config', 'G-F377FSB69V', { send_page_view: false });`
+        }
       ]
     }
   },
   css: ['~/assets/styles.css']
 })
-
