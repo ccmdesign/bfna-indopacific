@@ -40,6 +40,10 @@ html {
         display: none;
       }
     }
+
+    @media (max-width: 1200px) {
+      font-size: 4rem;
+    }
   }
 
   .description {
