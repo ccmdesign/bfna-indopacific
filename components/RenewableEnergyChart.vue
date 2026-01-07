@@ -33,10 +33,10 @@
   background: rgba(2, 38, 64, 0.95); /* Deep blue matching the theme */
   backdrop-filter: blur(8px); /* Glass effect */
   color: white;
-  padding: 16px;
+  padding: var(--space-m);
   border-radius: 12px;
   pointer-events: none;
-  font-size: 13px;
+  font-size: var(--size-0);
   font-family: 'Encode Sans', sans-serif;
   z-index: 100;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
@@ -48,17 +48,17 @@
 /* Axis styles */
 .axis-label {
   fill: rgba(255, 255, 255, 0.5);
-  font-size: 16px;
+  font-size: var(--size-0);
   font-family: 'Encode Sans', sans-serif;
 }
 
 .axis-x .axis-label {
-  font-size: 16px;
+  font-size: var(--size-0);
 }
 
 
 .axis-y .axis-label {
-  font-size: 16px;
+  font-size: var(--size-0);
 }
 
 .line-label {
@@ -89,7 +89,7 @@
 .chart-title {
   fill: #fff;
   font-family: 'Encode Sans', sans-serif;
-  font-size: 16px;
+  font-size: var(--size-0);
 }
 
 /* Chart lines */
@@ -113,7 +113,7 @@
 .line-label {
   fill: #fff;
   font-family: 'Encode Sans', sans-serif;
-  font-size: 16px;
+  font-size: var(--size-0);
   font-weight: 300;
   cursor: pointer;
 }
