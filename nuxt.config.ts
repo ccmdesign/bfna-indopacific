@@ -12,10 +12,7 @@ export default defineNuxtConfig({
   modules: ['nuxt-gtag'],
 
   gtag: {
-    id: 'G-F377FSB69V',
-    config: {
-      send_page_view: false
-    }
+    id: 'G-5X2S1H0R18'
   },
 
   app: {
