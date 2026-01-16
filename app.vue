@@ -1,5 +1,5 @@
 <template>
-  <div class="page-wrapper | master-grid layout-1">
+  <div class="page-wrapper | master-grid layout-1 layout-2">
     <RotateDeviceOverlay />
     <GridOverlay />
     <h1 class="title">Renewables <br/>  on the Rise</h1>

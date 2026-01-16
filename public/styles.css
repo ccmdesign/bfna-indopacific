@@ -119,6 +119,25 @@ html {
   }
 }
 
+.layout-2 {
+  @media (min-width: 721px) {
+    .title {
+      font-size: calc(var(--size-5) * 0.8);
+      grid-row: 3 / 3;
+    }
+
+    .description {
+      grid-row: 4 / 5;
+      grid-column: 2 / 5;
+      text-align: right;
+    }
+
+    .chart {
+      grid-column: 6 / 11;
+    }
+  }
+}
+
 
 
 
