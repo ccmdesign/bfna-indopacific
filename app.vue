@@ -18,6 +18,7 @@
   </div>
 </template>
 
+
 <style scoped>
 .bfna-logo {
   position: absolute;
