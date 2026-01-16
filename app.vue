@@ -98,7 +98,7 @@ footer img {
   max-width: var(--size);
   aspect-ratio: 1/1;
   position: absolute;
-  top: calc(var(--size) / 4);
+  top: calc(var(--size) / 10);
   left: calc(var(--size) / -2);
   z-index: 0;
   animation: float 6s ease-in-out infinite;
