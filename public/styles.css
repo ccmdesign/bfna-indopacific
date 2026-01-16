@@ -119,8 +119,8 @@ html {
   }
 }
 
-.layout-2 {
-  @media (min-width: 721px) {
+.layout-1 {
+  @media (min-width: 1400px) {
     .title {
       font-size: calc(var(--size-5) * 0.8);
       grid-row: 3 / 3;
@@ -130,6 +130,7 @@ html {
       grid-row: 4 / 5;
       grid-column: 2 / 5;
       text-align: right;
+      padding-left: 5rem;
     }
 
     .chart {
