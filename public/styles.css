@@ -151,3 +151,39 @@ html {
     object-position: right;
   }
 }
+
+/* Vertical Layout - No globe, everything stacked vertically */
+.layout-vertical {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: auto;
+  min-height: 100svh;
+  padding-bottom: 5rem;
+  overflow: visible;
+
+  .title {
+    text-align: center;
+    padding: 2rem 2rem 1rem 2rem;
+    font-size: var(--size-5);
+    margin: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .description {
+    text-align: center;
+    padding: 1rem 2rem;
+    max-width: 65ch;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .chart {
+    width: 90%;
+    max-width: 900px;
+    height: 60vh;
+    min-height: 500px;
+    margin: 2rem auto;
+  }
+}
