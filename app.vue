@@ -2,8 +2,8 @@
   <div class="page-wrapper | master-grid layout-1">
     <RotateDeviceOverlay />
     <GridOverlay />
-    <h1 class="title">Renewables <br/>  on the Rise</h1>
     <div class="description">
+      <h1 class="title">Renewables on the Rise</h1>
       <p>Amid rising concerns about climate change and energy security, a growing number of states have invested in expanding renewable energy infrastructure. This has been especially visible in the Indo-Pacific, where several countries have become global leaders in solar, wind, hydroelectric and geothermal power generation. However, not every state in the region has embraced renewables so enthusiastically. This infographic displays the 2024 renewable energy usage percentages of the region's largest economies, alongside those of the United States and European Union.</p>
       <p class="source-description"><em>Percentage of electricity produced from renewable sources, which include solar, wind, hydropower, bioenergy, geothermal, wave, and tidal.</em></p>
     </div>
