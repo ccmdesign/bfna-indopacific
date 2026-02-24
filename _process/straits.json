@@ -1,0 +1,195 @@
+{
+  "meta": {
+    "title": "Indo-Pacific Maritime Chokepoints",
+    "client": "BFNA",
+    "dataSource": "IMF PortWatch — Daily Chokepoint Transit Calls and Trade Volume Estimates",
+    "dataAPI": "https://services9.arcgis.com/weJ1QsnbMYJlCHdG/arcgis/rest/services/Daily_Chokepoints_Data/FeatureServer/0",
+    "methodology": "Satellite AIS tracking of ~90,000 vessels; cargo mass estimated from ship draft vs. design draft",
+    "dateRange": "January 2019 – February 2026",
+    "updateFrequency": "Weekly (Tuesdays, 9 AM ET)",
+    "supplementaryValueSource": "Verschuur et al. (2025), Nature Communications 16, 10421 — Zenodo DOI: 10.5281/zenodo.15378764",
+    "license": "CC-BY 4.0 (Verschuur dataset); IMF PortWatch public access"
+  },
+  "straits": [
+    {
+      "id": "malacca",
+      "portId": "chokepoint5",
+      "name": "Strait of Malacca",
+      "flowScalar": 100,
+      "valueUSD": 2428000000000,
+      "valueLabel": "~$2.4 trillion",
+      "oilMbpd": 23.7,
+      "lngBcfd": 9.0,
+      "globalShareLabel": "~30% of global trade",
+      "description": "The world's busiest and most economically vital waterway, the Strait of Malacca is at the heart of the Indo-Pacific economy. Each year, approximately 40% of global maritime trade flows through the narrow passage, with much of it stopping over at the Port of Singapore, the world's second-busiest port facility. With a width of approximately 2 miles at its narrowest and a depth of 82 feet at its shallowest, the strait has grown increasingly crowded over time, raising concerns about its future viability.",
+      "topIndustries": ["Mineral products", "Chemicals & allied industries", "Vegetable products"],
+      "threats": ["Overcrowding", "Piracy", "Illicit Trade"],
+      "keyFacts": [
+        "Two-thirds of China's maritime trade volume",
+        "40% of Japan's maritime trade",
+        "China channels 80% of its oil imports through this strait",
+        "Shortest maritime route between the Indian and Pacific Oceans"
+      ]
+    },
+    {
+      "id": "taiwan",
+      "portId": "chokepoint11",
+      "name": "Taiwan Strait",
+      "flowScalar": 62,
+      "valueUSD": 2385000000000,
+      "valueLabel": "~$2.4 trillion",
+      "oilMbpd": null,
+      "lngBcfd": null,
+      "globalShareLabel": "~20% of global maritime trade",
+      "description": "Stretching for approximately 230 miles from North to South, the Taiwan Strait forms the boundary between the People's Republic of China and the Republic of China (Taiwan). While the strait has long been a crucial artery for container ships bound for China, Japan and the Korean Peninsula, it has grown increasingly unsettled in recent decades as the PRC has escalated its military activity in the vicinity of Taiwan. Nevertheless, the waterway accounts for approximately 20% of global maritime trade by value.",
+      "topIndustries": ["Mineral products", "Vegetable products", "Chemicals & allied industries"],
+      "threats": ["Geopolitical Conflict", "Blockades"],
+      "keyFacts": [
+        "$2.45 trillion worth of goods transited in 2022",
+        "$1.3 trillion of Chinese trade (15% of its exports)",
+        "~1,200 ships cross per week",
+        "Critical route for electronics and manufactured goods"
+      ]
+    },
+    {
+      "id": "bab-el-mandeb",
+      "portId": "chokepoint4",
+      "name": "Bab el-Mandeb",
+      "flowScalar": 46,
+      "valueUSD": 1859000000000,
+      "valueLabel": "~$1.9 trillion",
+      "oilMbpd": 8.6,
+      "lngBcfd": 4.0,
+      "globalShareLabel": "~12% of global trade by volume",
+      "description": "A crucial gateway linking the Indian Ocean and the Red Sea (and thus the Suez Canal), the Bab el-Mandeb is among the world's foremost trade corridors. Due to its proximity to the oil-producing nations of the Middle East, the passage plays a key role in maritime petroleum supply chains, with large percentages of global oil exports flowing through it. However, regional conflicts have significantly threatened the stability of the strait, as Houthi militias based in Yemen have launched repeated attacks on commercial vessels.",
+      "topIndustries": ["Mineral products", "Chemicals & allied industries", "Vegetable products"],
+      "threats": ["Piracy", "Extremist Violence", "Geopolitical Conflict"],
+      "keyFacts": [
+        "30% of global container traffic normally transits here",
+        "Oil: 8.6 mb/d in 2023 (4.3 crude, 4.4 products)",
+        "~11% of global seaborne oil trade",
+        "Critical Asia-Europe link via Suez Canal",
+        "Transit volume dropped ~65% in 2024 due to Houthi attacks"
+      ]
+    },
+    {
+      "id": "luzon",
+      "portId": "chokepoint14",
+      "name": "Luzon Strait",
+      "flowScalar": 45,
+      "valueUSD": 294000000000,
+      "valueLabel": "~$294 billion",
+      "oilMbpd": null,
+      "lngBcfd": null,
+      "globalShareLabel": "~13-15% of global trade by volume",
+      "description": "A key waterway separating Taiwan from the Philippines, the Luzon Strait serves as a crucial link in regional and transpacific trade networks. Large percentages of goods bound for the United States and other ports in the Americas transit the strait on a daily basis, while Japan relies heavily on the passage for energy imports. As tensions between the People's Republic of China and the Republic of China (Taiwan) have risen, the strait has also emerged as a key geopolitical faultline.",
+      "topIndustries": [],
+      "threats": ["Geopolitical Conflicts", "Blockades"],
+      "keyFacts": [
+        "Handles nearly double the tonnage of the Strait of Hormuz",
+        "Primary gateway between South China Sea and the Pacific Ocean",
+        "Default route for East Asia to Americas trade (US West Coast, Panama Canal)",
+        "Strategic alternative if Taiwan Strait is disrupted"
+      ]
+    },
+    {
+      "id": "lombok",
+      "portId": "chokepoint15",
+      "name": "Lombok Strait",
+      "flowScalar": 34,
+      "valueUSD": 143000000000,
+      "valueLabel": "~$143 billion",
+      "oilMbpd": null,
+      "lngBcfd": null,
+      "globalShareLabel": "~10% of global trade by volume",
+      "description": "Stretching between the Indonesian islands of Lombok and Bali, the Lombok Strait has risen in economic importance in recent years. Far deeper than the Strait of Malacca, the passage has become an increasingly popular alternate route for the largest container ships. The Indonesian government has worked to encourage this shift by expanding local infrastructure. As it has grown in significance, however, the Lombok Strait has seen increased threats from piracy and environmental degradation.",
+      "topIndustries": [],
+      "threats": ["Piracy", "Environmental Degradation", "Illicit Trade"],
+      "keyFacts": [
+        "Deepwater alternative to Strait of Malacca (150m+ depth vs. 25m)",
+        "Mandatory route for Ultra-Large Crude Carriers and Valemax ore carriers",
+        "Dominated by iron ore and coal — the 'Steel Highway'",
+        "Indonesian government expanding local infrastructure"
+      ]
+    },
+    {
+      "id": "hormuz",
+      "portId": "chokepoint6",
+      "name": "Strait of Hormuz",
+      "flowScalar": 25,
+      "valueUSD": 885000000000,
+      "valueLabel": "~$885 billion",
+      "oilMbpd": 20.9,
+      "lngBcfd": 10.4,
+      "globalShareLabel": "~20% of global petroleum consumption",
+      "description": "The sole maritime connection between the Persian Gulf and the Indian Ocean, the Strait of Hormuz is a critical node in the global petroleum supply chain. For decades, huge volumes of Iranian oil have flowed through the narrow passage, with over 20 million barrels a day transiting in 2024, accounting for approximately 20% of global petroleum consumption. As tensions between Iran and the United States have mounted, however, the strait has become an increasingly contested space.",
+      "topIndustries": ["Mineral products", "Chemicals & allied industries", "Vegetable products"],
+      "threats": ["Geopolitical Conflict", "State-Sponsored Seizures", "Piracy"],
+      "keyFacts": [
+        "Oil: 20.9 mb/d in 2023 (14.9 crude, 5.9 products)",
+        "~30% of global seaborne oil trade",
+        "~20% of global LNG trade",
+        "80% of LNG going to Asia, 20% to Europe",
+        "Lowest physical tonnage of the six, but highest energy-security risk"
+      ]
+    }
+  ],
+  "historical": {
+    "2019": {
+      "malacca": { "capacityMt": 2390, "vessels": { "total": 61728, "container": 15496, "dryBulk": 14954, "tanker": 24460 }, "capacityByType": { "container": 489, "dryBulk": 815, "tanker": 1055 } },
+      "taiwan": { "capacityMt": 1923, "vessels": { "total": 91886, "container": 31265, "dryBulk": 23530, "tanker": 23333 }, "capacityByType": { "container": 622, "dryBulk": 906, "tanker": 328 } },
+      "bab-el-mandeb": { "capacityMt": 905, "vessels": { "total": 19248, "container": 6094, "dryBulk": 4216, "tanker": 6315 }, "capacityByType": { "container": 377, "dryBulk": 208, "tanker": 307 } },
+      "luzon": { "capacityMt": 1278, "vessels": { "total": 22078, "container": 1801, "dryBulk": 10099, "tanker": 7898 }, "capacityByType": { "container": 33, "dryBulk": 724, "tanker": 512 } },
+      "lombok": { "capacityMt": 753, "vessels": { "total": 11936, "container": 95, "dryBulk": 8535, "tanker": 2625 }, "capacityByType": { "container": 1, "dryBulk": 698, "tanker": 52 } },
+      "hormuz": { "capacityMt": 1187, "vessels": { "total": 31263, "container": 4543, "dryBulk": 5626, "tanker": 18891 }, "capacityByType": { "container": 158, "dryBulk": 171, "tanker": 848 } }
+    },
+    "2020": {
+      "malacca": { "capacityMt": 2313, "vessels": { "total": 58511, "container": 14271, "dryBulk": 14938, "tanker": 23883 }, "capacityByType": { "container": 460, "dryBulk": 793, "tanker": 1034 } },
+      "taiwan": { "capacityMt": 1932, "vessels": { "total": 91135, "container": 30534, "dryBulk": 24363, "tanker": 22162 }, "capacityByType": { "container": 624, "dryBulk": 924, "tanker": 313 } },
+      "bab-el-mandeb": { "capacityMt": 900, "vessels": { "total": 19537, "container": 5553, "dryBulk": 5053, "tanker": 6345 }, "capacityByType": { "container": 360, "dryBulk": 252, "tanker": 274 } },
+      "luzon": { "capacityMt": 1380, "vessels": { "total": 23089, "container": 1763, "dryBulk": 10735, "tanker": 8616 }, "capacityByType": { "container": 35, "dryBulk": 779, "tanker": 558 } },
+      "lombok": { "capacityMt": 828, "vessels": { "total": 12383, "container": 47, "dryBulk": 9074, "tanker": 2471 }, "capacityByType": { "container": 0, "dryBulk": 777, "tanker": 48 } },
+      "hormuz": { "capacityMt": 1181, "vessels": { "total": 30973, "container": 4612, "dryBulk": 5370, "tanker": 18891 }, "capacityByType": { "container": 162, "dryBulk": 166, "tanker": 844 } }
+    },
+    "2021": {
+      "malacca": { "capacityMt": 2288, "vessels": { "total": 58547, "container": 14861, "dryBulk": 13953, "tanker": 23724 }, "capacityByType": { "container": 479, "dryBulk": 774, "tanker": 1007 } },
+      "taiwan": { "capacityMt": 2057, "vessels": { "total": 92590, "container": 30861, "dryBulk": 25514, "tanker": 21649 }, "capacityByType": { "container": 643, "dryBulk": 1011, "tanker": 328 } },
+      "bab-el-mandeb": { "capacityMt": 978, "vessels": { "total": 21228, "container": 6155, "dryBulk": 5845, "tanker": 6451 }, "capacityByType": { "container": 374, "dryBulk": 310, "tanker": 279 } },
+      "luzon": { "capacityMt": 1512, "vessels": { "total": 24678, "container": 2181, "dryBulk": 11461, "tanker": 8847 }, "capacityByType": { "container": 51, "dryBulk": 886, "tanker": 564 } },
+      "lombok": { "capacityMt": 922, "vessels": { "total": 12849, "container": 79, "dryBulk": 9666, "tanker": 2432 }, "capacityByType": { "container": 0, "dryBulk": 868, "tanker": 52 } },
+      "hormuz": { "capacityMt": 1314, "vessels": { "total": 32673, "container": 4766, "dryBulk": 5681, "tanker": 20342 }, "capacityByType": { "container": 155, "dryBulk": 192, "tanker": 959 } }
+    },
+    "2022": {
+      "malacca": { "capacityMt": 2760, "vessels": { "total": 75060, "container": 18765, "dryBulk": 17870, "tanker": 30110 }, "capacityByType": { "container": 529, "dryBulk": 935, "tanker": 1259 } },
+      "taiwan": { "capacityMt": 1893, "vessels": { "total": 84792, "container": 29724, "dryBulk": 22943, "tanker": 19469 }, "capacityByType": { "container": 581, "dryBulk": 954, "tanker": 293 } },
+      "bab-el-mandeb": { "capacityMt": 1103, "vessels": { "total": 24362, "container": 6524, "dryBulk": 6592, "tanker": 8011 }, "capacityByType": { "container": 355, "dryBulk": 341, "tanker": 390 } },
+      "luzon": { "capacityMt": 1805, "vessels": { "total": 29918, "container": 2966, "dryBulk": 13694, "tanker": 10271 }, "capacityByType": { "container": 69, "dryBulk": 1080, "tanker": 641 } },
+      "lombok": { "capacityMt": 946, "vessels": { "total": 13127, "container": 65, "dryBulk": 9901, "tanker": 2568 }, "capacityByType": { "container": 0, "dryBulk": 891, "tanker": 53 } },
+      "hormuz": { "capacityMt": 1478, "vessels": { "total": 35930, "container": 5356, "dryBulk": 6011, "tanker": 22474 }, "capacityByType": { "container": 160, "dryBulk": 214, "tanker": 1096 } }
+    },
+    "2023": {
+      "malacca": { "capacityMt": 3036, "vessels": { "total": 79929, "container": 20298, "dryBulk": 20932, "tanker": 30433 }, "capacityByType": { "container": 584, "dryBulk": 1120, "tanker": 1294 } },
+      "taiwan": { "capacityMt": 2045, "vessels": { "total": 87014, "container": 31713, "dryBulk": 23451, "tanker": 19333 }, "capacityByType": { "container": 636, "dryBulk": 1042, "tanker": 304 } },
+      "bab-el-mandeb": { "capacityMt": 1230, "vessels": { "total": 26890, "container": 6732, "dryBulk": 7308, "tanker": 9457 }, "capacityByType": { "container": 359, "dryBulk": 381, "tanker": 473 } },
+      "luzon": { "capacityMt": 1620, "vessels": { "total": 27365, "container": 2561, "dryBulk": 12768, "tanker": 9316 }, "capacityByType": { "container": 60, "dryBulk": 963, "tanker": 585 } },
+      "lombok": { "capacityMt": 972, "vessels": { "total": 13622, "container": 46, "dryBulk": 10324, "tanker": 2654 }, "capacityByType": { "container": 0, "dryBulk": 917, "tanker": 53 } },
+      "hormuz": { "capacityMt": 1435, "vessels": { "total": 36120, "container": 5885, "dryBulk": 5786, "tanker": 21988 }, "capacityByType": { "container": 168, "dryBulk": 203, "tanker": 1053 } }
+    },
+    "2024": {
+      "malacca": { "capacityMt": 3108, "vessels": { "total": 81346, "container": 20996, "dryBulk": 22232, "tanker": 29751 }, "capacityByType": { "container": 629, "dryBulk": 1188, "tanker": 1249 } },
+      "taiwan": { "capacityMt": 2045, "vessels": { "total": 85013, "container": 31572, "dryBulk": 22901, "tanker": 18214 }, "capacityByType": { "container": 638, "dryBulk": 1053, "tanker": 294 } },
+      "bab-el-mandeb": { "capacityMt": 425, "vessels": { "total": 11819, "container": 1962, "dryBulk": 3970, "tanker": 4232 }, "capacityByType": { "container": 27, "dryBulk": 177, "tanker": 212 } },
+      "luzon": { "capacityMt": 1916, "vessels": { "total": 29012, "container": 2795, "dryBulk": 13447, "tanker": 9867 }, "capacityByType": { "container": 67, "dryBulk": 1170, "tanker": 664 } },
+      "lombok": { "capacityMt": 1003, "vessels": { "total": 13505, "container": 75, "dryBulk": 9883, "tanker": 2808 }, "capacityByType": { "container": 0, "dryBulk": 952, "tanker": 49 } },
+      "hormuz": { "capacityMt": 1383, "vessels": { "total": 36232, "container": 6209, "dryBulk": 5794, "tanker": 21428 }, "capacityByType": { "container": 166, "dryBulk": 212, "tanker": 994 } }
+    },
+    "2025": {
+      "malacca": { "capacityMt": 3305, "vessels": { "total": 85066, "container": 22397, "dryBulk": 23477, "tanker": 29930 }, "capacityByType": { "container": 680, "dryBulk": 1286, "tanker": 1293 } },
+      "taiwan": { "capacityMt": 2164, "vessels": { "total": 86636, "container": 32656, "dryBulk": 22680, "tanker": 18688 }, "capacityByType": { "container": 677, "dryBulk": 1097, "tanker": 327 } },
+      "bab-el-mandeb": { "capacityMt": 438, "vessels": { "total": 12076, "container": 2417, "dryBulk": 3618, "tanker": 4159 }, "capacityByType": { "container": 33, "dryBulk": 176, "tanker": 218 } },
+      "luzon": { "capacityMt": 1505, "vessels": { "total": 24091, "container": 3001, "dryBulk": 10713, "tanker": 7830 }, "capacityByType": { "container": 71, "dryBulk": 920, "tanker": 501 } },
+      "lombok": { "capacityMt": 1080, "vessels": { "total": 13021, "container": 88, "dryBulk": 9579, "tanker": 2756 }, "capacityByType": { "container": 1, "dryBulk": 1024, "tanker": 53 } },
+      "hormuz": { "capacityMt": 1299, "vessels": { "total": 34863, "container": 6361, "dryBulk": 5461, "tanker": 19998 }, "capacityByType": { "container": 161, "dryBulk": 209, "tanker": 918 } }
+    }
+  }
+}
