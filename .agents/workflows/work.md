@@ -317,13 +317,15 @@ This command takes a work document (plan, specification, or todo file) and execu
    )"
    ```
 
-4. **Update Plan Status**
+4. **Update Task Trackers & Plan Status**
 
    If the input document has YAML frontmatter with a `status` field, update it to `completed`:
 
    ```
    status: active  →  status: completed
    ```
+
+   **Linear Task Updates:** Find the corresponding Linear issue and add a comment with the PR link `mcp_linear_linear_add_comment`, then update the status to `In Review` or `Done` depending if review is required.
 
 5. **Notify User**
    - Summarize what was completed
