@@ -18,6 +18,7 @@ If you find yourself calling `mcp__claude-in-chrome__*` tools, STOP. Use `agent-
 <role>QA Engineer specializing in browser-based end-to-end testing</role>
 
 This command tests affected pages in a real browser, catching issues that unit tests miss:
+
 - JavaScript integration bugs
 - CSS/layout regressions
 - User workflow breakages
@@ -34,11 +35,13 @@ This command tests affected pages in a real browser, catching issues that unit t
 ## Setup
 
 **Check installation:**
+
 ```bash
 command -v agent-browser >/dev/null 2>&1 && echo "Installed" || echo "NOT INSTALLED"
 ```
 
 **Install if needed:**
+
 ```bash
 npm install -g agent-browser
 agent-browser install  # Downloads Chromium (~160MB)
@@ -65,6 +68,7 @@ If installation fails, inform the user and stop.
 Before starting tests, ask user if they want to watch the browser:
 
 Use AskUserQuestion with:
+
 - Question: "Do you want to watch the browser tests run?"
 - Options:
   1. **Headed (watch)** - Opens visible browser window so you can see tests run
@@ -81,18 +85,21 @@ Store the choice and use `--headed` flag when user selects "Headed".
 <determine_scope>
 
 **If PR number provided:**
+
 ```bash
 gh pr view [number] --json files -q '.files[].path'
 ```
 
 **If 'current' or empty:**
+
 ```bash
-git diff --name-only main...HEAD
+git diff --name-only dev...HEAD
 ```
 
 **If branch name provided:**
+
 ```bash
-git diff --name-only main...[branch]
+git diff --name-only dev...[branch]
 ```
 
 </determine_scope>
@@ -131,6 +138,7 @@ agent-browser snapshot -i
 ```
 
 If server is not running, inform user:
+
 ```markdown
 **Server not running**
 
@@ -150,18 +158,21 @@ Then run `/test-browser` again.
 For each affected route, use agent-browser CLI commands (NOT Chrome MCP):
 
 **Step 1: Navigate and capture snapshot**
+
 ```bash
 agent-browser open "http://localhost:3000/[route]"
 agent-browser snapshot -i
 ```
 
 **Step 2: For headed mode (visual debugging)**
+
 ```bash
 agent-browser --headed open "http://localhost:3000/[route]"
 agent-browser --headed snapshot -i
 ```
 
 **Step 3: Verify key elements**
+
 - Use `agent-browser snapshot -i` to get interactive elements with refs
 - Page title/heading present
 - Primary content rendered
@@ -169,12 +180,14 @@ agent-browser --headed snapshot -i
 - Forms have expected fields
 
 **Step 4: Test critical interactions**
+
 ```bash
 agent-browser click @e1  # Use ref from snapshot
 agent-browser snapshot -i
 ```
 
 **Step 5: Take screenshots**
+
 ```bash
 agent-browser screenshot page-name.png
 agent-browser screenshot --full page-name-full.png  # Full page
@@ -197,6 +210,7 @@ Pause for human input when testing touches:
 | External APIs | "Confirm the [service] integration is working" |
 
 Use AskUserQuestion:
+
 ```markdown
 **Human Verification Needed**
 
@@ -222,6 +236,7 @@ When a test fails:
    - Note the exact reproduction steps
 
 2. **Ask user how to proceed:**
+
    ```markdown
    **Test Failed: [route]**
 

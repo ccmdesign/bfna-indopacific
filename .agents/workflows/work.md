@@ -33,9 +33,8 @@ This command takes a work document (plan, specification, or todo file) and execu
    current_branch=$(git branch --show-current)
    default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
 
-   # Fallback if remote HEAD isn't set
    if [ -z "$default_branch" ]; then
-     default_branch=$(git rev-parse --verify origin/main >/dev/null 2>&1 && echo "main" || echo "master")
+     default_branch=$(git rev-parse --verify origin/dev >/dev/null 2>&1 && echo "dev" || echo "master")
    fi
    ```
 
@@ -47,13 +46,16 @@ This command takes a work document (plan, specification, or todo file) and execu
    **If on the default branch**, choose how to proceed:
 
    **Option A: Create a new branch**
+
    ```bash
    git pull origin [default_branch]
    git checkout -b feature-branch-name
    ```
+
    Use a meaningful name based on the work (e.g., `feat/user-authentication`, `fix/email-validation`).
 
    **Option B: Use a worktree (recommended for parallel development)**
+
    ```bash
    skill: git-worktree
    # The skill will create a new branch from the default branch in an isolated worktree
@@ -126,6 +128,7 @@ This command takes a work document (plan, specification, or todo file) and execu
    **Heuristic:** "Can I write a commit message that describes a complete, valuable change? If yes, commit. If the message would be 'WIP' or 'partial X', wait."
 
    **Commit workflow:**
+
    ```bash
    # 1. Verify tests pass (use project's test command)
    # Examples: bin/rails test, npm test, pytest, go test, etc.
@@ -237,19 +240,23 @@ This command takes a work document (plan, specification, or todo file) and execu
    For **any** design changes, new views, or UI modifications, you MUST capture and upload screenshots:
 
    **Step 1: Start dev server** (if not running)
+
    ```bash
    bin/dev  # Run in background
    ```
 
    **Step 2: Capture screenshots with agent-browser CLI**
+
    ```bash
    agent-browser open http://localhost:3000/[route]
    agent-browser snapshot -i
    agent-browser screenshot output.png
    ```
+
    See the `agent-browser` skill for detailed usage.
 
    **Step 3: Upload using imgup skill**
+
    ```bash
    skill: imgup
    # Then upload each screenshot:
@@ -313,6 +320,7 @@ This command takes a work document (plan, specification, or todo file) and execu
 4. **Update Plan Status**
 
    If the input document has YAML frontmatter with a `status` field, update it to `completed`:
+
    ```
    status: active  →  status: completed
    ```
@@ -351,6 +359,7 @@ Or explicitly request: "Use swarm mode for this work"
 When swarm mode is enabled, the workflow changes:
 
 1. **Create Team**
+
    ```
    Teammate({ operation: "spawnTeam", team_name: "work-{timestamp}" })
    ```
@@ -361,6 +370,7 @@ When swarm mode is enabled, the workflow changes:
    - Independent tasks have no blockers (can run in parallel)
 
 3. **Spawn Specialized Teammates**
+
    ```
    Task({
      team_name: "work-{timestamp}",
@@ -385,6 +395,7 @@ When swarm mode is enabled, the workflow changes:
    - Handle plan approval if required
 
 5. **Cleanup**
+
    ```
    Teammate({ operation: "requestShutdown", target_agent_id: "implementer" })
    Teammate({ operation: "requestShutdown", target_agent_id: "tester" })
