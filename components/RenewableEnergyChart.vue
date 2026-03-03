@@ -127,17 +127,18 @@
 </style>
 
 <script setup lang="ts">
+import csvString from '~/data/renewables/dataset.csv?raw';
 import * as d3 from 'd3';
 import { onMounted, ref, onUnmounted } from 'vue';
 
 const chartContainer = ref<HTMLElement | null>(null);
 const resizeObserver = ref<ResizeObserver | null>(null);
 
-onMounted(async () => {
-  if (!chartContainer.value) return;
+// Parse CSV at module scope -- pure function, SSR-safe
+const rawData = d3.csvParse(csvString);
 
-  // Load and parse data
-  const rawData = await d3.csv('/dataset.csv');
+onMounted(() => {
+  if (!chartContainer.value) return;
   
   // Transform data
   const columns = rawData.columns.slice(1);

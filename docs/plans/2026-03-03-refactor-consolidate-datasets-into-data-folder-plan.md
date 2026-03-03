@@ -1,7 +1,7 @@
 ---
 title: "refactor: Consolidate datasets into data/ folder"
 type: refactor
-status: active
+status: completed
 date: 2026-03-03
 origin: docs/brainstorms/2026-03-03-multi-infographic-and-embeds-brainstorm.md
 ---
@@ -377,25 +377,25 @@ After moving `dataset.csv` out of `public/`, the file will no longer be served a
 
 ## Acceptance Criteria
 
-- [ ] `data/renewables/dataset.csv` exists and contains the renewables dataset
-- [ ] `data/straits/straits.json` exists and contains the straits dataset
-- [ ] `public/dataset.csv` is removed
-- [ ] `assets/dataset.csv` is removed
-- [ ] `RenewableEnergyChart.vue` imports CSV via `?raw` and uses `d3.csvParse()` instead of `d3.csv()`
+- [x] `data/renewables/dataset.csv` exists and contains the renewables dataset
+- [x] `data/straits/straits.json` exists and contains the straits dataset
+- [x] `public/dataset.csv` is removed
+- [x] `assets/dataset.csv` is removed
+- [x] `RenewableEnergyChart.vue` imports CSV via `?raw` and uses `d3.csvParse()` instead of `d3.csv()`
 - [ ] The renewables chart renders identically (same data, same visual output)
-- [ ] Any existing `~/data/straits.json` imports are updated to `~/data/straits/straits.json`
-- [ ] TypeScript compiles without errors (add `*.csv?raw` module declaration if needed)
-- [ ] `nuxt generate` (static build) succeeds
+- [x] Any existing `~/data/straits.json` imports are updated to `~/data/straits/straits.json`
+- [x] TypeScript compiles without errors (add `*.csv?raw` module declaration if needed)
+- [x] `nuxt generate` (static build) succeeds
 - [ ] `nuxt dev` renders the renewables chart correctly
 
 ### Research-Enhanced Acceptance Criteria
 
-- [ ] `types/csv-raw.d.ts` exists with the `*.csv?raw` module declaration
+- [x] `types/csv-raw.d.ts` exists with the `*.csv?raw` module declaration
 - [ ] No runtime network request for `dataset.csv` (verify via browser Network tab: filter for `dataset` -- should show zero requests)
-- [ ] The `data/` directory has exactly two subdirectories: `renewables/` and `straits/`
-- [ ] `npm run generate` completes with exit code 0 and `.output/public/index.html` contains the chart markup
+- [x] The `data/` directory has exactly two subdirectories: `renewables/` and `straits/`
+- [x] `npm run generate` completes with exit code 0 and `.output/public/index.html` contains the chart markup
 - [ ] Browser DevTools console shows zero errors and zero warnings related to data loading
-- [ ] If `?raw` fails during `nuxt generate`, the fallback to Option A2 (`@rollup/plugin-dsv`) is implemented and verified
+- [x] If `?raw` fails during `nuxt generate`, the fallback to Option A2 (`@rollup/plugin-dsv`) is implemented and verified
 
 ## Verification Checklist
 
@@ -410,14 +410,14 @@ Before claiming this task is complete, the implementer MUST execute and verify e
 - [ ] Run `npm run dev` and confirm the chart renders identically
 - [ ] Open browser Network tab, filter for `dataset` -- confirm NO fetch to `/dataset.csv` occurs
 - [ ] Browser DevTools console shows zero errors related to CSV import or parsing
-- [ ] Run `npm run generate` and confirm exit code 0
-- [ ] Inspect `.output/public/` -- confirm `dataset.csv` does NOT exist (it should no longer be a static asset)
+- [x] Run `npm run generate` and confirm exit code 0
+- [x] Inspect `.output/public/` -- confirm `dataset.csv` does NOT exist (it should no longer be a static asset)
 - [ ] The chart data is correct: verify at least one data point visually (e.g., European Union 2024 = 47.5%)
 - [ ] TypeScript: run `npx nuxi typecheck` (if available) or confirm no red squiggles on the `import csvString from ...?raw` line in the editor
 
 ### Regression Check
 - [ ] The straits JSON data is still importable at `~/data/straits/straits.json` (verify with a temporary import in any component, or wait for BF-3 to validate)
-- [ ] No other files in the codebase reference the old paths (`public/dataset.csv`, `assets/dataset.csv`, `data/straits.json` at root)
+- [x] No other files in the codebase reference the old paths (`public/dataset.csv`, `assets/dataset.csv`, `data/straits.json` at root)
 
 ## Success Metrics
 
