@@ -63,6 +63,12 @@ html {
   overflow: hidden;
 }
 
+/* layout-2: straits infographic grid — full definition in BF-38 */
+.layout-2 {
+  /* Placeholder renders with display:contents + grid-column:1/-1.
+     The real straits grid tracks will be defined when BF-38 lands. */
+}
+
 .layout-1 {
   .title {
     font-size: var(--size-5);

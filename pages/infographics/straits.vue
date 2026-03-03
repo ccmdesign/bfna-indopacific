@@ -2,7 +2,7 @@
 definePageMeta({
   layoutClass: 'layout-2',
   footerSource: {
-    url: '#',
+    url: 'https://portwatch.imf.org/',
     label: 'Source: IMF PortWatch'
   }
 })

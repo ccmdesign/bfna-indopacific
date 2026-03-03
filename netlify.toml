@@ -13,7 +13,6 @@
   for = "/embed/*"
   [headers.values]
     Content-Security-Policy = "frame-ancestors *"
-    X-Frame-Options = "SAMEORIGIN"
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"

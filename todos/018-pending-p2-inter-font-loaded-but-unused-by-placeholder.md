@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "018"
 tags: [code-review, performance, quality, nuxt, BF-72]

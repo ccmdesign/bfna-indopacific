@@ -1,3 +1,6 @@
+<script setup>
+</script>
+
 <template>
   <div class="straits-infographic">
     <div class="placeholder-content">

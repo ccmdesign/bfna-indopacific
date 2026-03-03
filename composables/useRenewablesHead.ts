@@ -23,6 +23,7 @@ export function useRenewablesHead(overrides: UseHeadInput = {}) {
   useHead({
     ...base,
     ...overrides,
-    link: [...(base.link as any[]), ...((overrides.link as any[]) || [])]
+    link: [...(base.link as any[]), ...((overrides.link as any[]) || [])],
+    meta: [...((base.meta as any[]) || []), ...((overrides.meta as any[]) || [])]
   })
 }

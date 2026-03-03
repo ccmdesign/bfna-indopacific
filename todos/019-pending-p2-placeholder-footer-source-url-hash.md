@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "019"
 tags: [code-review, quality, ux, BF-72]
