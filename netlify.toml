@@ -23,8 +23,11 @@
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
+    Content-Security-Policy = "frame-ancestors 'none'"
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=(), fullscreen=(self)"
 
 [[redirects]]
   # Fallback for SPA-like routing

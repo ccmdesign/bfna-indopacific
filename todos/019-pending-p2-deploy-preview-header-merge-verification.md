@@ -1,5 +1,5 @@
 ---
-status: pending
+status: wont_fix
 priority: p2
 issue_id: "019"
 tags: [code-review, security, headers, netlify, verification]
@@ -72,6 +72,7 @@ curl -sI https://<preview-url>/ | grep -i 'x-frame-options'
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Identified during PR #9 code review | Netlify header merging behavior is undocumented; deploy preview is the only reliable verification |
+| 2026-03-03 | Marked wont_fix: this is a manual verification task requiring a live Netlify deploy preview URL, not a code change. Must be performed post-deploy by running curl commands against the preview URL. | Cannot be automated without a deployed environment |
 
 ## Resources
 

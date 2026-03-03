@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "017"
 tags: [code-review, security, headers, netlify]
@@ -67,6 +67,7 @@ The `/*` catch-all header block in `netlify.toml` is missing `Referrer-Policy` a
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Identified during PR #9 code review | Header asymmetry between route blocks |
+| 2026-03-03 | Resolved (Option A): added `Referrer-Policy` and `Permissions-Policy` to `/*` catch-all block in `netlify.toml` | Consistent security posture across all route blocks |
 
 ## Resources
 

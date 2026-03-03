@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "018"
 tags: [code-review, security, headers, csp, netlify]
@@ -66,6 +66,7 @@ The `/*` catch-all header block in `netlify.toml` relies solely on `X-Frame-Opti
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Identified during PR #9 code review | CSP and X-Frame-Options should be used together per OWASP |
+| 2026-03-03 | Resolved (Option A): added `Content-Security-Policy = "frame-ancestors 'none'"` to `/*` catch-all block in `netlify.toml` | Defense-in-depth alongside X-Frame-Options: DENY |
 
 ## Resources
 
