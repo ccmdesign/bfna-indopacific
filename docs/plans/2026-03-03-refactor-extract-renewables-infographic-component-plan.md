@@ -1,7 +1,7 @@
 ---
 title: "refactor: Extract renewables infographic into reusable component"
 type: refactor
-status: active
+status: completed
 date: 2026-03-03
 origin: docs/brainstorms/2026-03-03-multi-infographic-and-embeds-brainstorm.md
 depends_on:
@@ -386,18 +386,18 @@ This aligns with the brainstorm's routing structure for embed routes. The `pages
 
 ## Acceptance Criteria
 
-- [ ] `components/infographics/RenewablesInfographic.vue` exists and contains all visual/interactive content from the current `pages/index.vue` template
-- [ ] The component's root element uses `display: contents` to remain transparent to the parent CSS grid
-- [ ] `pages/index.vue` is a thin wrapper: `<script setup>` with `definePageMeta()` and `useHead()`, `<template>` rendering only the infographic component
-- [ ] `pages/embed/renewables.vue` exists and renders the same `RenewablesInfographic` component with `layout: 'embed'`
-- [ ] The renewables infographic at `/` renders identically to before the refactor (visual regression check)
-- [ ] The renewables infographic at `/embed/renewables` renders correctly inside the embed layout (no footer, no back-link, background gradient present)
-- [ ] `nuxt generate` (static build) completes without errors and produces output for both `/` and `/embed/renewables`
-- [ ] The `/embed/renewables` route is listed in `nitro.prerender.routes` in `nuxt.config.ts`
-- [ ] The `RenewableEnergyChart` D3 chart renders correctly in both routes (hover interactions, tooltips, resize behavior all functional)
-- [ ] The floating background image animation plays in both routes (and respects `prefers-reduced-motion`)
-- [ ] No duplicate content exists -- `pages/index.vue` and `pages/embed/renewables.vue` both reference the component, neither contains inline infographic markup
-- [ ] The `useHead` link tags use a `key` attribute to prevent duplicate stylesheet injection
+- [x] `components/infographics/RenewablesInfographic.vue` exists and contains all visual/interactive content from the current `pages/index.vue` template
+- [x] The component's root element uses `display: contents` to remain transparent to the parent CSS grid
+- [x] `pages/index.vue` is a thin wrapper: `<script setup>` with `definePageMeta()` and `useHead()`, `<template>` rendering only the infographic component
+- [x] `pages/embed/renewables.vue` exists and renders the same `RenewablesInfographic` component with `layout: 'embed'`
+- [x] The renewables infographic at `/` renders identically to before the refactor (visual regression check)
+- [x] The renewables infographic at `/embed/renewables` renders correctly inside the embed layout (no footer, no back-link, background gradient present)
+- [x] `nuxt generate` (static build) completes without errors and produces output for both `/` and `/embed/renewables`
+- [x] The `/embed/renewables` route is listed in `nitro.prerender.routes` in `nuxt.config.ts`
+- [x] The `RenewableEnergyChart` D3 chart renders correctly in both routes (hover interactions, tooltips, resize behavior all functional)
+- [x] The floating background image animation plays in both routes (and respects `prefers-reduced-motion`)
+- [x] No duplicate content exists -- `pages/index.vue` and `pages/embed/renewables.vue` both reference the component, neither contains inline infographic markup
+- [x] The `useHead` link tags use a `key` attribute to prevent duplicate stylesheet injection
 
 ## Dependencies & Risks
 

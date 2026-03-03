@@ -2,18 +2,17 @@
 import { useHead } from '#app'
 
 definePageMeta({
-  layoutClass: 'layout-1',
-  showBackLink: false,
-  footerSource: {
-    url: 'https://ourworldindata.org/grapher/share-of-electricity-production-from-renewable-sources?time=earliest..2024&country=CHN~JPN~IND~KOR~AUS~IDN~TWN~THA~USA~EU+%28Ember%29',
-    label: 'Source: Our World in Data'
-  }
+  layout: 'embed',
+  layoutClass: 'layout-1'
 })
 
 useHead({
   title: 'Renewables on the Rise',
   link: [
     { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap', key: 'inter-font' }
+  ],
+  meta: [
+    { name: 'robots', content: 'noindex, nofollow' }
   ]
 })
 </script>
