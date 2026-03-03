@@ -20,7 +20,7 @@ useHead({
     </div>
     <RenewableEnergyChart class="chart"/>
     <div class="bg-image">
-      <img src="@/assets/images/background.png" alt="Planet Background" />
+      <img src="@/assets/images/background.png" alt="" role="presentation" />
     </div>
     <footer>
       <a href="https://ourworldindata.org/grapher/share-of-electricity-production-from-renewable-sources?time=earliest..2024&country=CHN~JPN~IND~KOR~AUS~IDN~TWN~THA~USA~EU+%28Ember%29" target="_blank" rel="noopener noreferrer" class="source-link">Source: Our World in Data</a>
@@ -30,23 +30,6 @@ useHead({
 </template>
 
 <style scoped>
-.bfna-logo {
-  position: absolute;
-  bottom: 3rem;
-  left: 3rem;
-  width: 140px;
-  z-index: 20;
-  opacity: 1;
-
-  @media (max-width: 900px) {
-    top: 2rem;
-    right: 2rem;
-    width: 100px;
-    left: auto;
-    bottom: auto;
-  }
-}
-
 .page-wrapper {
   max-width: 100vw;
   max-height: 100vh;
@@ -120,6 +103,12 @@ footer img {
   }
   50% {
     transform: translateY(-1svh);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-image {
+    animation: none;
   }
 }
 
