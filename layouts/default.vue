@@ -1,8 +1,23 @@
-<script setup>
+<script setup lang="ts">
+interface FooterSource {
+  url: string
+  label: string
+}
+
+declare module '#app' {
+  interface PageMeta {
+    layoutClass?: string
+    showBackLink?: boolean
+    footerSource?: FooterSource
+    backLinkTarget?: string
+  }
+}
+
 const route = useRoute()
-const layoutClass = computed(() => route.meta.layoutClass || '')
+const layoutClass = computed(() => (route.meta.layoutClass as string) || '')
 const showBackLink = computed(() => route.meta.showBackLink !== false && route.path !== '/')
-const footerSource = computed(() => route.meta.footerSource)
+const footerSource = computed(() => route.meta.footerSource as FooterSource | undefined)
+const backLinkTarget = computed(() => (route.meta.backLinkTarget as string) || '/')
 </script>
 
 <template>
@@ -11,7 +26,7 @@ const footerSource = computed(() => route.meta.footerSource)
     <GridOverlay />
 
     <nav v-if="showBackLink" aria-label="Back navigation" class="back-link-nav">
-      <NuxtLink to="/">Back to home</NuxtLink>
+      <NuxtLink :to="backLinkTarget">Back to home</NuxtLink>
     </nav>
 
     <slot />
@@ -24,7 +39,6 @@ const footerSource = computed(() => route.meta.footerSource)
          class="source-link">
         {{ footerSource.label }}
       </a>
-      <span v-else></span>
       <img src="@/assets/images/bfna.svg" alt="BFNA Logo" class="bfna-logo-footer" />
     </footer>
   </div>
@@ -34,6 +48,7 @@ const footerSource = computed(() => route.meta.footerSource)
 .page-wrapper {
   max-width: 100vw;
   max-height: 100vh;
+  padding-bottom: 4rem;
   background: linear-gradient(to bottom, #0D0D0D 5%, #022640 105%);
   position: relative;
 
@@ -85,6 +100,7 @@ footer {
 
 footer img {
   max-width: 100px;
+  margin-left: auto;
 }
 
 .back-link-nav {
