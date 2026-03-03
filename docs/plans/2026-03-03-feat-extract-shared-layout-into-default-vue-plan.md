@@ -1,7 +1,7 @@
 ---
 title: "feat: Extract shared layout into layouts/default.vue"
 type: feat
-status: active
+status: completed
 date: 2026-03-03
 linear: BF-69
 origin: docs/brainstorms/2026-03-03-multi-infographic-and-embeds-brainstorm.md
@@ -387,21 +387,21 @@ This order ensures page styles can override layout styles when needed.
 
 ### Functional Requirements
 
-- [ ] `layouts/` directory exists with `layouts/default.vue`
-- [ ] `layouts/default.vue` contains: wrapper with `.page-wrapper.master-grid`, background gradient (main + `::before` + `::after`), `<RotateDeviceOverlay />`, `<GridOverlay />`, footer with BFNA logo, `<slot />` for page content
-- [ ] `app.vue` wraps `<NuxtPage />` inside `<NuxtLayout>` (i.e., `<NuxtLayout><NuxtPage /></NuxtLayout>`)
-- [ ] `pages/index.vue` no longer contains the wrapper div, background gradient styles, footer, `<RotateDeviceOverlay />`, or `<GridOverlay />`
-- [ ] `pages/index.vue` retains: description block, `<RenewableEnergyChart />`, background image (planet), page-specific scoped styles, `useHead()` call
-- [ ] The renewables page at `/` renders pixel-identically to before the extraction
-- [ ] A minimal back-link navigation element exists in the layout (even if hidden on the homepage)
-- [ ] The `.layout-1` grid placement class is applied to the layout wrapper via `definePageMeta({ layoutClass: 'layout-1' })` + computed class binding
-- [ ] Footer source attribution is handled via `definePageMeta({ footerSource: { url, label } })` + layout reads `route.meta.footerSource`
-- [ ] Back-link `<nav>` element has `aria-label="Back navigation"` for accessibility
+- [x] `layouts/` directory exists with `layouts/default.vue`
+- [x] `layouts/default.vue` contains: wrapper with `.page-wrapper.master-grid`, background gradient (main + `::before` + `::after`), `<RotateDeviceOverlay />`, `<GridOverlay />`, footer with BFNA logo, `<slot />` for page content
+- [x] `app.vue` wraps `<NuxtPage />` inside `<NuxtLayout>` (i.e., `<NuxtLayout><NuxtPage /></NuxtLayout>`)
+- [x] `pages/index.vue` no longer contains the wrapper div, background gradient styles, footer, `<RotateDeviceOverlay />`, or `<GridOverlay />`
+- [x] `pages/index.vue` retains: description block, `<RenewableEnergyChart />`, background image (planet), page-specific scoped styles, `useHead()` call
+- [x] The renewables page at `/` renders pixel-identically to before the extraction
+- [x] A minimal back-link navigation element exists in the layout (even if hidden on the homepage)
+- [x] The `.layout-1` grid placement class is applied to the layout wrapper via `definePageMeta({ layoutClass: 'layout-1' })` + computed class binding
+- [x] Footer source attribution is handled via `definePageMeta({ footerSource: { url, label } })` + layout reads `route.meta.footerSource`
+- [x] Back-link `<nav>` element has `aria-label="Back navigation"` for accessibility
 
 ### Non-Functional Requirements
 
-- [ ] `npm run dev` starts without errors
-- [ ] `npm run generate` completes without errors
+- [x] `npm run dev` starts without errors
+- [x] `npm run generate` completes without errors
 - [ ] Browser DevTools console shows zero Vue/Nuxt warnings or errors
 - [ ] No duplicate DOM elements (footer, rotate overlay, grid overlay should appear exactly once)
 
@@ -409,7 +409,7 @@ This order ensures page styles can override layout styles when needed.
 
 - [ ] Visual comparison confirms pixel-identical rendering at `/`
 - [ ] Layout is visible in Nuxt DevTools as the active layout for the page
-- [ ] The `<slot />` content (page elements) participates correctly in the CSS grid
+- [x] The `<slot />` content (page elements) participates correctly in the CSS grid
 - [ ] `mix-blend-mode: overlay` on `.grid-overlay` is visually identical to baseline (verify in DevTools computed styles)
 
 ## Success Metrics
