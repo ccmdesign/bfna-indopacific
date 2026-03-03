@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "013"
 tags: [code-review, architecture, quality, nuxt, BF-71]
@@ -73,6 +73,7 @@ Both `pages/index.vue` and `pages/embed/renewables.vue` contain identical `useHe
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Created during PR #8 code review | Duplication identified across 2 page files sharing the same infographic component |
+| 2026-03-03 | Resolved (Option 1): created `composables/useRenewablesHead.ts` composable, updated `pages/index.vue` and `pages/embed/renewables.vue` to use it | Single source of truth for title and Inter font; embed page retains its noindex meta via overrides |
 
 ## Resources
 

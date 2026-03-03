@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "015"
 tags: [code-review, quality, vue, portability, BF-71]
@@ -60,6 +60,7 @@ import RenewableEnergyChart from '~/components/RenewableEnergyChart.vue'
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Created during PR #8 code review | Template-only SFCs are valid in Nuxt but reduce self-documentation |
+| 2026-03-03 | Resolved (Option 1): added `<script setup>` block with explicit `import RenewableEnergyChart` | Component is now self-documenting with explicit dependency |
 
 ## Resources
 

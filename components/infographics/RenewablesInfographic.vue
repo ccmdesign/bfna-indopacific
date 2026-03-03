@@ -1,3 +1,7 @@
+<script setup>
+import RenewableEnergyChart from '~/components/RenewableEnergyChart.vue'
+</script>
+
 <template>
   <div class="renewables-infographic">
     <div class="description">

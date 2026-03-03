@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "014"
 tags: [code-review, quality, nuxt, BF-71]
@@ -61,6 +61,7 @@ The explicit `showBackLink: false` is therefore redundant for the root route. Wh
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Created during PR #8 code review | Layout already handles root route back-link suppression |
+| 2026-03-03 | Resolved (Option 1): removed `showBackLink: false` from `pages/index.vue` definePageMeta | Layout computed property already returns false for route.path === '/' |
 
 ## Resources
 

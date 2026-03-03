@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "016"
 tags: [code-review, accessibility, nuxt, BF-71]
@@ -63,6 +63,7 @@ app: {
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Created during PR #8 code review | Embed iframes are independent documents needing their own lang |
+| 2026-03-03 | Resolved (Option 1): added `htmlAttrs: { lang: 'en' }` to `nuxt.config.ts` app.head | Applies globally to all routes including embeds |
 
 ## Resources
 
