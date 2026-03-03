@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "010"
 tags: [code-review, security, headers, BF-70]
@@ -58,6 +58,7 @@ The plan document's Enhancement Summary explicitly states: "Added `Referrer-Poli
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Created during PR #7 code review | Plan committed to Permissions-Policy but implementation omitted it |
+| 2026-03-03 | Resolved: added `Permissions-Policy = "camera=(), microphone=(), geolocation=(), fullscreen=(self)"` to `/embed/*` headers in `netlify.toml` | Matches plan commitment; restricts features the app does not use |
 
 ## Resources
 

@@ -45,6 +45,12 @@ const backLinkTarget = computed(() => (route.meta.backLinkTarget as string) || '
 </template>
 
 <style scoped>
+/*
+ * NOTE: Background gradient styles (.page-wrapper, ::before, ::after) are
+ * intentionally duplicated in layouts/embed.vue to keep each layout
+ * self-contained. Update BOTH files when changing the gradient.
+ * See BF-70 plan for rationale.
+ */
 .page-wrapper {
   max-width: 100vw;
   max-height: 100vh;

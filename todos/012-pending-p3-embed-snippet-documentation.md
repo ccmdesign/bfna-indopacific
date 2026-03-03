@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "012"
 tags: [code-review, documentation, security, BF-70]
@@ -66,6 +66,7 @@ The PR adds server-side headers (`frame-ancestors *`) to allow third-party ifram
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Created during PR #7 code review | No embed documentation exists; `overflow: hidden` + `min-height: 1080px` makes dimensions critical for embedding partners |
+| 2026-03-03 | Resolved (Option 1): added "Embedding Infographics" section to `README.md` with example `<iframe>` snippet, `sandbox` attribute guidance, dimension notes, and header documentation | Added to README rather than a separate file to keep docs discoverable |
 
 ## Resources
 

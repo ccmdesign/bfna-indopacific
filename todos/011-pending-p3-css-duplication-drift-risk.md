@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "011"
 tags: [code-review, quality, css, architecture, BF-70]
@@ -61,6 +61,7 @@ The `layouts/embed.vue` duplicates ~40 lines of background gradient CSS from `la
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Created during PR #7 code review | Plan chose duplication over extraction for ~40 lines of CSS; no drift detection mechanism exists |
+| 2026-03-03 | Resolved (Option 1): added cross-reference comments in both `layouts/default.vue` and `layouts/embed.vue` linking them together and referencing BF-70 plan | Comments make duplication intentional and visible to future developers |
 
 ## Resources
 
