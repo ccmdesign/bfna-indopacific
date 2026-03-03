@@ -8,7 +8,12 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'static',
     prerender: {
-      routes: ['/embed/renewables']
+      routes: [
+        '/embed/renewables',
+        '/embed/straits',
+        '/infographics/renewables',
+        '/infographics/straits'
+      ]
     }
   },
 
