@@ -1,7 +1,7 @@
 ---
 title: "feat: Create infographic and embed page routes"
 type: feat
-status: active
+status: completed
 date: 2026-03-03
 linear: BF-72
 origin: docs/brainstorms/2026-03-03-multi-infographic-and-embeds-brainstorm.md
@@ -377,23 +377,23 @@ The `/embed/*` header rule in `netlify.toml` already uses a wildcard pattern. Ad
 
 ## Acceptance Criteria
 
-- [ ] `pages/infographics/renewables.vue` exists and renders `RenewablesInfographic` with the default layout, back-link visible, footer with "Source: Our World in Data"
-- [ ] `pages/infographics/straits.vue` exists and renders `StraitsInfographic` with the default layout (may use placeholder component)
-- [ ] `pages/embed/straits.vue` exists and renders `StraitsInfographic` with the embed layout, `noindex` meta tag set (may use placeholder component)
-- [ ] `pages/embed/renewables.vue` remains unchanged and functional
-- [ ] `nuxt.config.ts` prerender routes include all four paths (`/embed/renewables`, `/embed/straits`, `/infographics/renewables`, `/infographics/straits`)
-- [ ] `nuxt generate` completes without errors and produces HTML files for all four routes
+- [x] `pages/infographics/renewables.vue` exists and renders `RenewablesInfographic` with the default layout, back-link visible, footer with "Source: Our World in Data"
+- [x] `pages/infographics/straits.vue` exists and renders `StraitsInfographic` with the default layout (may use placeholder component)
+- [x] `pages/embed/straits.vue` exists and renders `StraitsInfographic` with the embed layout, `noindex` meta tag set (may use placeholder component)
+- [x] `pages/embed/renewables.vue` remains unchanged and functional
+- [x] `nuxt.config.ts` prerender routes include all four paths (`/embed/renewables`, `/embed/straits`, `/infographics/renewables`, `/infographics/straits`)
+- [x] `nuxt generate` completes without errors and produces HTML files for all four routes
 - [ ] Visiting `/infographics/renewables` in the browser shows the renewables infographic with site chrome (back-link, footer)
 - [ ] Visiting `/embed/renewables` shows the renewables infographic without site chrome
-- [ ] No duplicate code -- each infographic component is defined once and rendered by two page files
+- [x] No duplicate code -- each infographic component is defined once and rendered by two page files
 
 ### Research Insights -- Additional Verification Steps
 
-- [ ] **SSG output verification:** After `nuxt generate`, confirm `.output/public/infographics/renewables/index.html`, `.output/public/infographics/straits/index.html`, `.output/public/embed/renewables/index.html`, and `.output/public/embed/straits/index.html` all exist and contain valid HTML
+- [x] **SSG output verification:** After `nuxt generate`, confirm `.output/public/infographics/renewables/index.html`, `.output/public/infographics/straits/index.html`, `.output/public/embed/renewables/index.html`, and `.output/public/embed/straits/index.html` all exist and contain valid HTML
 - [ ] **Netlify deploy preview:** On the Netlify deploy preview, visit all four routes and confirm the correct page renders (not the homepage fallback)
 - [ ] **Embed iframe test:** Create a simple HTML file that embeds `<iframe src="[deploy-url]/embed/renewables">` and `<iframe src="[deploy-url]/embed/straits">` -- confirm both load without console errors and the `X-Frame-Options` / `frame-ancestors` headers permit embedding
 - [ ] **Back-link navigation:** On `/infographics/renewables`, confirm the back-link reads "Back to home" and navigates to `/`
-- [ ] **Robots meta:** View source on `/embed/straits` and confirm `<meta name="robots" content="noindex, nofollow">` is present in the `<head>`
+- [x] **Robots meta:** View source on `/embed/straits` and confirm `<meta name="robots" content="noindex, nofollow">` is present in the `<head>`
 - [ ] **Head tag isolation:** Confirm that navigating from `/infographics/renewables` to `/infographics/straits` (when both are live) correctly swaps the `<title>` tag -- each page's head composable should replace, not append
 
 ---
