@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "BF-73"
 tags: [code-review, quality, vue]
@@ -74,3 +74,11 @@ The plan document itself acknowledges this: "The Vue/Nuxt convention is `<script
 
 **Learnings:**
 - Keep SFC reordering in a separate commit/PR to avoid mixing cosmetic and functional changes
+
+### 2026-03-03 - Resolved
+
+**By:** Claude Code (todo resolution)
+
+**Actions:**
+- Reordered `components/RenewableEnergyChart.vue` sections from `<template>`, `<style>`, `<script setup>` to `<script setup>`, `<template>`, `<style>`
+- No functional changes introduced -- purely cosmetic reorder following Vue style guide convention

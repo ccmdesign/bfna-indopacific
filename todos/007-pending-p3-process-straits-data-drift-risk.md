@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "BF-73"
 tags: [code-review, architecture, data]
@@ -109,3 +109,11 @@ After the dataset consolidation, `_process/straits.json` and `data/straits/strai
 **Learnings:**
 - The `_process/` directory serves as a data preparation workspace, not a runtime dependency
 - The PR plan already identified this risk but deferred resolution
+
+### 2026-03-03 - Resolved (Option 1)
+
+**By:** Claude Code (todo resolution)
+
+**Actions:**
+- Appended a contributor note to `_process/data-methodology-for-client.md` documenting that `data/straits/straits.json` is the canonical location
+- Chose Option 1 (documentation) over Option 2 (symlink) to avoid cross-platform issues and over Option 3 (deletion) to preserve the data preparation workspace

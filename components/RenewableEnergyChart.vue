@@ -1,4 +1,365 @@
+<script setup lang="ts">
+import csvString from '~/data/renewables/dataset.csv?raw';
+import * as d3 from 'd3';
+import { onMounted, ref, onUnmounted } from 'vue';
 
+const chartContainer = ref<HTMLElement | null>(null);
+const resizeObserver = ref<ResizeObserver | null>(null);
+
+// Parse CSV at module scope -- pure function, SSR-safe
+const rawData = d3.csvParse(csvString);
+
+onMounted(() => {
+  if (!chartContainer.value) return;
+
+  // Transform data
+  const columns = rawData.columns.slice(1);
+  const data = rawData.map(d => {
+    const year = new Date(+d.Year!, 0, 1);
+    const obj: any = { year };
+    columns.forEach(col => {
+      obj[col] = +d[col]!;
+    });
+    return obj;
+  });
+
+  const series = columns.map(name => ({
+    name,
+    values: data.map(d => d[name])
+  }));
+
+  // Chart dimensions
+  const marginTop = 0;
+  const marginRight = 0; // increased to provide more space for labels
+  const marginBottom = 0;
+  const marginLeft = 0;
+
+  const draw = () => {
+    if (!chartContainer.value) return;
+    chartContainer.value.innerHTML = '';
+
+    const width = chartContainer.value.clientWidth;
+    const height = 600;
+
+    if (width === 0) {
+        setTimeout(draw, 100);
+        return;
+    }
+
+    // Scales
+    const x = d3.scaleTime()
+      .domain(d3.extent(data, d => d.year) as [Date, Date])
+      .range([marginLeft, width - marginRight]);
+
+    const y = d3.scaleLinear()
+      .domain([0, d3.max(series, s => d3.max(s.values)) as number]).nice()
+      .range([height - marginBottom, marginTop]);
+
+    // SVG container
+    const svg = d3.select(chartContainer.value)
+      .append('svg')
+      .attr('class', 'chart-svg')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('viewBox', [0, 0, width, height]);
+
+    // Add X axis with even-year ticks only
+    const minYear = d3.min(data, d => d.year.getFullYear())!;
+    const maxYear = d3.max(data, d => d.year.getFullYear())!;
+    const startYear = minYear % 2 === 0 ? minYear : minYear + 1; // Start from first even year
+    const evenYears = d3.range(startYear, maxYear + 1, 2).map(year => new Date(year, 0, 1));
+
+    const xAxis = d3.axisBottom(x)
+      .tickValues(evenYears)
+      .tickSize(0) // Remove default tick size
+      .tickSizeOuter(0);
+
+    const xAxisGroup = svg.append('g')
+      .attr('class', 'axis axis-x')
+      .attr('transform', `translate(0,${height - marginBottom})`)
+      .call(xAxis)
+      .call((g: any) => g.selectAll('text')
+        .attr('class', 'axis-label')
+        .attr('dy', '1.25em')) // Move labels 4px down (adding to default offset)
+      .call((g: any) => g.select('.domain').attr('class', 'axis-domain'));
+
+    // Add custom vertical tick lines that span the full chart height
+    xAxisGroup.selectAll('.tick')
+      .append('line')
+      .attr('class', 'axis-line')
+      .attr('x1', 0)
+      .attr('x2', 0)
+      .attr('y1', -(height - marginBottom - marginTop)) // Extend to top
+      .attr('y2', 0)
+      .attr('stroke', 'url(#axisLineGradient)')
+      .attr('stroke-dasharray', '1 4');
+
+    // Add Y axis with % formatting
+    svg.append('g')
+      .attr('class', 'axis axis-y')
+      .attr('transform', `translate(${marginLeft},0)`)
+      .call(d3.axisLeft(y).ticks(5).tickFormat((d: any) => `${d}%`)) // Add % to tick labels
+      .call((g: any) => g.select('.domain').remove())
+      .call((g: any) => g.selectAll('.tick line').clone()
+          .attr('class', 'axis-grid-line')
+          .attr('x2', width - marginLeft - marginRight))
+      .call((g: any) => g.selectAll('text').attr('class', 'axis-label'));
+
+    // Add chart title at the top center
+    svg.append('text')
+      .attr('class', 'chart-title')
+      .attr('x', width / 2)
+      .attr('y', marginTop + 20)
+      .attr('text-anchor', 'middle')
+      .text('Renewable Energy Share');
+
+    // Add vertical gradient lines for each year
+    const allYears = data.map(d => d.year);
+    svg.append('g')
+      .selectAll('line.year-line')
+      .data(allYears)
+      .join('line')
+      .attr('class', 'year-line')
+      .attr('x1', d => x(d))
+      .attr('x2', d => x(d))
+      .attr('y1', marginTop)
+      .attr('y2', height - marginBottom)
+      .attr('stroke', 'url(#yearLineGradient)')
+      .attr('stroke-width', 1)
+      .attr('stroke-dasharray', '4 4');
+
+    // Custom Color Palette - HSL with 60% saturation for a refined look
+    const colorMap: Record<string, string> = {
+      'European Union': 'hsl(186, 60%, 50%)', // Cyan Accent
+      'Australia': 'hsl(340, 60%, 63%)', // Pink Accent
+      'China': 'hsl(34, 60%, 50%)', // Orange Accent
+      'United States': 'hsl(291, 60%, 49%)', // Purple Accent
+      'Japan': 'hsl(218, 60%, 58%)', // Blue Accent
+      'India': 'hsl(55, 60%, 50%)', // Yellow Accent
+      'Indonesia': 'hsl(151, 60%, 45%)', // Green Accent
+      'Thailand': 'hsl(348, 60%, 55%)', // Red Accent
+      'Taiwan': 'hsl(180, 60%, 55%)', // Light Cyan Accent
+      'South Korea': 'hsl(259, 60%, 56%)' // Deep Purple Accent
+    };
+
+    const color = (name: string) => colorMap[name] || '#ccc';
+
+    // Line generator with smooth curves
+    const line = d3.line<any>()
+      .defined(d => !isNaN(d))
+      .x((d, i) => x(data[i].year))
+      .y(d => y(d))
+      .curve(d3.curveCatmullRom); // Makes lines smooth with bezier curves
+
+    // Draw invisible hover paths with 6px width for easier interaction
+    const hoverPaths = svg.append('g')
+      .attr('class', 'chart-hover-areas')
+      .attr('fill', 'none')
+      .selectAll('path')
+      .data(series)
+      .join('path')
+      .attr('d', (d: any) => line(d.values))
+      .attr('stroke', 'transparent')
+      .attr('stroke-width', 6)
+      .attr('stroke-linejoin', 'round')
+      .attr('stroke-linecap', 'round')
+      .style('cursor', 'pointer');
+
+    // Draw visible lines
+    const path = svg.append('g')
+      .attr('class', 'chart-lines')
+      .attr('fill', 'none')
+      .selectAll('path')
+      .data(series)
+      .join('path')
+      .attr('class', 'chart-line')
+      .attr('d', (d: any) => line(d.values))
+      .attr('stroke', (d: any) => color(d.name))
+      .style('pointer-events', 'none'); // Disable pointer events on visible lines
+
+    // Add hover events to invisible hover paths
+    hoverPaths
+      .on('mouseenter', function(event, d) {
+        // Fade all other lines to 30% opacity
+        path.classed('chart-line-dimmed', true);
+        // Keep hovered line at full opacity
+        path.filter((pathData: any) => pathData.name === d.name)
+          .classed('chart-line-dimmed', false);
+      })
+      .on('mouseleave', function() {
+        // Restore all lines to full opacity
+        path.classed('chart-line-dimmed', false);
+      });
+
+    // Add Labels at the end of lines
+    const labels = svg.append('g')
+      .attr('class', 'line-labels')
+      .selectAll('text')
+      .data(series)
+      .join('text')
+      .attr('class', 'line-label')
+      .attr('x', (d: any) => width - marginRight + 9) // Position label 9px to the right (was 5px)
+      .attr('y', (d: any) => y(d.values[d.values.length - 1])) // Use numeric last value for vertical position
+      .attr('dy', '0') // No vertical offset
+      .attr('dominant-baseline', 'middle') // Center text vertically on the point
+      .attr('text-anchor', 'start') // Align text to the left
+      .text((d: any) => `${d.name} | ${Math.round(d.values[d.values.length - 1])}%`)
+      .on('mouseenter', function(event, d) {
+        // Fade all lines to 30% opacity
+        path.classed('chart-line-dimmed', true);
+        // Find and highlight the corresponding line
+        path.filter((pathData: any) => pathData.name === d.name)
+          .classed('chart-line-dimmed', false);
+      })
+      .on('mouseleave', function() {
+        // Restore all lines to full opacity
+        path.classed('chart-line-dimmed', false);
+      });
+
+    // Collision detection and resolution for labels
+    const minSpacing = 8; // Minimum spacing between labels in pixels
+    const labelHeight = 16; // Font size of labels
+
+    // Get label positions and bounding boxes
+    const labelData = labels.nodes().map((node: any, i: number) => {
+      const bbox = node.getBBox();
+      if (!bbox) return null;
+      const yAttr = node.getAttribute('y');
+      if (!yAttr) return null;
+      const seriesItem = series[i];
+      if (!seriesItem) return null;
+
+      return {
+        node,
+        index: i,
+        y: parseFloat(yAttr),
+        originalY: parseFloat(yAttr),
+        height: bbox.height,
+        name: seriesItem.name
+      };
+    }).filter((item): item is NonNullable<typeof item> => item !== null);
+
+    // Sort by y position
+    labelData.sort((a, b) => a.y - b.y);
+
+    // Iterative collision resolution
+    const maxIterations = 10;
+    for (let iteration = 0; iteration < maxIterations; iteration++) {
+      let hadCollision = false;
+
+      for (let i = 0; i < labelData.length - 1; i++) {
+        const current = labelData[i];
+        const next = labelData[i + 1];
+
+        if (!current || !next) continue;
+
+        const currentBottom = current.y + current.height / 2;
+        const nextTop = next.y - next.height / 2;
+        const gap = nextTop - currentBottom;
+
+        if (gap < minSpacing) {
+          hadCollision = true;
+          // Calculate how much we need to move them apart
+          const overlap = minSpacing - gap;
+          const moveAmount = overlap / 2;
+
+          // Move current up and next down
+          current.y -= moveAmount;
+          next.y += moveAmount;
+        }
+      }
+
+      // If no collisions detected, we're done
+      if (!hadCollision) break;
+
+      // Re-sort after adjustments
+      labelData.sort((a, b) => a.y - b.y);
+    }
+
+    // Apply adjusted positions
+    labelData.forEach(item => {
+      if (item && item.node) {
+        d3.select(item.node).attr('y', item.y);
+      }
+    });
+
+    // Hover interaction
+    const hoverGroup = svg.append('g')
+      .attr('class', 'hover-group')
+      .style('display', 'none');
+
+    hoverGroup.append('line')
+      .attr('class', 'hover-line')
+      .attr('y1', marginTop)
+      .attr('y2', height - marginBottom);
+
+    const tooltip = d3.select(chartContainer.value)
+      .append('div')
+      .attr('class', 'tooltip')
+      .style('opacity', 0);
+
+    svg.on('pointerenter', () => {
+        hoverGroup.style('display', null);
+        tooltip.style('opacity', 1);
+      })
+      .on('pointerleave', () => {
+        hoverGroup.style('display', 'none');
+        tooltip.style('opacity', 0);
+        path.attr('stroke-width', 2);
+      })
+      .on('pointermove', (event) => {
+        const [xm] = d3.pointer(event);
+
+        // Clamp xm to the chart bounds
+        const clampedX = Math.max(marginLeft, Math.min(width - marginRight, xm));
+
+        // Move hover line smoothly to mouse position
+        hoverGroup.attr('transform', `translate(${clampedX},0)`);
+
+        // Find nearest data point for tooltip
+        const i = d3.bisectCenter(data.map(d => x(d.year)), xm);
+
+        const sortedSeries = series.slice().sort((a, b) => b.values[i] - a.values[i]);
+
+        let tooltipHtml = `<div style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: rgba(255,255,255,0.9);">${data[i].year.getFullYear()}</div>`;
+        sortedSeries.forEach(s => {
+            tooltipHtml += `<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+              <span style="width: 8px; height: 8px; background-color: ${color(s.name)}; display: inline-block; border-radius: 50%; box-shadow: 0 0 4px ${color(s.name)};"></span>
+              <span style="color: rgba(255,255,255,0.7);">${s.name}</span>
+              <span style="margin-left: auto; font-weight: 600; color: white;">${Math.round(s.values[i])}%</span>
+            </div>`;
+        });
+
+        const [xPos, yPos] = d3.pointer(event, chartContainer.value);
+
+        // Prevent tooltip from going off screen
+        const tooltipWidth = 200;
+        let left = xPos + 15;
+        if (left + tooltipWidth > width) {
+            left = xPos - tooltipWidth - 15;
+        }
+
+        tooltip
+          .html(tooltipHtml)
+          .style('left', `${left}px`)
+          .style('top', `${yPos}px`);
+      });
+  };
+
+  draw();
+
+  resizeObserver.value = new ResizeObserver(() => {
+    draw();
+  });
+  resizeObserver.value.observe(chartContainer.value);
+});
+
+onUnmounted(() => {
+  if (resizeObserver.value && chartContainer.value) {
+    resizeObserver.value.unobserve(chartContainer.value);
+  }
+});
+</script>
 
 <template>
   <div class="chart-wrapper">
@@ -125,366 +486,3 @@
   stroke-dasharray: 4 4;
 }
 </style>
-
-<script setup lang="ts">
-import csvString from '~/data/renewables/dataset.csv?raw';
-import * as d3 from 'd3';
-import { onMounted, ref, onUnmounted } from 'vue';
-
-const chartContainer = ref<HTMLElement | null>(null);
-const resizeObserver = ref<ResizeObserver | null>(null);
-
-// Parse CSV at module scope -- pure function, SSR-safe
-const rawData = d3.csvParse(csvString);
-
-onMounted(() => {
-  if (!chartContainer.value) return;
-  
-  // Transform data
-  const columns = rawData.columns.slice(1);
-  const data = rawData.map(d => {
-    const year = new Date(+d.Year!, 0, 1);
-    const obj: any = { year };
-    columns.forEach(col => {
-      obj[col] = +d[col]!;
-    });
-    return obj;
-  });
-
-  const series = columns.map(name => ({
-    name,
-    values: data.map(d => d[name])
-  }));
-
-  // Chart dimensions
-  const marginTop = 0;
-  const marginRight = 0; // increased to provide more space for labels
-  const marginBottom = 0;
-  const marginLeft = 0;
-  
-  const draw = () => {
-    if (!chartContainer.value) return;
-    chartContainer.value.innerHTML = '';
-
-    const width = chartContainer.value.clientWidth;
-    const height = 600;
-
-    if (width === 0) {
-        setTimeout(draw, 100);
-        return;
-    }
-
-    // Scales
-    const x = d3.scaleTime()
-      .domain(d3.extent(data, d => d.year) as [Date, Date])
-      .range([marginLeft, width - marginRight]);
-
-    const y = d3.scaleLinear()
-      .domain([0, d3.max(series, s => d3.max(s.values)) as number]).nice()
-      .range([height - marginBottom, marginTop]);
-
-    // SVG container
-    const svg = d3.select(chartContainer.value)
-      .append('svg')
-      .attr('class', 'chart-svg')
-      .attr('width', width)
-      .attr('height', height)
-      .attr('viewBox', [0, 0, width, height]);
-
-    // Add X axis with even-year ticks only
-    const minYear = d3.min(data, d => d.year.getFullYear())!;
-    const maxYear = d3.max(data, d => d.year.getFullYear())!;
-    const startYear = minYear % 2 === 0 ? minYear : minYear + 1; // Start from first even year
-    const evenYears = d3.range(startYear, maxYear + 1, 2).map(year => new Date(year, 0, 1));
-    
-    const xAxis = d3.axisBottom(x)
-      .tickValues(evenYears)
-      .tickSize(0) // Remove default tick size
-      .tickSizeOuter(0);
-    
-    const xAxisGroup = svg.append('g')
-      .attr('class', 'axis axis-x')
-      .attr('transform', `translate(0,${height - marginBottom})`)
-      .call(xAxis)
-      .call((g: any) => g.selectAll('text')
-        .attr('class', 'axis-label')
-        .attr('dy', '1.25em')) // Move labels 4px down (adding to default offset)
-      .call((g: any) => g.select('.domain').attr('class', 'axis-domain'));
-    
-    // Add custom vertical tick lines that span the full chart height
-    xAxisGroup.selectAll('.tick')
-      .append('line')
-      .attr('class', 'axis-line')
-      .attr('x1', 0)
-      .attr('x2', 0)
-      .attr('y1', -(height - marginBottom - marginTop)) // Extend to top
-      .attr('y2', 0)
-      .attr('stroke', 'url(#axisLineGradient)')
-      .attr('stroke-dasharray', '1 4');
-
-    // Add Y axis with % formatting
-    svg.append('g')
-      .attr('class', 'axis axis-y')
-      .attr('transform', `translate(${marginLeft},0)`)
-      .call(d3.axisLeft(y).ticks(5).tickFormat((d: any) => `${d}%`)) // Add % to tick labels
-      .call((g: any) => g.select('.domain').remove())
-      .call((g: any) => g.selectAll('.tick line').clone()
-          .attr('class', 'axis-grid-line')
-          .attr('x2', width - marginLeft - marginRight))
-      .call((g: any) => g.selectAll('text').attr('class', 'axis-label'));
-
-    // Add chart title at the top center
-    svg.append('text')
-      .attr('class', 'chart-title')
-      .attr('x', width / 2)
-      .attr('y', marginTop + 20)
-      .attr('text-anchor', 'middle')
-      .text('Renewable Energy Share');
-
-    // Add vertical gradient lines for each year
-    const allYears = data.map(d => d.year);
-    svg.append('g')
-      .selectAll('line.year-line')
-      .data(allYears)
-      .join('line')
-      .attr('class', 'year-line')
-      .attr('x1', d => x(d))
-      .attr('x2', d => x(d))
-      .attr('y1', marginTop)
-      .attr('y2', height - marginBottom)
-      .attr('stroke', 'url(#yearLineGradient)')
-      .attr('stroke-width', 1)
-      .attr('stroke-dasharray', '4 4');
-
-    // Custom Color Palette - HSL with 60% saturation for a refined look
-    const colorMap: Record<string, string> = {
-      'European Union': 'hsl(186, 60%, 50%)', // Cyan Accent
-      'Australia': 'hsl(340, 60%, 63%)', // Pink Accent
-      'China': 'hsl(34, 60%, 50%)', // Orange Accent
-      'United States': 'hsl(291, 60%, 49%)', // Purple Accent
-      'Japan': 'hsl(218, 60%, 58%)', // Blue Accent
-      'India': 'hsl(55, 60%, 50%)', // Yellow Accent
-      'Indonesia': 'hsl(151, 60%, 45%)', // Green Accent
-      'Thailand': 'hsl(348, 60%, 55%)', // Red Accent
-      'Taiwan': 'hsl(180, 60%, 55%)', // Light Cyan Accent
-      'South Korea': 'hsl(259, 60%, 56%)' // Deep Purple Accent
-    };
-    
-    const color = (name: string) => colorMap[name] || '#ccc';
-
-    // Line generator with smooth curves
-    const line = d3.line<any>()
-      .defined(d => !isNaN(d))
-      .x((d, i) => x(data[i].year))
-      .y(d => y(d))
-      .curve(d3.curveCatmullRom); // Makes lines smooth with bezier curves
-
-    // Draw invisible hover paths with 6px width for easier interaction
-    const hoverPaths = svg.append('g')
-      .attr('class', 'chart-hover-areas')
-      .attr('fill', 'none')
-      .selectAll('path')
-      .data(series)
-      .join('path')
-      .attr('d', (d: any) => line(d.values))
-      .attr('stroke', 'transparent')
-      .attr('stroke-width', 6)
-      .attr('stroke-linejoin', 'round')
-      .attr('stroke-linecap', 'round')
-      .style('cursor', 'pointer');
-
-    // Draw visible lines
-    const path = svg.append('g')
-      .attr('class', 'chart-lines')
-      .attr('fill', 'none')
-      .selectAll('path')
-      .data(series)
-      .join('path')
-      .attr('class', 'chart-line')
-      .attr('d', (d: any) => line(d.values))
-      .attr('stroke', (d: any) => color(d.name))
-      .style('pointer-events', 'none'); // Disable pointer events on visible lines
-
-    // Add hover events to invisible hover paths
-    hoverPaths
-      .on('mouseenter', function(event, d) {
-        // Fade all other lines to 30% opacity
-        path.classed('chart-line-dimmed', true);
-        // Keep hovered line at full opacity
-        path.filter((pathData: any) => pathData.name === d.name)
-          .classed('chart-line-dimmed', false);
-      })
-      .on('mouseleave', function() {
-        // Restore all lines to full opacity
-        path.classed('chart-line-dimmed', false);
-      });
-
-    // Add Labels at the end of lines
-    const labels = svg.append('g')
-      .attr('class', 'line-labels')
-      .selectAll('text')
-      .data(series)
-      .join('text')
-      .attr('class', 'line-label')
-      .attr('x', (d: any) => width - marginRight + 9) // Position label 9px to the right (was 5px)
-      .attr('y', (d: any) => y(d.values[d.values.length - 1])) // Use numeric last value for vertical position
-      .attr('dy', '0') // No vertical offset
-      .attr('dominant-baseline', 'middle') // Center text vertically on the point
-      .attr('text-anchor', 'start') // Align text to the left
-      .text((d: any) => `${d.name} | ${Math.round(d.values[d.values.length - 1])}%`)
-      .on('mouseenter', function(event, d) {
-        // Fade all lines to 30% opacity
-        path.classed('chart-line-dimmed', true);
-        // Find and highlight the corresponding line
-        path.filter((pathData: any) => pathData.name === d.name)
-          .classed('chart-line-dimmed', false);
-      })
-      .on('mouseleave', function() {
-        // Restore all lines to full opacity
-        path.classed('chart-line-dimmed', false);
-      });
-
-    // Collision detection and resolution for labels
-    const minSpacing = 8; // Minimum spacing between labels in pixels
-    const labelHeight = 16; // Font size of labels
-    
-    // Get label positions and bounding boxes
-    const labelData = labels.nodes().map((node: any, i: number) => {
-      const bbox = node.getBBox();
-      if (!bbox) return null;
-      const yAttr = node.getAttribute('y');
-      if (!yAttr) return null;
-      const seriesItem = series[i];
-      if (!seriesItem) return null;
-      
-      return {
-        node,
-        index: i,
-        y: parseFloat(yAttr),
-        originalY: parseFloat(yAttr),
-        height: bbox.height,
-        name: seriesItem.name
-      };
-    }).filter((item): item is NonNullable<typeof item> => item !== null);
-
-    // Sort by y position
-    labelData.sort((a, b) => a.y - b.y);
-
-    // Iterative collision resolution
-    const maxIterations = 10;
-    for (let iteration = 0; iteration < maxIterations; iteration++) {
-      let hadCollision = false;
-
-      for (let i = 0; i < labelData.length - 1; i++) {
-        const current = labelData[i];
-        const next = labelData[i + 1];
-        
-        if (!current || !next) continue;
-        
-        const currentBottom = current.y + current.height / 2;
-        const nextTop = next.y - next.height / 2;
-        const gap = nextTop - currentBottom;
-
-        if (gap < minSpacing) {
-          hadCollision = true;
-          // Calculate how much we need to move them apart
-          const overlap = minSpacing - gap;
-          const moveAmount = overlap / 2;
-
-          // Move current up and next down
-          current.y -= moveAmount;
-          next.y += moveAmount;
-        }
-      }
-
-      // If no collisions detected, we're done
-      if (!hadCollision) break;
-
-      // Re-sort after adjustments
-      labelData.sort((a, b) => a.y - b.y);
-    }
-
-    // Apply adjusted positions
-    labelData.forEach(item => {
-      if (item && item.node) {
-        d3.select(item.node).attr('y', item.y);
-      }
-    });
-
-    // Hover interaction
-    const hoverGroup = svg.append('g')
-      .attr('class', 'hover-group')
-      .style('display', 'none');
-
-    hoverGroup.append('line')
-      .attr('class', 'hover-line')
-      .attr('y1', marginTop)
-      .attr('y2', height - marginBottom);
-
-    const tooltip = d3.select(chartContainer.value)
-      .append('div')
-      .attr('class', 'tooltip')
-      .style('opacity', 0);
-
-    svg.on('pointerenter', () => {
-        hoverGroup.style('display', null);
-        tooltip.style('opacity', 1);
-      })
-      .on('pointerleave', () => {
-        hoverGroup.style('display', 'none');
-        tooltip.style('opacity', 0);
-        path.attr('stroke-width', 2);
-      })
-      .on('pointermove', (event) => {
-        const [xm] = d3.pointer(event);
-        
-        // Clamp xm to the chart bounds
-        const clampedX = Math.max(marginLeft, Math.min(width - marginRight, xm));
-        
-        // Move hover line smoothly to mouse position
-        hoverGroup.attr('transform', `translate(${clampedX},0)`);
-
-        // Find nearest data point for tooltip
-        const i = d3.bisectCenter(data.map(d => x(d.year)), xm);
-
-        const sortedSeries = series.slice().sort((a, b) => b.values[i] - a.values[i]);
-        
-        let tooltipHtml = `<div style="font-size: 16px; font-weight: 600; margin-bottom: 8px; color: rgba(255,255,255,0.9);">${data[i].year.getFullYear()}</div>`;
-        sortedSeries.forEach(s => {
-            tooltipHtml += `<div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-              <span style="width: 8px; height: 8px; background-color: ${color(s.name)}; display: inline-block; border-radius: 50%; box-shadow: 0 0 4px ${color(s.name)};"></span>
-              <span style="color: rgba(255,255,255,0.7);">${s.name}</span>
-              <span style="margin-left: auto; font-weight: 600; color: white;">${Math.round(s.values[i])}%</span>
-            </div>`;
-        });
-
-        const [xPos, yPos] = d3.pointer(event, chartContainer.value);
-        
-        // Prevent tooltip from going off screen
-        const tooltipWidth = 200;
-        let left = xPos + 15;
-        if (left + tooltipWidth > width) {
-            left = xPos - tooltipWidth - 15;
-        }
-
-        tooltip
-          .html(tooltipHtml)
-          .style('left', `${left}px`)
-          .style('top', `${yPos}px`);
-      });
-  };
-
-  draw();
-
-  resizeObserver.value = new ResizeObserver(() => {
-    draw();
-  });
-  resizeObserver.value.observe(chartContainer.value);
-});
-
-onUnmounted(() => {
-  if (resizeObserver.value && chartContainer.value) {
-    resizeObserver.value.unobserve(chartContainer.value);
-  }
-});
-</script>

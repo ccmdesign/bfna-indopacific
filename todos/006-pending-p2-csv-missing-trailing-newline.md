@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "BF-73"
 tags: [code-review, quality, data]
@@ -71,3 +71,11 @@ Add a trailing newline to `data/renewables/dataset.csv`.
 
 **Learnings:**
 - This is a quality/hygiene issue, not a functional bug
+
+### 2026-03-03 - Resolved
+
+**By:** Claude Code (todo resolution)
+
+**Actions:**
+- Appended trailing newline to `data/renewables/dataset.csv`
+- Verified via hex dump that file now ends with `0a` (newline byte)
