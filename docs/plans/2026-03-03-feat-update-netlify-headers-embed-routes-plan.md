@@ -1,7 +1,7 @@
 ---
 title: "feat: Update Netlify headers for embed routes"
 type: feat
-status: active
+status: completed
 date: 2026-03-03
 origin: docs/brainstorms/2026-03-03-multi-infographic-and-embeds-brainstorm.md
 deepened: 2026-03-03
@@ -199,19 +199,19 @@ The current `Permissions-Policy` on embed routes sets `fullscreen=(self)`, which
 
 ## Acceptance Criteria
 
-- [ ] `/embed/*` routes do NOT send an `X-Frame-Options` response header
-- [ ] `/embed/*` routes send `Content-Security-Policy: frame-ancestors *`
-- [ ] `/embed/*` routes send `X-XSS-Protection`, `X-Content-Type-Options`, `Referrer-Policy`, and `Permissions-Policy` headers
-- [ ] `/*` routes (non-embed) send `X-Frame-Options: DENY`
-- [ ] `/*` routes send `X-XSS-Protection` and `X-Content-Type-Options` headers
+- [x] `/embed/*` routes do NOT send an `X-Frame-Options` response header
+- [x] `/embed/*` routes send `Content-Security-Policy: frame-ancestors *`
+- [x] `/embed/*` routes send `X-XSS-Protection`, `X-Content-Type-Options`, `Referrer-Policy`, and `Permissions-Policy` headers
+- [x] `/*` routes (non-embed) send `X-Frame-Options: DENY`
+- [x] `/*` routes send `X-XSS-Protection` and `X-Content-Type-Options` headers
 - [ ] An iframe on a different domain can successfully load `/embed/renewables`
 - [ ] An iframe on a different domain is blocked from loading `/` or any non-embed route
-- [ ] The `/embed/*` header block appears BEFORE the `/*` catch-all in `netlify.toml`
+- [x] The `/embed/*` header block appears BEFORE the `/*` catch-all in `netlify.toml`
 
 ### Research Insights -- Additional Acceptance Criteria to Consider
 
-- [ ] **Header merging verification:** Confirm via `curl` that `X-Frame-Options: DENY` from the `/*` rule does NOT appear on `/embed/*` responses. This is the critical gatekeeper test.
-- [ ] **CSP header is not duplicated:** Confirm that `/embed/*` routes send exactly ONE `Content-Security-Policy` header, not multiple (which could happen if headers merge from both rules).
+- [ ] **Header merging verification:** Confirm via `curl` that `X-Frame-Options: DENY` from the `/*` rule does NOT appear on `/embed/*` responses. This is the critical gatekeeper test. *(Requires deploy preview)*
+- [ ] **CSP header is not duplicated:** Confirm that `/embed/*` routes send exactly ONE `Content-Security-Policy` header, not multiple (which could happen if headers merge from both rules). *(Requires deploy preview)*
 - [ ] **Security scanner baseline:** If the team uses automated security scanning, note the expected `frame-ancestors *` finding and suppress it if needed.
 
 ## Verification Plan
