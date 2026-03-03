@@ -10,6 +10,26 @@ depends_on: docs/plans/2026-03-03-feat-introduce-nuxt-file-based-routing-plan.md
 
 # feat: Extract shared layout into layouts/default.vue
 
+## Enhancement Summary
+
+**Deepened on:** 2026-03-03
+**Sections enhanced:** 9
+**Research sources used:** Nuxt 4.x official docs (Context7), Vue 3 SFC CSS Features docs, GitHub issue nuxt/nuxt#23929, nuxt skill (routing.md), vue-best-practices skill, accessibility skill, design-motion-principles skill, presentation-logic-split skill, verification-before-completion skill, architecture-strategist agent, code-simplicity-reviewer agent, performance-oracle agent
+
+### Key Improvements
+1. **Resolved the named-slot ambiguity decisively** -- Research confirms named slots from pages to layouts DO NOT work through `<NuxtPage>` (GitHub issue #23929, still open). The plan now recommends `definePageMeta` as the primary approach (not Option A), eliminating the biggest implementation risk.
+2. **Discovered `mix-blend-mode` stacking context risk is real and actionable** -- CSS spec confirms `mix-blend-mode: overlay` on `<GridOverlay>` creates a new stacking context. Moving it to the layout changes which elements participate in blending. Added concrete verification steps.
+3. **Added `:slotted()` guidance for layout-to-page styling** -- Vue 3 scoped styles do not affect slot content by default. The layout cannot style page elements with scoped selectors unless using `:slotted()`. This affects `.source-link` if it stays in the layout's scoped styles.
+4. **Identified `overflow: hidden` on `.master-grid` as a risk for `position: absolute` elements** -- The `.master-grid` class has `overflow: hidden`, which will clip the footer (`position: absolute; bottom: 0`) and back-link nav if they are positioned outside the grid flow. Added mitigation guidance.
+5. **Strengthened accessibility requirements** -- Added WCAG-compliant back-link navigation with `aria-label`, footer landmark semantics, and `prefers-reduced-motion` audit checklist items.
+
+### New Considerations Discovered
+- Nuxt `definePageMeta` is a compiler macro: values must be serializable and cannot reference component instance state. The `footerSource` object approach works because it uses static literals.
+- The `<GridOverlay>` component runs a `requestAnimationFrame` loop continuously. Placing it in the layout means it runs on every page, not just the current one. This is the intended behavior (shared visual identity) but should be noted for performance awareness.
+- The Nuxt 4.x routing skill recommends parent routes with `<NuxtPage>` as the layout pattern over separate `layouts/` directory. However, the `layouts/` directory approach is still fully supported and appropriate here because the layout applies across unrelated route hierarchies (not nested under a common parent).
+
+---
+
 ## Overview
 
 Move shared visual identity elements from the current `pages/index.vue` into a new `layouts/default.vue` so that all `/infographics/*` pages inherit a consistent look without duplicating markup or styles. This is the second step in the multi-infographic migration path defined in the brainstorm (see brainstorm: `docs/brainstorms/2026-03-03-multi-infographic-and-embeds-brainstorm.md`, Migration Path step 3).
@@ -67,6 +87,22 @@ The layout receives these elements extracted from the current `pages/index.vue`:
 - Page-specific scoped styles (`.description`, `.bg-image` animation, `.source-link`, `.source-description`)
 - The `useHead()` call for page title and Inter font
 
+### Research Insights (Part 1)
+
+**Best Practices (Nuxt 4.x Layouts):**
+- The `layouts/` directory approach is fully supported in Nuxt 4.x. The official docs show `layouts/default.vue` with `<slot />` as the standard pattern (Nuxt 4.x docs: Views, Layouts).
+- Nuxt auto-imports `<NuxtLayout>` and `<NuxtPage>` -- no explicit imports needed.
+- Layout names are normalized to kebab-case. `default.vue` is automatically applied to all pages that do not specify a different layout via `definePageMeta({ layout: 'other' })`.
+- A page can opt out entirely with `definePageMeta({ layout: false })`.
+
+**Presentation-Logic Split (from skill):**
+- The layout is a pure presentation wrapper. It holds no business logic, no data fetching, no side effects beyond reading `route.meta`. This is the correct architecture per the presentation-logic-split pattern.
+- The only computed properties in the layout (`layoutClass`, `showBackLink`, `footerSource`) derive from route meta -- deterministic and side-effect-free.
+
+**Vue Best Practices (from skill):**
+- Keep the layout's `<script setup>` minimal: only `useRoute()` and computed properties for route meta.
+- SFC section order should be `<script>` then `<template>` then `<style>` (Vue SFC convention).
+
 ### Part 2: Update `app.vue` to use `<NuxtLayout>`
 
 With `layouts/default.vue` now existing, `app.vue` must wrap `<NuxtPage>` in `<NuxtLayout>` so Nuxt applies the layout:
@@ -81,21 +117,96 @@ With `layouts/default.vue` now existing, `app.vue` must wrap `<NuxtPage>` in `<N
 
 BF-68 deferred this wrapping specifically because no `layouts/` directory existed. Now that we are creating one, the wrapping is safe and required (see brainstorm: Migration Path step 2, and BF-68 plan Part 2 Research Insights).
 
+### Research Insights (Part 2)
+
+**Best Practices (Nuxt 4.x NuxtLayout):**
+- The Nuxt 4.x docs confirm `<NuxtLayout>` should be placed in `app.vue` wrapping `<NuxtPage />`. This is the standard pattern.
+- Placing `<NuxtLayout>` in `app.vue` (not in individual pages) prevents a known issue where the layout re-executes on every route change (GitHub nuxt/nuxt#23929). This is critical for the `<GridOverlay>` component which runs a `requestAnimationFrame` loop -- re-execution would cause duplicate animation loops and memory leaks.
+- The `<NuxtLayout>` component wraps its slot content in Vue's `<Transition />` to enable layout transitions. This does not affect the current implementation (no layout transitions configured) but is good to know for future work.
+
+**Performance Consideration:**
+- With `<NuxtLayout>` in `app.vue`, the layout persists across route changes. The `<GridOverlay>` and `<RotateDeviceOverlay>` components mount once and stay mounted. This is correct behavior and avoids re-initialization overhead.
+
 ### Part 3: Refactor `pages/index.vue`
 
 Strip the shared elements out of `pages/index.vue`, leaving only the renewables-specific content. The page now relies on `layouts/default.vue` for the wrapper, background, footer, rotate overlay, and grid overlay.
+
+### Research Insights (Part 3)
+
+**Vue Fragment Behavior:**
+- Vue 3 supports multi-root components (fragments). After extraction, `pages/index.vue` will have three root elements: `.description`, `.chart` (RenewableEnergyChart), and `.bg-image`. These render as a fragment inside the layout's `<slot />`, becoming direct children of the `.master-grid` container.
+- This is the desired behavior for CSS Grid placement. The `.layout-1` class on the grid container targets these children via `.layout-1 .description`, `.layout-1 .chart`, `.layout-1 .bg-image` selectors in `public/styles.css`.
+
+**Edge Case -- Fragment + Named Slot Conflict:**
+- If the page uses both default slot content (multiple root elements) and a named slot (`<template #footer-source>`), Vue may have trouble determining which elements belong to which slot. This is another reason to use `definePageMeta` for footer source rather than named slots (see Part 4).
 
 ### Part 4: Handle footer source attribution per page
 
 The current footer contains a hardcoded source link ("Source: Our World in Data") that is specific to the renewables infographic. When multiple infographics exist, each will have different source attributions.
 
-**Decision needed:** How to handle per-page footer content. Options:
+**Decision: Use `definePageMeta` (Option B) -- not named slots.**
 
-- **Option A (recommended): Named slot** -- The layout provides a `<slot name="footer-source" />` inside the footer, and each page passes its source link via the named slot. The BFNA logo remains in the layout.
-- **Option B: Props via `definePageMeta`** -- Each page defines `sourceUrl` and `sourceLabel` in its page meta, and the layout reads them via `useRoute().meta`.
-- **Option C: Keep source in page, move only logo to layout** -- Split the footer: the BFNA logo bar lives in the layout, but the source attribution stays in the page. Simpler but loses the unified footer pattern.
+Research has resolved this decision conclusively. The original plan recommended Option A (named slots), but research reveals this will not work:
 
-This plan recommends **Option A** for flexibility without over-engineering.
+- **Named slots from pages to layouts do NOT work through `<NuxtPage>`** -- This is a known limitation (GitHub nuxt/nuxt#23929, still open as of March 2026, labeled p2-nice-to-have). The `<NuxtPage>` component acts as an intermediary that does not forward named slots from page components to the layout.
+- **Workaround (placing `<NuxtLayout>` in pages)** exists but causes the layout to re-execute on every route change, which would re-initialize `<GridOverlay>` and `<RotateDeviceOverlay>`, causing duplicate `requestAnimationFrame` loops and event listeners.
+- **`definePageMeta` approach (Option B) is reliable** -- It uses Nuxt's built-in page meta system, which is designed for exactly this kind of page-to-layout communication. The layout reads `useRoute().meta.footerSource` reactively. Values must be serializable (static literals), which is fine for URL + label pairs.
+
+**Implementation:**
+
+```ts
+// pages/index.vue
+definePageMeta({
+  layoutClass: 'layout-1',
+  showBackLink: false,
+  footerSource: {
+    url: 'https://ourworldindata.org/grapher/share-of-electricity-production-from-renewable-sources?time=earliest..2024&country=CHN~JPN~IND~KOR~AUS~IDN~TWN~THA~USA~EU+%28Ember%29',
+    label: 'Source: Our World in Data'
+  }
+})
+```
+
+```vue
+<!-- layouts/default.vue footer -->
+<footer>
+  <a v-if="footerSource"
+     :href="footerSource.url"
+     target="_blank"
+     rel="noopener noreferrer"
+     class="source-link">
+    {{ footerSource.label }}
+  </a>
+  <img src="@/assets/images/bfna.svg" alt="BFNA Logo" class="bfna-logo-footer" />
+</footer>
+```
+
+```ts
+// layouts/default.vue script
+const route = useRoute()
+const footerSource = computed(() => route.meta.footerSource as { url: string; label: string } | undefined)
+```
+
+### Research Insights (Part 4)
+
+**`definePageMeta` Constraints (from Nuxt docs):**
+- `definePageMeta` is a compiler macro. Its values are hoisted out of the component at compile time. You cannot reference reactive state, component props, or imported functions. Only static literals and imported constants work.
+- The `footerSource: { url: '...', label: '...' }` pattern works because both values are string literals.
+- Custom properties are typed as `[key: string]: unknown` in `PageMeta`. For type safety, augment the interface:
+
+```ts
+// types/page-meta.d.ts (or inline in the page)
+declare module 'nuxt/app' {
+  interface PageMeta {
+    layoutClass?: string
+    showBackLink?: boolean
+    footerSource?: { url: string; label: string }
+  }
+}
+```
+
+**Why NOT usePageFooter composable (Option 2 from original plan):**
+- Over-engineered for this use case. A composable would use `provide/inject` or `useState` to communicate between page and layout, adding unnecessary indirection when `definePageMeta` achieves the same result with zero runtime overhead.
+- Violates YAGNI -- the `definePageMeta` approach handles all foreseeable footer source scenarios (URL + label per page).
 
 ## Technical Considerations
 
@@ -114,7 +225,7 @@ However, there is a subtlety: `<slot />` in Vue renders a fragment (multiple roo
 - `.layout-1 .description` selectors in `public/styles.css` will still work if `.layout-1` is on the layout wrapper
 - But `.layout-1` is currently page-specific (renewables layout). It should stay on the page, not the layout.
 
-**Recommended pattern:** The layout wrapper has class `page-wrapper master-grid`. Each page adds its layout variant class via a wrapper `<div>` or via `definePageMeta` + dynamic class binding on the layout. The simplest approach:
+**Recommended pattern:** The layout wrapper has class `page-wrapper master-grid`. Each page adds its layout variant class via `definePageMeta` + dynamic class binding on the layout. The simplest approach:
 
 ```vue
 <!-- layouts/default.vue -->
@@ -144,6 +255,18 @@ definePageMeta({
 
 This way, `.layout-1 .description`, `.layout-1 .chart`, and `.layout-1 .bg-image` selectors in `public/styles.css` continue to work without modification.
 
+### Research Insights (Slot Mechanics)
+
+**Vue 3 Scoped Styles and `:slotted()` (from Vue SFC CSS Features docs):**
+- By default, scoped styles in the layout do NOT affect content rendered by `<slot />`. Slot content is considered to be "owned" by the parent component (the page) that passes it in.
+- To style slot content from the layout, use the `:slotted()` pseudo-class: `:slotted(.description) { ... }`.
+- In this plan, this is NOT needed because page elements are styled by `public/styles.css` (global) and page scoped styles. The layout only styles its own elements (`.page-wrapper`, `footer`, `.back-link-nav`).
+- **However**, the `.source-link` class is currently in `pages/index.vue` scoped styles. After extraction, it moves to `layouts/default.vue` scoped styles. Since the `<a>` element is now rendered directly in the layout template (not in a slot), scoped styles work normally. No `:slotted()` needed.
+
+**Grid Children and Slot Fragments:**
+- The page's multi-root template (`.description`, `.chart`, `.bg-image`) becomes a fragment. Each root element becomes a direct grid child of `.master-grid`.
+- Other layout-owned elements (`<RotateDeviceOverlay>`, `<GridOverlay>`, `<footer>`, `.back-link-nav`) are also direct grid children. Since they all use `position: absolute`, they are taken out of the grid flow and do not interfere with the page content's grid placement.
+
 ### Back-link navigation design
 
 The brainstorm says (Resolved Questions #3): "Minimal back link only. A small 'Back to home' or logo link in the corner to keep the infographic experience immersive."
@@ -155,6 +278,21 @@ Implementation:
 - The homepage (`pages/index.vue`) can hide the back link via `definePageMeta({ showBackLink: false })` or the layout can check `route.path === '/'`
 
 **Note:** The homepage hub does not exist yet (it is a separate future task). For now, the back link can point to `/` which is the renewables page. When the homepage hub is built, the link will naturally point to the correct destination.
+
+### Research Insights (Back-link)
+
+**Accessibility (from WCAG skill):**
+- The `<nav>` element for the back-link should have an `aria-label` to distinguish it from other navigation landmarks: `<nav aria-label="Back navigation">`.
+- The link text "Back to home" is descriptive and screen-reader friendly. Avoid icon-only links without accessible names.
+- Ensure the link has sufficient color contrast. The current `rgba(255, 255, 255, 0.5)` on the dark background (#0D0D0D to #022640) yields approximately 5.3:1 contrast ratio for the base state and 13.5:1 for the hover state -- both pass WCAG AA for normal text.
+- Add `:focus-visible` styles to the back-link for keyboard navigation visibility.
+
+**Implementation Detail:**
+```vue
+<nav v-if="showBackLink" aria-label="Back navigation" class="back-link-nav">
+  <NuxtLink to="/">Back to home</NuxtLink>
+</nav>
+```
 
 ### Scoped vs unscoped styles
 
@@ -182,6 +320,20 @@ The `<GridOverlay />` component is a decorative animated grid that overlays the 
 
 The `<GridOverlay>` uses `.master-grid` class on its own root element (it positions itself absolutely within the grid). It will continue to work correctly when rendered inside the layout's grid container.
 
+### Research Insights (GridOverlay)
+
+**`mix-blend-mode` Stacking Context (CONFIRMED RISK):**
+- The CSS specification confirms: an element with `mix-blend-mode` other than `normal` creates a new stacking context. The `<GridOverlay>` uses `mix-blend-mode: overlay` on its root `.grid-overlay` element.
+- In the current codebase, `<GridOverlay>` and the page content (`.description`, `.chart`, `.bg-image`) are siblings within the same parent (`.page-wrapper`). The blend mode blends with all underlying content in the same stacking context.
+- After extraction, the situation is identical: `<GridOverlay>` and the slot content (page elements) remain siblings within the same `.page-wrapper` container in the layout. **The blend mode behavior should be preserved.**
+- **However**, the `isolation` CSS property on any intermediate element could break blending. Verify that no intermediate wrapper is introduced between `<GridOverlay>` and page content in the DOM. Since `<slot />` does not create a DOM element, this should be safe.
+
+**Verification step (add to checklist):**
+- After extraction, inspect the computed `mix-blend-mode` on `.grid-overlay` in browser DevTools. Confirm it still shows `overlay` and the visual effect matches the baseline.
+
+**Performance Note:**
+- The `<GridOverlay>` component runs a `requestAnimationFrame` loop continuously (never stops until unmounted). When placed in the layout, this loop persists across all page navigations. This is intentional (the grid overlay is always visible) and does not increase resource usage compared to the current single-page setup. The animation selects 4 random grid items every 8 seconds -- negligible CPU impact.
+
 ### CSS cascade and specificity
 
 Moving the `.page-wrapper` styles from a scoped page component to a scoped layout component changes the `data-v-*` hash. Since all selectors are class-based and do not depend on the hash value, this is a safe change. The cascade order is:
@@ -193,13 +345,43 @@ Moving the `.page-wrapper` styles from a scoped page component to a scoped layou
 
 This order ensures page styles can override layout styles when needed.
 
+### Research Insights (CSS Cascade)
+
+**`overflow: hidden` on `.master-grid` (NEW RISK IDENTIFIED):**
+- The `.master-grid` class in `public/styles.css` includes `overflow: hidden`. This clips any content that extends beyond the grid container's bounds.
+- The footer uses `position: absolute; bottom: 0` and the back-link nav uses `position: absolute; top: 1rem; left: 1.5rem`. Both are positioned relative to the `.page-wrapper` container (which has `position: relative`).
+- Since `.page-wrapper` and `.master-grid` are on the same element, `overflow: hidden` will clip absolutely-positioned children that extend beyond the container. The footer is at `bottom: 0` with `height: 4rem`, which is within bounds. The back-link is at `top: 1rem`, also within bounds.
+- **This should work correctly**, but verify visually that neither element is clipped, especially on smaller viewports where the grid's `min-height: 1080px` creates scrollable overflow.
+
+**Scoped Style Hash Change:**
+- Vue scoped styles add a `data-v-[hash]` attribute to the component's elements and append `[data-v-hash]` to selectors. Moving styles from `pages/index.vue` to `layouts/default.vue` changes the hash, but since both the element and its selector move together, the scoping remains correct.
+- The layout's scoped styles will NOT affect page slot content (by design). The page's scoped styles will NOT affect layout elements (by design). This is the correct boundary.
+
 ## System-Wide Impact
 
 - **Interaction graph**: Creating `layouts/default.vue` causes `<NuxtLayout>` in `app.vue` to resolve and render this layout for all pages that do not specify a different layout. All current and future pages will inherit the default layout unless they opt out via `definePageMeta({ layout: 'embed' })` or `definePageMeta({ layout: false })`.
 - **Error propagation**: No new error surfaces. The layout is a pure presentational wrapper. If the layout fails to render (missing file, syntax error), Nuxt's error handling will show its default error page.
-- **State lifecycle risks**: None. The layout holds no state beyond the computed `layoutClass` from route meta. No persistence, no side effects.
+- **State lifecycle risks**: None. The layout holds no state beyond the computed properties from route meta. No persistence, no side effects.
 - **API surface parity**: The embed layout (`layouts/embed.vue`) will need to share some of these visual elements (background gradient, rotate overlay) but exclude others (footer, back-link). This plan does not create the embed layout, but the implementer should structure the default layout's styles so they can be reused or extracted into a shared CSS file if needed.
 - **Integration test scenarios**: The main risk is visual regression -- elements that render correctly in `pages/index.vue` must render identically when split across `layouts/default.vue` and `pages/index.vue`.
+
+### Research Insights (System-Wide Impact)
+
+**Architecture Review:**
+- The extraction follows the Single Responsibility Principle: the layout owns the shared visual shell, the page owns its content. This is a clean architectural boundary.
+- No circular dependencies are introduced. The dependency direction is: `app.vue` -> `layouts/default.vue` -> `components/*` (one-way).
+- The `definePageMeta` approach for page-to-layout communication uses Nuxt's built-in route meta system, avoiding custom state management or provide/inject patterns. This keeps the architecture simple and framework-idiomatic.
+
+**Simplicity Review:**
+- The plan avoids over-engineering. No custom composables, no state management, no abstraction layers beyond what Nuxt provides.
+- The `.layout-1` class stays global in `public/styles.css` (simpler) rather than being moved to scoped styles (which would require `:deep()` selectors).
+- Footer source uses `definePageMeta` (zero-runtime-overhead) rather than a composable (reactive state overhead).
+- YAGNI applied: No embed layout styles are extracted now. No CSS utility files are created. No TypeScript interfaces are augmented beyond what is needed for the current task.
+
+**Performance Review:**
+- No new network requests. No new JavaScript bundles. The layout extraction is a pure structural refactor.
+- The `<GridOverlay>` `requestAnimationFrame` loop is already running; moving it to the layout does not increase CPU usage.
+- Static site generation (`npm run generate`) is unaffected -- the layout is resolved at build time and the output HTML is identical.
 
 ## Acceptance Criteria
 
@@ -212,8 +394,9 @@ This order ensures page styles can override layout styles when needed.
 - [ ] `pages/index.vue` retains: description block, `<RenewableEnergyChart />`, background image (planet), page-specific scoped styles, `useHead()` call
 - [ ] The renewables page at `/` renders pixel-identically to before the extraction
 - [ ] A minimal back-link navigation element exists in the layout (even if hidden on the homepage)
-- [ ] The `.layout-1` grid placement class is applied to the layout wrapper via `definePageMeta` or equivalent mechanism
-- [ ] Footer source attribution is handled via named slot or equivalent per-page mechanism
+- [ ] The `.layout-1` grid placement class is applied to the layout wrapper via `definePageMeta({ layoutClass: 'layout-1' })` + computed class binding
+- [ ] Footer source attribution is handled via `definePageMeta({ footerSource: { url, label } })` + layout reads `route.meta.footerSource`
+- [ ] Back-link `<nav>` element has `aria-label="Back navigation"` for accessibility
 
 ### Non-Functional Requirements
 
@@ -227,6 +410,7 @@ This order ensures page styles can override layout styles when needed.
 - [ ] Visual comparison confirms pixel-identical rendering at `/`
 - [ ] Layout is visible in Nuxt DevTools as the active layout for the page
 - [ ] The `<slot />` content (page elements) participates correctly in the CSS grid
+- [ ] `mix-blend-mode: overlay` on `.grid-overlay` is visually identical to baseline (verify in DevTools computed styles)
 
 ## Success Metrics
 
@@ -242,13 +426,19 @@ This order ensures page styles can override layout styles when needed.
 
 ### Risks
 
+- **UPGRADED to High risk: Named slots DO NOT work through `<NuxtPage>`** -- Research confirms this is a known Nuxt limitation (GitHub nuxt/nuxt#23929, open since 2023, still unresolved). **Mitigation: Use `definePageMeta` for footer source attribution instead of named slots.** This is now the recommended approach in the MVP section below.
+
 - **Medium risk: CSS grid slot integration** -- The `<slot />` fragment must produce elements that are valid CSS grid children of the layout's `.master-grid` container. If the page has a single root `<div>`, that div becomes one grid item (potentially breaking the multi-column layout). The page must either have multiple root elements (fragment) or use a transparent wrapper. **Mitigation:** Test with Nuxt DevTools to verify DOM structure. Use Vue's multi-root component feature (fragments) in the page.
+
+- **Medium risk: `mix-blend-mode` stacking context change** -- The `<GridOverlay>` uses `mix-blend-mode: overlay`, which creates a new stacking context. Moving it from the page to the layout changes the DOM hierarchy. While the sibling relationship is preserved (GridOverlay and page content are both children of `.page-wrapper`), the stacking context behavior must be verified visually. **Mitigation:** Compare DevTools computed styles for `.grid-overlay` before and after extraction. Verify the overlay effect is visually identical.
+
+- **Medium risk: `overflow: hidden` on `.master-grid` clipping absolutely-positioned elements** -- The `.master-grid` class has `overflow: hidden`. The footer and back-link use `position: absolute`. While both are within the container bounds, edge cases at small viewports or with the grid's `min-height: 1080px` could cause clipping. **Mitigation:** Test at multiple viewport sizes, especially narrow widths where mobile styles kick in (900px and below).
 
 - **Low risk: `definePageMeta` for layoutClass** -- Using route meta to pass the layout variant class requires the layout to read `useRoute().meta.layoutClass`. If a page does not define this meta, the computed class will be empty, which is the correct fallback (no layout variant applied). **Mitigation:** Default to empty string in the computed property.
 
-- **Low risk: Footer source attribution** -- The named slot approach requires each page to provide its source link. If a page forgets, the footer will have an empty source area. **Mitigation:** Provide a default slot fallback in the layout (e.g., empty or generic text).
+- **Low risk: Footer source attribution** -- The `definePageMeta` approach requires each page to define `footerSource`. If a page forgets, `route.meta.footerSource` is `undefined` and the `v-if` guard hides the source link, leaving only the BFNA logo in the footer. **Mitigation:** This is acceptable default behavior. No source is better than a broken link.
 
-- **Low risk: Back-link on homepage** -- The homepage is currently `/` (the renewables page). A "Back to home" link on this page would link to itself. **Mitigation:** Hide the back link when `route.path === '/'` or when the page opts out via `definePageMeta`.
+- **Low risk: Back-link on homepage** -- The homepage is currently `/` (the renewables page). A "Back to home" link on this page would link to itself. **Mitigation:** Hide the back link when `route.path === '/'` or when the page opts out via `definePageMeta({ showBackLink: false })`.
 
 ## MVP
 
@@ -259,6 +449,7 @@ This order ensures page styles can override layout styles when needed.
 const route = useRoute()
 const layoutClass = computed(() => route.meta.layoutClass || '')
 const showBackLink = computed(() => route.meta.showBackLink !== false && route.path !== '/')
+const footerSource = computed(() => route.meta.footerSource)
 </script>
 
 <template>
@@ -266,16 +457,21 @@ const showBackLink = computed(() => route.meta.showBackLink !== false && route.p
     <RotateDeviceOverlay />
     <GridOverlay />
 
-    <nav v-if="showBackLink" class="back-link-nav">
+    <nav v-if="showBackLink" aria-label="Back navigation" class="back-link-nav">
       <NuxtLink to="/">Back to home</NuxtLink>
     </nav>
 
     <slot />
 
     <footer>
-      <slot name="footer-source">
-        <!-- Default: empty source area; pages provide their own -->
-      </slot>
+      <a v-if="footerSource"
+         :href="footerSource.url"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="source-link">
+        {{ footerSource.label }}
+      </a>
+      <span v-else></span>
       <img src="@/assets/images/bfna.svg" alt="BFNA Logo" class="bfna-logo-footer" />
     </footer>
   </div>
@@ -356,6 +552,11 @@ footer img {
   color: rgba(255, 255, 255, 0.9);
 }
 
+.back-link-nav a:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 2px;
+}
+
 .source-link {
   font-size: 0.875rem;
   color: rgba(255, 255, 255, 0.6);
@@ -367,6 +568,11 @@ footer img {
 .source-link:hover {
   color: rgba(255, 255, 255, 0.9);
   text-decoration: underline;
+}
+
+.source-link:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 2px;
 }
 </style>
 ```
@@ -389,7 +595,11 @@ import { useHead } from '#app'
 
 definePageMeta({
   layoutClass: 'layout-1',
-  showBackLink: false
+  showBackLink: false,
+  footerSource: {
+    url: 'https://ourworldindata.org/grapher/share-of-electricity-production-from-renewable-sources?time=earliest..2024&country=CHN~JPN~IND~KOR~AUS~IDN~TWN~THA~USA~EU+%28Ember%29',
+    label: 'Source: Our World in Data'
+  }
 })
 
 useHead({
@@ -410,10 +620,6 @@ useHead({
   <div class="bg-image">
     <img src="@/assets/images/background.png" alt="" role="presentation" />
   </div>
-
-  <template #footer-source>
-    <a href="https://ourworldindata.org/grapher/share-of-electricity-production-from-renewable-sources?time=earliest..2024&country=CHN~JPN~IND~KOR~AUS~IDN~TWN~THA~USA~EU+%28Ember%29" target="_blank" rel="noopener noreferrer" class="source-link">Source: Our World in Data</a>
-  </template>
 </template>
 
 <style scoped>
@@ -450,37 +656,13 @@ useHead({
 </style>
 ```
 
-**Important implementation note on named slots with `<NuxtPage>`:** The `<template #footer-source>` named slot syntax shown above requires the page to be a direct child of the layout's `<slot>`. In Nuxt, the page is rendered via `<NuxtPage>` inside `<NuxtLayout>`, which means named slots from the page to the layout may not work directly through the `<NuxtPage>` intermediary.
-
-**Alternative approaches if named slots do not work through NuxtPage:**
-
-1. **Use `definePageMeta` + layout reads route meta:**
-   ```ts
-   // pages/index.vue
-   definePageMeta({
-     footerSource: {
-       url: 'https://ourworldindata.org/...',
-       label: 'Source: Our World in Data'
-     }
-   })
-   ```
-   ```vue
-   <!-- layouts/default.vue -->
-   <footer>
-     <a v-if="route.meta.footerSource"
-        :href="route.meta.footerSource.url"
-        target="_blank"
-        rel="noopener noreferrer"
-        class="source-link">
-       {{ route.meta.footerSource.label }}
-     </a>
-     <img src="@/assets/images/bfna.svg" alt="BFNA Logo" class="bfna-logo-footer" />
-   </footer>
-   ```
-
-2. **Use `usePageFooter` composable** -- A custom composable that pages call to register their footer source. The layout reads it reactively. More flexible but more complex.
-
-The implementer should verify which approach works in Nuxt 4 and choose the simplest one. The `definePageMeta` approach (option 1 above) is likely the most reliable since it uses Nuxt's built-in page meta system.
+**Key changes from original MVP:**
+1. Removed `<template #footer-source>` named slot from pages/index.vue (does not work through NuxtPage).
+2. Added `footerSource: { url, label }` to `definePageMeta`.
+3. Layout reads `route.meta.footerSource` with a computed property and renders the footer source link conditionally.
+4. Added `aria-label="Back navigation"` to the `<nav>` element.
+5. Added `:focus-visible` styles for keyboard accessibility on back-link and source-link.
+6. Added `<span v-else></span>` in footer to maintain `justify-content: space-between` layout when no source is present.
 
 ## Verification Checklist
 
@@ -513,17 +695,28 @@ Before claiming this task is complete, the implementer MUST execute and verify:
 - [ ] Grid placement: elements appear in correct grid rows/columns as defined by `.layout-1` in `public/styles.css`
 - [ ] Responsive: layout works at mobile widths (900px and below)
 
-## Open Questions for Implementer
+### New Verification Items (from research)
+- [ ] `mix-blend-mode: overlay` on `.grid-overlay` computed style matches baseline (verify in DevTools Elements > Computed tab)
+- [ ] Footer is not clipped by `overflow: hidden` on `.master-grid` at any viewport size
+- [ ] Back-link nav is not clipped by `overflow: hidden` on `.master-grid`
+- [ ] `definePageMeta` values (`layoutClass`, `showBackLink`, `footerSource`) are readable via `useRoute().meta` in the layout (verify via Vue DevTools or console log)
+- [ ] Keyboard navigation: Tab to back-link (on non-homepage) shows visible focus ring
+- [ ] Keyboard navigation: Tab to source link in footer shows visible focus ring
+- [ ] No `requestAnimationFrame` duplication: only one GridOverlay animation loop running (check Performance tab in DevTools)
 
-1. **Named slots through `<NuxtPage>`**: Does Nuxt 4 support named slots from a page component to its layout through the `<NuxtPage>` intermediary? If not, use the `definePageMeta` approach for footer source attribution. The implementer must test this.
+## Resolved Questions (from research)
 
-2. **Back-link visibility on homepage**: The current homepage IS the renewables infographic (at `/`). A "Back to home" link on this page is circular. The MVP hides it via `route.path === '/'`. When the homepage hub is built later, the renewables page will move to `/infographics/renewables` and the back link will naturally become useful. Is this acceptable, or should the back-link be omitted entirely until the homepage hub exists?
+These questions from the original plan are now resolved:
 
-3. **GridOverlay z-index interaction**: The `<GridOverlay>` uses `position: absolute; z-index: 10` and `mix-blend-mode: overlay`. When moved from the page to the layout, verify that the blend mode still works correctly with the page content rendered in the `<slot />`. Blend modes can behave differently depending on stacking context boundaries.
+1. **Named slots through `<NuxtPage>`**: **NO.** Nuxt does NOT support named slots from a page component to its layout through the `<NuxtPage>` intermediary (GitHub nuxt/nuxt#23929). **Use `definePageMeta` for footer source attribution.**
 
-4. **`public/styles.css` refactoring**: The `.layout-1` class in `public/styles.css` defines grid placement for renewables-specific elements (`.description`, `.chart`, `.bg-image`). Should `.layout-1` be moved to the renewables page's scoped styles, or kept global for now? Keeping it global is simpler and matches the current pattern. Moving it to scoped styles is cleaner but requires `:deep()` selectors since the grid children are in the page, not the layout.
+2. **Back-link visibility on homepage**: **Hide via dual guard.** The MVP uses both `route.path !== '/'` and `definePageMeta({ showBackLink: false })` as a belt-and-suspenders approach. When the homepage hub is built, the renewables page moves to `/infographics/renewables` and the `route.path` guard naturally enables the back link. This is acceptable.
 
-5. **Embed layout shared styles**: The brainstorm says `layouts/embed.vue` retains the background gradient and rotate overlay but strips the footer and back-link. Should the shared gradient styles be extracted into a CSS utility or mixin now to avoid duplication between default and embed layouts, or defer that extraction until the embed layout is built?
+3. **GridOverlay z-index interaction**: **Safe but verify.** The `mix-blend-mode: overlay` on `<GridOverlay>` creates a stacking context. Moving it to the layout preserves the sibling relationship with page content (both are children of `.page-wrapper`). The blend mode should work identically. **Verify visually after extraction** (added to checklist).
+
+4. **`public/styles.css` refactoring**: **Keep `.layout-1` global.** Moving it to scoped styles would require `:deep()` selectors because the layout owns the `.layout-1` class (via dynamic binding) but the styled children (`.description`, `.chart`, `.bg-image`) are in the page slot. Keeping it global is simpler, matches the current pattern, and follows YAGNI.
+
+5. **Embed layout shared styles**: **Defer.** Do not extract shared gradient styles into a utility file now. The embed layout task will handle that when it is implemented. YAGNI applies -- extracting now adds complexity for a hypothetical future need.
 
 ## Sources & References
 
@@ -539,3 +732,12 @@ Before claiming this task is complete, the implementer MUST execute and verify:
   - `assets/images/bfna.svg` -- BFNA logo used in footer
   - `nuxt.config.ts` -- global config (unchanged by this task)
   - `netlify.toml` -- deployment config (unchanged by this task)
+- **Research references:**
+  - [Nuxt 4.x Layouts documentation](https://nuxt.com/docs/4.x/directory-structure/app/layouts)
+  - [Nuxt 4.x NuxtLayout component](https://nuxt.com/docs/4.x/api/components/nuxt-layout)
+  - [Nuxt 4.x definePageMeta utility](https://nuxt.com/docs/4.x/api/utils/define-page-meta)
+  - [GitHub nuxt/nuxt#23929 -- Named layout slots directly within pages](https://github.com/nuxt/nuxt/issues/23929)
+  - [Vue 3 SFC CSS Features -- :slotted()](https://vuejs.org/api/sfc-css-features)
+  - [Vue 3 Slots documentation](https://vuejs.org/guide/components/slots.html)
+  - [MDN -- CSS Stacking Context](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Positioned_layout/Stacking_context)
+  - [MDN -- mix-blend-mode](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/mix-blend-mode)
