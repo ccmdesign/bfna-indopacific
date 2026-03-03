@@ -1,7 +1,7 @@
 ---
 title: "feat: Create embed layout (layouts/embed.vue)"
 type: feat
-status: active
+status: completed
 date: 2026-03-03
 linear: BF-70
 origin: docs/brainstorms/2026-03-03-multi-infographic-and-embeds-brainstorm.md
@@ -305,17 +305,17 @@ The component's orientation detection (`window.innerHeight > window.innerWidth`)
 
 ## Acceptance Criteria
 
-- [ ] `layouts/embed.vue` exists and renders correctly
-- [ ] The embed layout includes: background gradient (same as `default.vue`), `::before` and `::after` pseudo-element overlays, `RotateDeviceOverlay`, `GridOverlay`, `<slot />`
-- [ ] The embed layout does NOT include: back-link `<nav>`, `<footer>`, `padding-bottom` for footer
-- [ ] The embed layout reads `layoutClass` from `route.meta` and applies it as a dynamic class on the wrapper (same pattern as `default.vue`)
-- [ ] A page can opt into the embed layout via `definePageMeta({ layout: 'embed' })`
-- [ ] The embed layout visually matches `default.vue` minus the nav and footer when viewed side-by-side
-- [ ] No regressions to `default.vue` or existing pages
-- [ ] The `netlify.toml` includes `Content-Security-Policy: frame-ancestors *` for `/embed/*` routes
-- [ ] The `netlify.toml` `/embed/*` rule appears BEFORE the `/*` catch-all rule
-- [ ] The `X-Frame-Options` on `/embed/*` is set to `SAMEORIGIN` (not empty string) as legacy fallback
-- [ ] Security headers (`X-XSS-Protection`, `X-Content-Type-Options`, `Referrer-Policy`) are present on `/embed/*` routes
+- [x] `layouts/embed.vue` exists and renders correctly
+- [x] The embed layout includes: background gradient (same as `default.vue`), `::before` and `::after` pseudo-element overlays, `RotateDeviceOverlay`, `GridOverlay`, `<slot />`
+- [x] The embed layout does NOT include: back-link `<nav>`, `<footer>`, `padding-bottom` for footer
+- [x] The embed layout reads `layoutClass` from `route.meta` and applies it as a dynamic class on the wrapper (same pattern as `default.vue`)
+- [x] A page can opt into the embed layout via `definePageMeta({ layout: 'embed' })`
+- [x] The embed layout visually matches `default.vue` minus the nav and footer when viewed side-by-side
+- [x] No regressions to `default.vue` or existing pages
+- [x] The `netlify.toml` includes `Content-Security-Policy: frame-ancestors *` for `/embed/*` routes
+- [x] The `netlify.toml` `/embed/*` rule appears BEFORE the `/*` catch-all rule
+- [x] The `X-Frame-Options` on `/embed/*` is set to `SAMEORIGIN` (not empty string) as legacy fallback
+- [x] Security headers (`X-XSS-Protection`, `X-Content-Type-Options`, `Referrer-Policy`) are present on `/embed/*` routes
 
 ## MVP
 

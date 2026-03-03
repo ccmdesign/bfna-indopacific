@@ -7,6 +7,18 @@
 [build.environment]
   NODE_VERSION = "20"
 
+# Embed routes: allow iframe embedding from any origin via CSP frame-ancestors
+# MUST appear BEFORE the /* catch-all rule
+[[headers]]
+  for = "/embed/*"
+  [headers.values]
+    Content-Security-Policy = "frame-ancestors *"
+    X-Frame-Options = "SAMEORIGIN"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# All other routes: deny iframe embedding
 [[headers]]
   for = "/*"
   [headers.values]
