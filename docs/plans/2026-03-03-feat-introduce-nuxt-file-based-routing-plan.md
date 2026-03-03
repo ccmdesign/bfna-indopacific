@@ -1,7 +1,7 @@
 ---
 title: "feat: Introduce Nuxt file-based routing"
 type: feat
-status: active
+status: completed
 date: 2026-03-03
 linear: BF-68
 origin: docs/brainstorms/2026-03-03-multi-infographic-and-embeds-brainstorm.md
@@ -321,25 +321,25 @@ The `plugins/gtag.client.ts` plugin already uses `useRouter()` and listens to ro
 
 ## Acceptance Criteria
 
-- [ ] `pages/` directory exists with `pages/index.vue`
-- [ ] `pages/index.vue` contains the full template, scoped styles, and script from the original `app.vue`
-- [ ] `app.vue` contains only the Nuxt app shell (`<NuxtPage />` -- see Part 2 Research Insights re: NuxtLayout)
-- [ ] `nuxt.config.ts` is unchanged
-- [ ] `npm run dev` starts without errors and renders the infographic at `/` identically to before
-- [ ] `npm run generate` completes without errors and produces `.output/public/index.html`
-- [ ] No `layouts/` directory is created (deferred to follow-up task)
-- [ ] All existing components (`RenewableEnergyChart`, `RotateDeviceOverlay`, `GridOverlay`) render correctly
-- [ ] The `useHead()` page title and Inter font load correctly
-- [ ] The gtag plugin continues to fire `page_view` events
+- [x] `pages/` directory exists with `pages/index.vue`
+- [x] `pages/index.vue` contains the full template, scoped styles, and script from the original `app.vue`
+- [x] `app.vue` contains only the Nuxt app shell (`<NuxtPage />` -- see Part 2 Research Insights re: NuxtLayout)
+- [x] `nuxt.config.ts` is unchanged
+- [x] `npm run dev` starts without errors and renders the infographic at `/` identically to before
+- [x] `npm run generate` completes without errors and produces `.output/public/index.html`
+- [x] No `layouts/` directory is created (deferred to follow-up task)
+- [x] All existing components (`RenewableEnergyChart`, `RotateDeviceOverlay`, `GridOverlay`) render correctly
+- [x] The `useHead()` page title and Inter font load correctly
+- [x] The gtag plugin continues to fire `page_view` events
 
 ### Research-Enhanced Acceptance Criteria
 
-- [ ] SFC sections in `pages/index.vue` follow canonical ordering: `<script setup>`, `<template>`, `<style scoped>`
-- [ ] No duplicate `<link rel="preconnect">` tags in the rendered HTML (verify via View Source)
-- [ ] Nuxt DevTools Routes tab shows `pages/index.vue` mapped to `/`
-- [ ] `npm run generate` output at `.output/public/index.html` contains the complete infographic markup
-- [ ] Background planet animation plays smoothly (no CSS regression from scoped style migration)
-- [ ] Browser DevTools console shows no Vue or Nuxt warnings/errors
+- [x] SFC sections in `pages/index.vue` follow canonical ordering: `<script setup>`, `<template>`, `<style scoped>`
+- [x] No duplicate `<link rel="preconnect">` tags in the rendered HTML (verify via View Source)
+- [x] Nuxt DevTools Routes tab shows `pages/index.vue` mapped to `/`
+- [x] `npm run generate` output at `.output/public/index.html` contains the complete infographic markup
+- [x] Background planet animation plays smoothly (no CSS regression from scoped style migration)
+- [x] Browser DevTools console shows no Vue or Nuxt warnings/errors
 
 ## Success Metrics
 
