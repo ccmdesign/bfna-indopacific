@@ -207,3 +207,7 @@ The cargo profile (container / dry bulk / tanker) for each strait can be display
 | UK ONS Ship Crossings Bulletin           | [https://www.ons.gov.uk/businessindustryandtrade/internationaltrade/bulletins/shipcrossingsthroughglobalmaritimepassages/january2022toapril2024](https://www.ons.gov.uk/businessindustryandtrade/internationaltrade/bulletins/shipcrossingsthroughglobalmaritimepassages/january2022toapril2024) |
 | CSIS ChinaPower — Taiwan Strait          | [https://features.csis.org/chinapower/china-taiwan-strait-trade/](https://features.csis.org/chinapower/china-taiwan-strait-trade/)                                                                                                                                                               |
 | UNCTAD Review of Maritime Transport 2024 | [https://unctad.org/system/files/official-document/rmt2024_en.pdf](https://unctad.org/system/files/official-document/rmt2024_en.pdf)                                                                                                                                                             |
+
+---
+
+> **Note for Contributors:** The canonical location for the straits dataset is `data/straits/straits.json`. The copy at `_process/straits.json` is a data preparation artifact. If you update the data, always update `data/straits/straits.json` first — that is the file consumed at build time.
