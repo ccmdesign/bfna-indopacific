@@ -6,8 +6,18 @@ export default defineNuxtConfig({
   // Force static generation for SSG deployment
   ssr: true,
   nitro: {
-    preset: 'static'
+    preset: 'static',
+    prerender: {
+      routes: ['/embed/renewables']
+    }
   },
+
+  // Auto-import: use short names for infographic components (e.g. <RenewablesInfographic />)
+  // The default ~/components entry must be listed last to preserve auto-import for all other components.
+  components: [
+    { path: '~/components/infographics', pathPrefix: false },
+    '~/components'
+  ],
 
   modules: ['nuxt-gtag'],
 
@@ -17,6 +27,7 @@ export default defineNuxtConfig({
 
   app: {
     head: {
+      htmlAttrs: { lang: 'en' },
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
