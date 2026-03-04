@@ -10,6 +10,8 @@ declare module '#app' {
     showBackLink?: boolean
     footerSource?: FooterSource
     backLinkTarget?: string
+    embedSlug?: string
+    embedTitle?: string
   }
 }
 
@@ -18,6 +20,8 @@ const layoutClass = computed(() => (route.meta.layoutClass as string) || '')
 const showBackLink = computed(() => route.meta.showBackLink !== false && route.path !== '/')
 const footerSource = computed(() => route.meta.footerSource as FooterSource | undefined)
 const backLinkTarget = computed(() => (route.meta.backLinkTarget as string) || '/')
+const embedSlug = computed(() => route.meta.embedSlug as string | undefined)
+const embedTitle = computed(() => route.meta.embedTitle as string | undefined)
 </script>
 
 <template>
@@ -39,6 +43,11 @@ const backLinkTarget = computed(() => (route.meta.backLinkTarget as string) || '
          class="source-link">
         {{ footerSource.label }}
       </a>
+      <EmbedCodeButton
+        v-if="embedSlug"
+        :slug="embedSlug"
+        :title="embedTitle"
+      />
       <img src="@/assets/images/bfna.svg" alt="BFNA Logo" class="bfna-logo-footer" />
     </footer>
   </div>
