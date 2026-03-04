@@ -28,14 +28,12 @@ const infographics: InfographicEntry[] = [
     slug: 'renewables',
     title: 'Renewables on the Rise',
     description: 'Explore how Indo-Pacific nations are expanding renewable energy infrastructure, with 2024 data on solar, wind, hydropower and more.',
-    thumbnail: undefined,
     embedTitle: 'Renewables on the Rise'
   },
   {
     slug: 'straits',
     title: 'Indo-Pacific Straits',
     description: 'Visualize maritime traffic through six critical chokepoints, from Malacca to Hormuz, with vessel data from 2019 to 2025.',
-    thumbnail: undefined,
     embedTitle: 'Indo-Pacific Straits'
   }
 ]
@@ -66,6 +64,7 @@ const infographics: InfographicEntry[] = [
   flex-direction: column;
   align-items: center;
   z-index: 1;
+  margin: auto 0;
 }
 
 .hub-header {

@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "033"
 tags: [code-review, css, layout, scalability]
@@ -55,6 +55,7 @@ _To be determined during triage._
 | Date | Action | Details |
 |------|--------|---------|
 | 2026-03-03 | Created | Code review finding from PR #12 |
+| 2026-03-03 | Resolved (Option B) | Changed `.layout-home` from `justify-content: center` to `justify-content: flex-start`, and added `margin: auto 0` on `.homepage-hub` to center when content is short while scrolling naturally when content exceeds viewport. |
 
 ## Resources
 

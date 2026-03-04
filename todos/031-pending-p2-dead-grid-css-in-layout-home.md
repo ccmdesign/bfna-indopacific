@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "031"
 tags: [code-review, css, dead-code, quality]
@@ -55,6 +55,7 @@ _To be determined during triage._
 | Date | Action | Details |
 |------|--------|---------|
 | 2026-03-03 | Created | Code review finding from PR #12 |
+| 2026-03-03 | Resolved (Option A) | Removed dead `grid-template-columns: 1fr` and `grid-template-rows: auto` from `.layout-home` since `display: flex` makes them no-ops. |
 
 ## Resources
 

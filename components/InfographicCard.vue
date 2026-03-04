@@ -28,7 +28,7 @@ defineProps<{
       <p class="card-description">{{ description }}</p>
       <div class="card-actions">
         <EmbedCodeButton :slug="slug" :title="embedTitle" />
-        <NuxtLink :to="`/infographics/${slug}`" class="view-link">
+        <NuxtLink :to="`/infographics/${slug}`" class="view-link btn-secondary">
           View Infographic
         </NuxtLink>
       </div>
@@ -102,28 +102,8 @@ defineProps<{
   flex-wrap: wrap;
 }
 
-.view-link {
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 0.875rem;
-  font-weight: 600;
-  padding: 0.5rem 1.25rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 0.375rem;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.85);
-  text-decoration: none;
-  transition: background 0.2s ease, border-color 0.2s ease;
-}
-
-.view-link:hover {
-  background: rgba(255, 255, 255, 0.15);
-  border-color: rgba(255, 255, 255, 0.35);
-}
-
-.view-link:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.7);
-  outline-offset: 2px;
-}
+/* Base button styles for .view-link are provided by the global .btn-secondary class
+   (public/styles.css). Only card-specific overrides are scoped here. */
 
 /* Accessibility: respect reduced motion preference */
 @media (prefers-reduced-motion: reduce) {
@@ -132,9 +112,6 @@ defineProps<{
   }
   .infographic-card:hover {
     transform: none;
-  }
-  .view-link {
-    transition: none;
   }
 }
 </style>

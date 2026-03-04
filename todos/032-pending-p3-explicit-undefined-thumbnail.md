@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "032"
 tags: [code-review, typescript, quality, cleanup]
@@ -55,6 +55,7 @@ _To be determined during triage._
 | Date | Action | Details |
 |------|--------|---------|
 | 2026-03-03 | Created | Code review finding from PR #12 |
+| 2026-03-03 | Resolved (Option A) | Removed `thumbnail: undefined` from both infographic entries in `pages/index.vue`. The optional `thumbnail?: string` interface handles absence correctly. |
 
 ## Resources
 

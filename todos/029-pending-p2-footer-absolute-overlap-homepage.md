@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "029"
 tags: [code-review, css, layout, homepage]
@@ -66,6 +66,7 @@ _To be determined during triage._
 | Date | Action | Details |
 |------|--------|---------|
 | 2026-03-03 | Created | Code review finding from PR #12 |
+| 2026-03-03 | Resolved (Option A) | Added `.layout-home footer { position: relative; margin-top: auto; }` to `public/styles.css`, making footer flow-based on homepage. Combined with `justify-content: flex-start` and `margin: auto 0` on `.homepage-hub` for proper centering. |
 
 ## Resources
 

@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "030"
 tags: [code-review, css, duplication, maintainability]
@@ -71,6 +71,7 @@ _To be determined during triage._
 | Date | Action | Details |
 |------|--------|---------|
 | 2026-03-03 | Created | Code review finding from PR #12 |
+| 2026-03-03 | Resolved (Option A) | Extracted shared button styles to `.btn-secondary` global class in `public/styles.css`. Updated both `EmbedCodeButton.vue` and `InfographicCard.vue` to use the global class, removing duplicated scoped styles. |
 
 ## Resources
 
