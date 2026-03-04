@@ -12,6 +12,7 @@ declare module '#app' {
     backLinkTarget?: string
     embedSlug?: string
     embedTitle?: string
+    suppressRotateOverlay?: boolean
   }
 }
 
@@ -22,11 +23,12 @@ const footerSource = computed(() => route.meta.footerSource as FooterSource | un
 const backLinkTarget = computed(() => (route.meta.backLinkTarget as string) || '/')
 const embedSlug = computed(() => route.meta.embedSlug as string | undefined)
 const embedTitle = computed(() => route.meta.embedTitle as string | undefined)
+const suppressRotateOverlay = computed(() => route.meta.suppressRotateOverlay === true)
 </script>
 
 <template>
   <div class="page-wrapper | master-grid" :class="layoutClass">
-    <RotateDeviceOverlay />
+    <RotateDeviceOverlay v-if="!suppressRotateOverlay" />
     <GridOverlay />
 
     <nav v-if="showBackLink" aria-label="Back navigation" class="back-link-nav">
