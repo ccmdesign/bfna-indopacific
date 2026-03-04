@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "024"
 tags: [code-review, reliability, browser-compat]
@@ -62,6 +62,7 @@ In `composables/useEmbedCode.ts` (line 32), `navigator.clipboard.writeText()` is
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Created during PR #11 code review | Clipboard API requires secure context; silent failure is poor UX |
+| 2026-03-03 | Resolved (Options 1+2): added `isClipboardAvailable` ref with pre-check guard, `error` ref for failure feedback, and button disables when clipboard is unavailable with tooltip explanation | Combined availability guard with error state for complete coverage |
 
 ## Resources
 

@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "023"
 tags: [code-review, security, composable]
@@ -66,6 +66,7 @@ const embedCode = computed(() =>
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Created during PR #11 code review | Template literal HTML generation needs escaping even for "trusted" inputs |
+| 2026-03-03 | Resolved (Option 1): added `escapeHtml()` utility to `composables/useEmbedCode.ts` that escapes `&`, `"`, `<`, `>` before interpolation into iframe title attribute | Defense-in-depth for HTML attribute context |
 
 ## Resources
 

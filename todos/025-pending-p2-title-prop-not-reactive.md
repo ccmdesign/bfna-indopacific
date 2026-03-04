@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "025"
 tags: [code-review, architecture, vue-reactivity]
@@ -75,6 +75,7 @@ export function useEmbedCode(slug: MaybeRefOrGetter<string>, title: MaybeRefOrGe
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Created during PR #11 code review | Vue composable parameters feeding computed() should be reactive |
+| 2026-03-03 | Resolved (Option 1): changed `useEmbedCode` to accept `MaybeRefOrGetter<string>` for both `slug` and `title`, using `toValue()` inside computed properties. Updated `EmbedCodeButton.vue` to pass getter functions `() => props.slug` and `() => props.title` | Follows Vue 3 composable conventions; computed re-evaluates reactively |
 
 ## Resources
 

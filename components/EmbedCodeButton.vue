@@ -4,19 +4,40 @@ const props = defineProps<{
   title?: string
 }>()
 
-const { copied, copyEmbedCode } = useEmbedCode(props.slug, props.title)
+const { copied, error, isClipboardAvailable, copyEmbedCode } = useEmbedCode(
+  () => props.slug,
+  () => props.title ?? 'BFNA Indo-Pacific infographic'
+)
+
+const buttonLabel = computed(() => {
+  if (error.value) return 'Copy failed'
+  if (copied.value) return 'Copied!'
+  return 'Copy Embed Code'
+})
+
+const ariaMessage = computed(() => {
+  if (error.value) return 'Failed to copy embed code. Please select and copy manually.'
+  if (copied.value) return 'Embed code copied to clipboard'
+  return ''
+})
 </script>
 
 <template>
   <button
     type="button"
     class="embed-code-button"
-    :class="{ 'is-copied': copied }"
+    :class="{
+      'is-copied': copied,
+      'is-error': error,
+      'is-unavailable': !isClipboardAvailable,
+    }"
+    :disabled="!isClipboardAvailable"
+    :title="!isClipboardAvailable ? 'Clipboard not available in this browser context' : undefined"
     @click="copyEmbedCode"
   >
-    {{ copied ? 'Copied!' : 'Copy Embed Code' }}
+    {{ buttonLabel }}
     <span class="visually-hidden" aria-live="polite">
-      {{ copied ? 'Embed code copied to clipboard' : '' }}
+      {{ ariaMessage }}
     </span>
   </button>
 </template>
@@ -51,16 +72,15 @@ const { copied, copyEmbedCode } = useEmbedCode(props.slug, props.title)
   color: rgba(34, 197, 94, 0.95);
 }
 
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
+.embed-code-button.is-error {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.5);
+  color: rgba(239, 68, 68, 0.95);
+}
+
+.embed-code-button.is-unavailable {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 @media (prefers-reduced-motion: reduce) {

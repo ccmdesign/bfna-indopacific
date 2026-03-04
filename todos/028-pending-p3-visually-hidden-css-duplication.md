@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "028"
 tags: [code-review, quality, css, accessibility]
@@ -55,6 +55,7 @@ The `.visually-hidden` CSS class in `components/EmbedCodeButton.vue` (lines 54-6
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Created during PR #11 code review | Accessibility CSS utilities should be global to prevent duplication |
+| 2026-03-03 | Resolved (Option 1): added `.visually-hidden` utility to `public/styles.css` as a global class, removed the scoped duplicate from `EmbedCodeButton.vue` | Global utility available to all components; WebAIM pattern reference included in comment |
 
 ## Resources
 

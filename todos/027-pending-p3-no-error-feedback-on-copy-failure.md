@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "027"
 tags: [code-review, ux, accessibility]
@@ -56,6 +56,7 @@ When `navigator.clipboard.writeText()` fails in `composables/useEmbedCode.ts` (l
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Created during PR #11 code review | Silent failures should always have user-facing feedback |
+| 2026-03-03 | Resolved (Option 1): added `error` ref to composable, third button state (`is-error` class with red styling and "Copy failed" text), `aria-live` region announces error to screen readers, error auto-clears after 3 seconds | Three-state button: default, success (green), error (red) with accessible announcements |
 
 ## Resources
 

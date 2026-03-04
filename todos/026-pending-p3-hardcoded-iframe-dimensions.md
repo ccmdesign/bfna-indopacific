@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "026"
 tags: [code-review, ux, embed]
@@ -55,6 +55,7 @@ The generated embed code in `composables/useEmbedCode.ts` (line 25) uses fixed p
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-03 | Created during PR #11 code review | Fixed pixel dimensions are not ideal for embed snippets |
+| 2026-03-03 | Resolved (hybrid approach): kept `width="1280" height="800"` for default sizing and added inline `style="border:0;max-width:100%;aspect-ratio:16/10"` so the iframe scales down responsively in narrower containers while preserving the 16:10 aspect ratio | Maintains backward compatibility while adding responsive behavior via CSS |
 
 ## Resources
 
