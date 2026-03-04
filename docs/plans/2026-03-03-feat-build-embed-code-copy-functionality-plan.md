@@ -1,7 +1,7 @@
 ---
 title: "feat: Build embed code copy functionality"
 type: feat
-status: active
+status: completed
 date: 2026-03-03
 linear: BF-67
 origin: docs/brainstorms/2026-03-03-multi-infographic-and-embeds-brainstorm.md
@@ -358,26 +358,26 @@ This is already the established pattern in the codebase, so the extension is con
 
 ### Functional Requirements
 
-- [ ] `composables/useEmbedCode.ts` exists and exports `useEmbedCode(slug)` returning `{ embedUrl, embedCode, copied, copyEmbedCode }`
-- [ ] `embedCode` generates a valid `<iframe>` tag with `src` pointing to `/embed/<slug>`, `width="1280"`, `height="800"`, `frameborder="0"`, and `allowfullscreen`
-- [ ] `embedUrl` uses the current `window.location.origin` as the base (no hardcoded domain)
-- [ ] `copyEmbedCode()` copies the iframe snippet to the system clipboard
-- [ ] `copied` ref becomes `true` for 2 seconds after a successful copy, then resets to `false`
-- [ ] `components/EmbedCodeButton.vue` renders a button that invokes `copyEmbedCode` on click
-- [ ] Button label changes from "Embed Code" to "Copied!" during the feedback period
-- [ ] Button has visual state change (green tint) during the feedback period
-- [ ] Button is accessible: uses `<button>` element, has `aria-label`, supports keyboard focus
+- [x] `composables/useEmbedCode.ts` exists and exports `useEmbedCode(slug)` returning `{ embedUrl, embedCode, copied, copyEmbedCode }`
+- [x] `embedCode` generates a valid `<iframe>` tag with `src` pointing to `/embed/<slug>`, `width="1280"`, `height="800"`, `frameborder="0"`, and `allowfullscreen`
+- [x] `embedUrl` uses the current `window.location.origin` as the base (no hardcoded domain)
+- [x] `copyEmbedCode()` copies the iframe snippet to the system clipboard
+- [x] `copied` ref becomes `true` for 2 seconds after a successful copy, then resets to `false`
+- [x] `components/EmbedCodeButton.vue` renders a button that invokes `copyEmbedCode` on click
+- [x] Button label changes from "Embed Code" to "Copied!" during the feedback period
+- [x] Button has visual state change (green tint) during the feedback period
+- [x] Button is accessible: uses `<button>` element, has `aria-label`, supports keyboard focus
 
 ### Non-Functional Requirements
 
-- [ ] No new npm dependencies introduced
-- [ ] Composable is SSG-safe (no server-side `window` access errors during `nuxt generate`)
-- [ ] Component follows existing style conventions (Encode Sans font, rgba color values, glassmorphism aesthetic)
-- [ ] Component is reusable -- works with any slug string, not coupled to a specific infographic
+- [x] No new npm dependencies introduced
+- [x] Composable is SSG-safe (no server-side `window` access errors during `nuxt generate`)
+- [x] Component follows existing style conventions (Encode Sans font, rgba color values, glassmorphism aesthetic)
+- [x] Component is reusable -- works with any slug string, not coupled to a specific infographic
 
 ### Quality Gates
 
-- [ ] `nuxt generate` completes without errors (SSG build)
+- [x] `nuxt generate` completes without errors (SSG build)
 - [ ] Manual test: clicking the button on an infographic page copies valid iframe HTML to clipboard
 - [ ] Manual test: pasting the copied code into an HTML file and opening it renders the infographic in an iframe
 - [ ] Manual test: the "Copied!" feedback appears and disappears after ~2 seconds
