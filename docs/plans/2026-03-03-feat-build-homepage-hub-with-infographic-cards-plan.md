@@ -1,7 +1,7 @@
 ---
 title: "feat: Build homepage hub with infographic cards"
 type: feat
-status: active
+status: completed
 date: 2026-03-03
 linear: BF-74
 origin: docs/brainstorms/2026-03-03-multi-infographic-and-embeds-brainstorm.md
@@ -287,41 +287,41 @@ useSeoMeta({
 
 ### Functional Requirements
 
-- [ ] `pages/index.vue` renders a card-based homepage at `/`
-- [ ] Each card displays: title, description, thumbnail (or placeholder), "Embed Code" button, "View Infographic" link
-- [ ] "View Infographic" link navigates to `/infographics/<slug>` using `<NuxtLink>`
-- [ ] "Embed Code" button copies the iframe snippet to clipboard (uses existing `EmbedCodeButton` component)
-- [ ] Homepage lists both "Renewables on the Rise" and "Indo-Pacific Straits" infographics
-- [ ] Adding a new infographic requires only adding an entry to the `infographics` array
+- [x] `pages/index.vue` renders a card-based homepage at `/`
+- [x] Each card displays: title, description, thumbnail (or placeholder), "Embed Code" button, "View Infographic" link
+- [x] "View Infographic" link navigates to `/infographics/<slug>` using `<NuxtLink>`
+- [x] "Embed Code" button copies the iframe snippet to clipboard (uses existing `EmbedCodeButton` component)
+- [x] Homepage lists both "Renewables on the Rise" and "Indo-Pacific Straits" infographics
+- [x] Adding a new infographic requires only adding an entry to the `infographics` array
 
 ### Visual & Design Requirements
 
-- [ ] Dark glassmorphism aesthetic: glass-effect cards on the dark gradient background
-- [ ] Uses existing `--size-*` and `--space-*` fluid tokens for typography and spacing
-- [ ] Encode Sans font throughout
-- [ ] Responsive: cards stack vertically on narrow viewports, side-by-side on wider viewports
-- [ ] Hover state on cards provides subtle visual feedback (e.g., border glow, slight scale)
-- [ ] Consistent with the visual identity established in `layouts/default.vue` and the infographic pages
-- [ ] Card hover animation respects `prefers-reduced-motion: reduce`
+- [x] Dark glassmorphism aesthetic: glass-effect cards on the dark gradient background
+- [x] Uses existing `--size-*` and `--space-*` fluid tokens for typography and spacing
+- [x] Encode Sans font throughout
+- [x] Responsive: cards stack vertically on narrow viewports, side-by-side on wider viewports
+- [x] Hover state on cards provides subtle visual feedback (e.g., border glow, slight scale)
+- [x] Consistent with the visual identity established in `layouts/default.vue` and the infographic pages
+- [x] Card hover animation respects `prefers-reduced-motion: reduce`
 
 ### Layout & Navigation Requirements
 
-- [ ] No "Back to home" link shown on the homepage (already handled by `default.vue`)
-- [ ] Footer shows BFNA logo only (no source link, no embed button) -- achieved by omitting `footerSource` and `embedSlug` from page meta
-- [ ] Page title set via `useHead()` (e.g., "BFNA Indo-Pacific")
-- [ ] Open Graph meta tags set via `useSeoMeta()` for social sharing
-- [ ] `<main>` landmark wraps primary content for screen reader navigation
+- [x] No "Back to home" link shown on the homepage (already handled by `default.vue`)
+- [x] Footer shows BFNA logo only (no source link, no embed button) -- achieved by omitting `footerSource` and `embedSlug` from page meta
+- [x] Page title set via `useHead()` (e.g., "BFNA Indo-Pacific")
+- [x] Open Graph meta tags set via `useSeoMeta()` for social sharing
+- [x] `<main>` landmark wraps primary content for screen reader navigation
 
 ### Technical Requirements
 
-- [ ] Page uses `layouts/default.vue` with `layoutClass: 'layout-home'`
-- [ ] `.layout-home` class defined in `public/styles.css` AFTER `.master-grid` to ensure correct CSS specificity override
-- [ ] No new dependencies introduced
-- [ ] Builds successfully with `npm run generate` (SSG)
-- [ ] Page is pre-rendered at `/` by Nuxt SSG (automatic for index page)
-- [ ] Thumbnail images gracefully degrade if not yet available (placeholder fallback)
-- [ ] Card description text meets WCAG AA 4.5:1 contrast ratio (opacity >= 0.7)
-- [ ] `RotateDeviceOverlay` suppressed on homepage (scrollable page does not need rotation prompt)
+- [x] Page uses `layouts/default.vue` with `layoutClass: 'layout-home'`
+- [x] `.layout-home` class defined in `public/styles.css` AFTER `.master-grid` to ensure correct CSS specificity override
+- [x] No new dependencies introduced
+- [x] Builds successfully with `npm run generate` (SSG)
+- [x] Page is pre-rendered at `/` by Nuxt SSG (automatic for index page)
+- [x] Thumbnail images gracefully degrade if not yet available (placeholder fallback)
+- [x] Card description text meets WCAG AA 4.5:1 contrast ratio (opacity >= 0.7)
+- [x] `RotateDeviceOverlay` suppressed on homepage (scrollable page does not need rotation prompt)
 
 ## Implementation Approach
 

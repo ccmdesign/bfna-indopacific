@@ -120,7 +120,20 @@ html {
   }
 }
 
-
+/* layout-home: scrollable hub page — overrides master-grid viewport lock */
+.layout-home {
+  height: auto;
+  min-height: 100svh;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl) var(--space-l);
+  padding-bottom: 6rem;
+}
 
 
 .title {
