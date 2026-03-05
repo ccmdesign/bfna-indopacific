@@ -63,10 +63,20 @@ html {
   overflow: hidden;
 }
 
-/* layout-2: straits infographic grid — full definition in BF-38 */
+/* layout-2: straits infographic grid — map-centric layout */
 .layout-2 {
-  /* Placeholder renders with display:contents + grid-column:1/-1.
-     The real straits grid tracks will be defined when BF-38 lands. */
+  .strait-map {
+    grid-row: 1 / 8;
+    grid-column: 1 / -1;
+  }
+
+  .strait-title {
+    grid-row: 1 / 2;
+    grid-column: 1 / 6;
+    z-index: 1;
+    align-self: end;
+    padding: 0 var(--space-l);
+  }
 }
 
 .layout-1 {

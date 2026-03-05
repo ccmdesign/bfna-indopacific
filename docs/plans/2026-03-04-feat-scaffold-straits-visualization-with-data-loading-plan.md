@@ -1,7 +1,7 @@
 ---
 title: "feat: Scaffold straits visualization with data loading"
 type: feat
-status: active
+status: completed
 date: 2026-03-04
 origin: docs/brainstorms/2026-02-22-straits-infographic-brainstorm.md
 linear: BF-39
@@ -256,30 +256,30 @@ This is a visual proof-of-life confirming the data pipeline works end-to-end: JS
 
 ## Acceptance Criteria
 
-- [ ] `.layout-2` in `public/styles.css` has grid placement rules (no longer an empty stub)
-- [ ] `components/StraitMap.vue` exists with `import straitsData from '~/data/straits/straits.json'`
-- [ ] `components/infographics/StraitsInfographic.vue` renders `StraitMap` instead of placeholder text
-- [ ] Navigating to `/infographics/straits` shows all 6 strait names with `globalShareLabel` and `valueLabel`
-- [ ] `npm run build` succeeds (no SSG errors from the new component)
-- [ ] No console errors or warnings on the straits page
-- [ ] Existing pages (`/`, `/infographics/renewables`, embeds) are unaffected — no regressions
+- [x] `.layout-2` in `public/styles.css` has grid placement rules (no longer an empty stub)
+- [x] `components/StraitMap.vue` exists with `import straitsData from '~/data/straits/straits.json'`
+- [x] `components/infographics/StraitsInfographic.vue` renders `StraitMap` instead of placeholder text
+- [x] Navigating to `/infographics/straits` shows all 6 strait names with `globalShareLabel` and `valueLabel`
+- [x] `npm run build` succeeds (no SSG errors from the new component)
+- [x] No console errors or warnings on the straits page
+- [x] Existing pages (`/`, `/infographics/renewables`, embeds) are unaffected — no regressions
 
 ### Research Insights — Additional Acceptance Criteria
 
 **Data Completeness:**
-- [ ] All 6 strait names render (Malacca, Taiwan, Bab el-Mandeb, Luzon, Lombok, Hormuz) — not just the first few
-- [ ] Straits with empty `topIndustries` arrays (Luzon, Lombok) do not cause rendering errors
-- [ ] The meta title "Indo-Pacific Maritime Chokepoints" renders from `straitsData.meta.title`, not hardcoded
+- [x] All 6 strait names render (Malacca, Taiwan, Bab el-Mandeb, Luzon, Lombok, Hormuz) — not just the first few
+- [x] Straits with empty `topIndustries` arrays (Luzon, Lombok) do not cause rendering errors
+- [x] The meta title "Indo-Pacific Maritime Chokepoints" renders from `straitsData.meta.title`, not hardcoded
 
 **Accessibility (Basic):**
-- [ ] The strait list uses semantic `<ul>` / `<li>` markup (already in the plan)
-- [ ] The `.strait-map-container` does not use `display: contents` (reserved for the wrapper only)
-- [ ] Color contrast of text against `rgba(2, 38, 64, 0.95)` background meets WCAG AA (4.5:1 ratio) — white text on this dark blue passes
+- [x] The strait list uses semantic `<ul>` / `<li>` markup (already in the plan)
+- [x] The `.strait-map-container` does not use `display: contents` (reserved for the wrapper only)
+- [x] Color contrast of text against `rgba(2, 38, 64, 0.95)` background meets WCAG AA (4.5:1 ratio) — white text on this dark blue passes
 
 **CSS Specificity:**
-- [ ] `.layout-2` rules are in `public/styles.css` (same file as `.layout-1` and `.master-grid`)
-- [ ] No `!important` declarations used
-- [ ] Scoped styles in `StraitMap.vue` do not leak to other components
+- [x] `.layout-2` rules are in `public/styles.css` (same file as `.layout-1` and `.master-grid`)
+- [x] No `!important` declarations used
+- [x] Scoped styles in `StraitMap.vue` do not leak to other components
 
 ## MVP
 
