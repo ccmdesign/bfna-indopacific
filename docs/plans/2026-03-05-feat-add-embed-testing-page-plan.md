@@ -7,6 +7,24 @@ date: 2026-03-05
 
 # feat: Add Embed Testing Page
 
+## Enhancement Summary
+
+**Deepened on:** 2026-03-05
+**Sections enhanced:** 6 (Technical Considerations, MVP, Acceptance Criteria, Dependencies & Risks, Architecture, Composable Usage)
+**Research areas:** Nuxt SSG route exclusion, iframe CSP security, Vue 3 composable lifecycle, accessibility, deployment verification
+
+### Key Improvements
+1. Added `routeRules` approach for explicit prerender exclusion -- safer than relying on omission from the prerender list
+2. Identified a composable lifecycle edge case: `useEmbedCode` uses `onScopeDispose`, so calling it inside `.map()` requires validation that it runs within the setup scope
+3. Added `frame-src` CSP consideration for deploy previews where the test page origin may differ from the embed origin
+4. Expanded accessibility guidance: semantic HTML, keyboard-navigable copy buttons, visible focus indicators
+5. Added a guard against accidental production exposure via Netlify deploy-preview routing
+
+### New Considerations Discovered
+- The `embedUrl` computed in `useEmbedCode` uses `window.location.origin` on client, which produces absolute URLs -- the test page iframes and displayed code will show the correct origin automatically
+- Nuxt now supports `routeRules` with `prerender: false` as a more explicit exclusion mechanism than simply omitting from the routes array
+- Calling `useEmbedCode` inside `.map()` within `<script setup>` is safe because the synchronous setup scope is still active, but a future refactor to `onMounted` or async context would break it
+
 ## Overview
 
 Create a dedicated testing page at `/test/embeds` that renders all available embed codes as live iframes, allowing developers and stakeholders to preview and verify every embeddable infographic in one place. The page should be excluded from production builds and search indexing.
@@ -49,6 +67,16 @@ pages/
 
 No new layouts, composables, or components are required.
 
+### Research Insights: Architecture
+
+**Best Practices:**
+- Keeping the test page as a single SFC with no new abstractions is the correct approach for a dev tool with only two items. The Vue best-practices guidance to split components applies to user-facing features, not internal tooling pages.
+- The page should include a prominent visual indicator (e.g., a banner or badge) that it is a dev-only page, so anyone landing on it from a deploy preview understands its purpose.
+
+**Pattern: Dev-Only Route Convention:**
+- Nuxt does not yet have a native `.dev.vue` file convention for dev-only pages (see [nuxt/nuxt#32451](https://github.com/nuxt/nuxt/discussions/32451)). The `/test/` prefix is a reasonable convention. Add a comment at the top of the file explaining its purpose.
+- For future-proofing, if the team adds more dev tools, consider a `pages/test/` directory convention documented in the project README or CLAUDE.md.
+
 ## Technical Considerations
 
 ### Iframe Security Headers
@@ -57,9 +85,57 @@ The Netlify config (`netlify.toml`) sets `X-Frame-Options: DENY` and `frame-ance
 
 **Key point:** The test page itself does NOT need to be frameable -- it only *contains* iframes that point to `/embed/*` routes.
 
+#### Research Insights: Iframe Security
+
+**Best Practices:**
+- The current `frame-ancestors *` on `/embed/*` routes is correct for embeddable content. The test page consuming these iframes does not need any CSP changes.
+- The `X-Frame-Options: DENY` header on the catch-all `/*` rule correctly prevents the test page itself from being embedded elsewhere.
+- Per MDN documentation, `frame-ancestors` in CSP takes precedence over `X-Frame-Options` when both are present. The `/embed/*` routes correctly use CSP `frame-ancestors *` without an `X-Frame-Options` header, which is the modern approach.
+
+**Edge Case: Deploy Preview Origins:**
+- On Netlify deploy previews, the URL is `https://<deploy-id>--<site>.netlify.app`. The test page iframes use relative `/embed/` paths, so they resolve to the same origin. This is safe.
+- However, if anyone ever changes the iframe `src` to an absolute URL (e.g., from the `embedUrl` computed which uses `window.location.origin`), it will still work because the origin matches the deploy preview domain.
+
+**Edge Case: `frame-src` Directive:**
+- The current CSP on non-embed routes (`frame-ancestors 'none'`) does NOT include a `frame-src` directive. This means the test page (which lives under `/*`) can load iframes from any source by default. No additional CSP configuration is needed for the test page to embed `/embed/*` routes.
+- If a stricter `frame-src` policy is ever added to the catch-all rule, it must whitelist `'self'` to keep the test page working.
+
+**References:**
+- [MDN: frame-ancestors](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/frame-ancestors)
+- [MDN: frame-src](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/frame-src)
+- [OWASP CSP Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html)
+
 ### Static Generation (SSG)
 
 The project uses `nitro.preset: 'static'` with explicit prerender routes. The test page should **not** be added to the prerender list. It is meant for local dev and deploy-preview usage only. If it is needed on a preview deploy, it can be added to prerender conditionally or accessed via SPA fallback (the `/* -> /index.html` redirect in `netlify.toml` already handles this).
+
+#### Research Insights: SSG Exclusion
+
+**Best Practices:**
+- Simply omitting `/test/embeds` from `nitro.prerender.routes` is sufficient for the current explicit-routes setup, because the project does not use `crawlLinks: true` (which would auto-discover linked pages).
+- For extra safety, add an explicit `routeRules` entry in `nuxt.config.ts` to prevent prerendering even if someone enables `crawlLinks` in the future:
+
+```typescript
+// nuxt.config.ts
+routeRules: {
+  '/test/**': { prerender: false }
+}
+```
+
+This is a belt-and-suspenders approach that documents intent and protects against accidental inclusion.
+
+**Alternative Approaches Considered:**
+- `nitro.prerender.ignore: ['/test']` -- also works but `routeRules` is the more modern Nuxt 3/4 convention.
+- `.nuxtignore` -- would exclude the page from ALL builds including dev, which defeats the purpose.
+- `nuxtignore-dev` community module -- adds a dependency for a simple use case; not recommended.
+
+**SPA Fallback on Deploy Previews:**
+- The `netlify.toml` catch-all redirect (`/* -> /index.html`, status 200) ensures that `/test/embeds` will work on deploy previews even without prerendering. Nuxt's client-side router will handle the route.
+- Verify this works by visiting the route on a deploy preview after implementation. If it shows a blank page, it means the Nuxt client bundle is not loading the page component -- in that case, the page may need to be added to prerender for preview deploys only (via environment-conditional config).
+
+**References:**
+- [Nuxt Prerendering Docs](https://nuxt.com/docs/4.x/getting-started/prerendering)
+- [Nitro Config: prerender](https://nitro.build/config)
 
 ### Reusing the Infographic Registry
 
@@ -79,9 +155,35 @@ The test page can either:
 
 The implementer should use Option A unless they prefer to refactor.
 
+#### Research Insights: Registry Approach
+
+**Best Practices:**
+- Option A is correct for a two-item dev tool. The duplication risk is minimal and the cost of a shared module exceeds the benefit at this scale.
+- Add a code comment in the test page that references `pages/index.vue` so future developers know to update both locations:
+
+```typescript
+// Keep in sync with pages/index.vue infographics array.
+// When adding a new infographic, add it here too.
+```
+
+- If the project grows beyond 4-5 embeds, revisit Option B. A `data/infographics.ts` file would then be worth the refactor.
+
 ### useEmbedCode Composable
 
 The `useEmbedCode` composable (`composables/useEmbedCode.ts`) generates the full `<iframe>` tag with proper dimensions (`width="1280" height="800"`, `aspect-ratio:16/10`) and HTML-escaped title attributes. The test page should use this composable to generate the embed code snippets, ensuring they always match production output.
+
+#### Research Insights: Composable Lifecycle
+
+**Critical Finding -- Composable Call Context:**
+- `useEmbedCode` uses `onScopeDispose()` (line 92) to clean up timers. This requires the composable to be called within an active effect scope.
+- The MVP code calls `useEmbedCode` inside `embeds.map(...)` within `<script setup>`. This is **safe** because the synchronous `<script setup>` block runs inside the component's setup scope. The `onScopeDispose` call will correctly bind to the component's scope for each invocation.
+- **Warning:** If this code is ever refactored to call `useEmbedCode` inside `onMounted`, `setTimeout`, or any async callback, the `onScopeDispose` binding will fail silently. Add a comment in the test page warning against this.
+
+**Performance Consideration:**
+- Each call to `useEmbedCode` creates a `computed` for `embedUrl` and `embedCode`, plus reactive refs for `copied`, `error`, and `isClipboardAvailable`. For two embeds this is negligible. For 10+ embeds, consider a single composable call with a reactive list.
+
+**Embed URL Origin:**
+- `useEmbedCode` uses `window.location.origin` on the client side to produce absolute iframe URLs. On the test page, this means the displayed embed code will show the correct full URL for the current environment (localhost during dev, deploy preview URL on staging). This is actually a benefit -- stakeholders see the real embed code they would use.
 
 ## Acceptance Criteria
 
@@ -93,6 +195,16 @@ The `useEmbedCode` composable (`composables/useEmbedCode.ts`) generates the full
 - [ ] The page has `robots: noindex, nofollow` meta tag
 - [ ] The page is NOT added to `nitro.prerender.routes` in `nuxt.config.ts`
 - [ ] The page uses the `default` layout and includes a "Back to home" link
+
+### Research Insights: Additional Acceptance Criteria
+
+The following criteria were discovered during deepening and should be considered:
+
+- [ ] A `routeRules` entry for `/test/**` with `prerender: false` exists in `nuxt.config.ts` as a safeguard
+- [ ] The `<pre><code>` block wraps text properly and does not overflow horizontally on narrow viewports
+- [ ] The iframe `title` attribute matches the displayed heading for each embed (WCAG 4.1.2)
+- [ ] The page is verified to load correctly on a Netlify deploy preview via SPA fallback
+- [ ] A code comment in the file references `pages/index.vue` as the source of truth for the embed list
 
 ## MVP
 
@@ -112,12 +224,17 @@ useHead({
   ]
 })
 
+// Keep in sync with pages/index.vue infographics array.
+// When adding a new infographic, add its slug and title here too.
 const embeds = [
   { slug: 'renewables', title: 'Renewables on the Rise' },
   { slug: 'straits', title: 'Indo-Pacific Straits' }
 ]
 
-// Generate embed codes using the same composable as production
+// Generate embed codes using the same composable as production.
+// NOTE: useEmbedCode uses onScopeDispose, so it must be called
+// synchronously within <script setup>. Do not move this into
+// onMounted or an async callback.
 const embedCodes = embeds.map(e => {
   const { embedCode } = useEmbedCode(() => e.slug, () => e.title)
   return { ...e, code: embedCode }
@@ -156,11 +273,56 @@ const embedCodes = embeds.map(e => {
 </template>
 ```
 
+### Research Insights: MVP Improvements
+
+**Accessibility:**
+- The iframe `title` attribute is correctly bound to the embed title, satisfying WCAG 4.1.2 (Name, Role, Value).
+- The `EmbedCodeButton` component already includes `aria-live="polite"` for clipboard feedback and a `visually-hidden` span for screen reader announcements. No changes needed.
+- Consider adding `aria-label` to the `<section>` elements: `:aria-label="\`Embed preview for ${embed.title}\`"` so screen readers can navigate sections meaningfully.
+
+**Styling Considerations:**
+- The `<pre><code>` block should use `overflow-x: auto` and `white-space: pre-wrap` or `word-break: break-all` to prevent horizontal overflow on narrow screens. The embed code is a single long line.
+- The iframe preview container should have a `max-height` or be scrollable to prevent the page from becoming extremely tall. Consider `max-height: 60vh; overflow: auto` on the `.iframe-preview` wrapper.
+- The page uses `layoutClass: 'layout-test'` but no corresponding styles exist yet. The implementer should add minimal scoped styles or use an existing layout class.
+
+**Code Quality:**
+- The `.map()` call returns objects where `code` is a `ComputedRef<string>`, not a plain string. In the template, `{{ embed.code }}` will work because Vue auto-unwraps refs in templates. However, for clarity, the return type could use `.value`: `return { ...e, code: embedCode.value }` -- but this would lose reactivity. Keeping `embedCode` as a computed ref is correct since `embedUrl` depends on `window.location.origin` which is set at runtime.
+
+### nuxt.config.ts Change
+
+Add `routeRules` to explicitly exclude test pages from prerendering:
+
+```typescript
+// In nuxt.config.ts, add alongside existing config:
+routeRules: {
+  '/test/**': { prerender: false }
+}
+```
+
+This protects against accidental inclusion if `crawlLinks` is enabled in the future.
+
 ## Dependencies & Risks
 
 - **No new dependencies.** The page only uses existing composables and components.
 - **Risk: future embeds not added.** When a new infographic is created, the test page's inline list must be updated manually. This is acceptable for a dev tool. A comment in the file should remind the implementer.
 - **Risk: SSG exclusion.** If someone adds `/test/embeds` to the prerender routes, the page will be deployed to production. The `noindex` meta tag mitigates SEO impact, but it should stay out of prerender.
+
+### Research Insights: Additional Risks & Edge Cases
+
+**Risk: Composable scope breakage on refactor.**
+If a future developer moves the `useEmbedCode` calls into `onMounted` or an async context, `onScopeDispose` will not bind correctly, potentially causing timer leaks. The code comment added in the MVP mitigates this, but it relies on developers reading it. Severity: low. Mitigation: the comment plus the fact that this is a dev-only page.
+
+**Risk: Deploy preview SPA fallback failure.**
+The Netlify `/* -> /index.html` redirect (status 200) should handle SPA routing for `/test/embeds`. However, if the Nuxt client bundle fails to hydrate (e.g., due to a build error), the page will show as blank. This is only a concern on deploy previews since the page is not prerendered. Mitigation: test the SPA fallback on the first deploy preview after implementation.
+
+**Risk: `loading="lazy"` iframes not loading in viewport.**
+If both iframes are initially in the viewport (e.g., on a large monitor with small iframe previews), `loading="lazy"` should still load them since they are in the viewport. However, if the page is tall and iframes are below the fold, they will lazy-load on scroll. This is the desired behavior for a test page -- no action needed.
+
+**Edge Case: Embed code display with special characters.**
+The `useEmbedCode` composable already escapes HTML special characters in the title via `escapeHtml()`. The `<pre><code>{{ embed.code }}</code></pre>` template will further HTML-escape the output via Vue's template interpolation, so users will see the raw HTML string (with `&quot;` rendered as `"` etc.). This is correct behavior -- the displayed code matches what would be pasted into an HTML document.
+
+**Edge Case: Clipboard API not available.**
+The `EmbedCodeButton` component already handles `isClipboardAvailable` being false (disables button, shows tooltip). On HTTP localhost this may be an issue in some browsers. However, `localhost` is treated as a secure context by modern browsers, so the Clipboard API should be available. On deploy previews (HTTPS), it will always work.
 
 ## Sources & References
 
@@ -174,3 +336,16 @@ const embedCodes = embeds.map(e => {
 - Netlify headers for embed routes: `netlify.toml:12-19`
 - Nuxt config prerender routes: `nuxt.config.ts:11-16`
 - EmbedCodeButton component: `components/EmbedCodeButton.vue`
+- Default layout with back-link nav: `layouts/default.vue`
+
+### External References
+
+- [Nuxt Prerendering Docs](https://nuxt.com/docs/4.x/getting-started/prerendering)
+- [Nuxt routeRules Configuration](https://nuxt.com/docs/4.x/api/nuxt-config)
+- [Nuxt .nuxtignore](https://nuxt.com/docs/4.x/directory-structure/nuxtignore)
+- [Nuxt Discussion: Dev-only file convention](https://github.com/nuxt/nuxt/discussions/32451)
+- [MDN: CSP frame-ancestors](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/frame-ancestors)
+- [MDN: CSP frame-src](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/frame-src)
+- [OWASP CSP Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Content_Security_Policy_Cheat_Sheet.html)
+- [Vue: Composables and Setup Context](https://vuejs.org/guide/reusability/composables.html)
+- [Iframe Security Best Practices 2026](https://qrvey.com/blog/iframe-security/)
