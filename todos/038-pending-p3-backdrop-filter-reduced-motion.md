@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "038"
 tags: [code-review, accessibility, performance, css]

@@ -1,17 +1,14 @@
 <script setup lang="ts">
 import straitsData from '~/data/straits/straits.json'
-import { ref } from 'vue'
-
-const container = ref<HTMLElement | null>(null)
 
 const straits = straitsData.straits
 const meta = straitsData.meta
 </script>
 
 <template>
-  <div ref="container" class="strait-map-container">
-    <h2 class="map-title">{{ meta.title }}</h2>
-    <ul class="strait-list">
+  <div class="strait-map-container">
+    <h2 id="strait-map-title" class="map-title">{{ meta.title }}</h2>
+    <ul class="strait-list" aria-labelledby="strait-map-title">
       <li v-for="strait in straits" :key="strait.id" class="strait-item">
         <strong>{{ strait.name }}</strong>
         <span class="strait-meta">{{ strait.globalShareLabel }}</span>
@@ -55,11 +52,11 @@ const meta = straitsData.meta
   flex-direction: column;
   gap: var(--space-3xs);
   padding: var(--space-m);
-  background: rgba(2, 38, 64, 0.95);
+  background: var(--color-card-bg);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--color-card-border);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 8px 32px var(--color-shadow);
 }
 
 .strait-item strong {
@@ -68,12 +65,18 @@ const meta = straitsData.meta
 
 .strait-meta {
   font-size: var(--size-0);
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--color-text-muted);
 }
 
 .strait-value {
   font-size: var(--size-0);
-  color: hsl(218, 60%, 58%);
+  color: var(--color-accent);
   font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .strait-item {
+    backdrop-filter: none;
+  }
 }
 </style>
