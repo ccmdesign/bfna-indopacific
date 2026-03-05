@@ -11,7 +11,14 @@ import type { UseHeadInput } from '@unhead/vue'
 export function useStraitsHead(overrides: UseHeadInput = {}) {
   const base: UseHeadInput = {
     title: 'Indo-Pacific Straits',
-    link: []
+    link: [
+      {
+        rel: 'preload',
+        as: 'image',
+        type: 'image/webp',
+        href: '/assets/map-indo-pacific-2x.webp',
+      },
+    ]
   }
 
   useHead({
