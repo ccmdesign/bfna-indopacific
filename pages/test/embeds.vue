@@ -28,6 +28,12 @@ const embeds = [
 // NOTE: useEmbedCode uses onScopeDispose, so it must be called
 // synchronously within <script setup>. Do not move this into
 // onMounted or an async callback.
+//
+// KNOWN DUPLICATION: Each embed's useEmbedCode is invoked here (for
+// displaying the code snippet) AND again inside <EmbedCodeButton>
+// (for clipboard functionality). This creates two reactive instances
+// per embed. Acceptable for a 2-item dev tool; revisit if the list
+// grows.  See review finding #040.
 const embedCodes = embeds.map(e => {
   const { embedCode } = useEmbedCode(() => e.slug, () => e.title)
   return { ...e, code: embedCode }
@@ -40,7 +46,6 @@ const embedCodes = embeds.map(e => {
       <div class="dev-badge">Dev Only</div>
       <h1>Embed Code Testing</h1>
       <p>Preview all embeddable infographics and their iframe codes.</p>
-      <NuxtLink to="/" class="back-link">&larr; Back to home</NuxtLink>
     </header>
 
     <section
@@ -108,16 +113,6 @@ const embedCodes = embeds.map(e => {
   border-radius: 4px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-}
-
-.back-link {
-  color: rgba(255, 255, 255, 0.6);
-  text-decoration: none;
-  font-size: var(--size-0);
-}
-
-.back-link:hover {
-  color: rgba(255, 255, 255, 0.9);
 }
 
 .embed-test-section {
