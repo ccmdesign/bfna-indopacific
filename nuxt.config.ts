@@ -17,6 +17,11 @@ export default defineNuxtConfig({
     }
   },
 
+  // Exclude /test/* pages from prerendering -- dev/preview only.
+  routeRules: {
+    '/test/**': { prerender: false }
+  },
+
   // Auto-import: use short names for infographic components (e.g. <RenewablesInfographic />)
   // The default ~/components entry must be listed last to preserve auto-import for all other components.
   components: [

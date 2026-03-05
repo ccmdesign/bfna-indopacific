@@ -160,4 +160,12 @@ footer img {
   outline: 2px solid rgba(255, 255, 255, 0.7);
   outline-offset: 2px;
 }
+
+/* Layout override for the dev-only test page (/test/embeds).
+   Removes the 100vh cap so tall content (multiple iframe previews)
+   is fully scrollable.  See TODOs 041 & 042. */
+.layout-test {
+  max-height: none;
+  overflow-y: auto;
+}
 </style>
