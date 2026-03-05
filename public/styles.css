@@ -38,6 +38,15 @@
   --space-s-l: clamp(0.75rem, 0.2386rem + 2.2727vw, 2rem);
 }
 
+/* Color tokens */
+:root {
+  --color-card-bg: rgba(2, 38, 64, 0.95);
+  --color-card-border: rgba(255, 255, 255, 0.15);
+  --color-text-muted: rgba(255, 255, 255, 0.6);
+  --color-accent: hsl(218, 60%, 58%);
+  --color-shadow: rgba(0, 0, 0, 0.3);
+}
+
 
 /* Global Styles */
 html {
@@ -63,10 +72,13 @@ html {
   overflow: hidden;
 }
 
-/* layout-2: straits infographic grid — full definition in BF-38 */
+/* layout-2: straits infographic grid — map-centric layout */
 .layout-2 {
-  /* Placeholder renders with display:contents + grid-column:1/-1.
-     The real straits grid tracks will be defined when BF-38 lands. */
+  .strait-map {
+    grid-row: 1 / 8;
+    grid-column: 1 / -1;
+  }
+
 }
 
 .layout-1 {
