@@ -98,10 +98,6 @@ const emit = defineEmits<{ (e: 'select-strait', id: string): void }>()
 function onStraitActivate(id: string) {
   emit('select-strait', id)
 }
-
-// Expose mappedStraits so the parent can read circle viewBox coordinates
-// for GSAP svgOrigin calculations during the lens transition.
-defineExpose({ mappedStraits })
 </script>
 
 <template>
@@ -144,7 +140,6 @@ defineExpose({ mappedStraits })
         v-for="strait in mappedStraits"
         :key="strait.id"
         class="strait-circle-group"
-        :data-strait-id="strait.id"
         role="button"
         :tabindex="0"
         :aria-label="`${strait.name}: ${strait.globalShareLabel}`"
@@ -219,7 +214,6 @@ defineExpose({ mappedStraits })
 .strait-circle-group {
   pointer-events: all;
   cursor: pointer;
-  will-change: opacity, transform;
 }
 
 .strait-circle {
