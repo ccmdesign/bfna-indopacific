@@ -1,3 +1,5 @@
+import { publishedInfographics, draftInfographics } from './data/infographics'
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
@@ -8,18 +10,22 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'static',
     prerender: {
-      routes: [
-        '/embed/renewables',
-        '/embed/straits',
-        '/infographics/renewables',
-        '/infographics/straits'
-      ]
+      routes: publishedInfographics.flatMap((i) => [
+        `/embed/${i.slug}`,
+        `/infographics/${i.slug}`
+      ])
     }
   },
 
-  // Exclude /test/* pages from prerendering -- dev/preview only.
+  // Exclude /test/* pages and draft infographics from prerendering -- dev/preview only.
   routeRules: {
-    '/test/**': { prerender: false }
+    '/test/**': { prerender: false },
+    ...Object.fromEntries(
+      draftInfographics.flatMap((i) => [
+        [`/embed/${i.slug}`, { prerender: false }],
+        [`/infographics/${i.slug}`, { prerender: false }]
+      ])
+    )
   },
 
   // Auto-import: use short names for infographic components (e.g. <RenewablesInfographic />)

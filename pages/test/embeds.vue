@@ -17,12 +17,7 @@ useHead({
   ]
 })
 
-// Keep in sync with pages/index.vue infographics array.
-// When adding a new infographic, add its slug and title here too.
-const embeds = [
-  { slug: 'renewables', title: 'Renewables on the Rise' },
-  { slug: 'straits', title: 'Indo-Pacific Straits' }
-]
+import { infographics } from '~/data/infographics'
 
 // Generate embed codes using the same composable as production.
 // NOTE: useEmbedCode uses onScopeDispose, so it must be called
@@ -34,7 +29,7 @@ const embeds = [
 // (for clipboard functionality). This creates two reactive instances
 // per embed. Acceptable for a 2-item dev tool; revisit if the list
 // grows.  See review finding #040.
-const embedCodes = embeds.map(e => {
+const embedCodes = infographics.map(e => {
   const { embedCode } = useEmbedCode(() => e.slug, () => e.title)
   return { ...e, code: embedCode }
 })
@@ -54,7 +49,16 @@ const embedCodes = embeds.map(e => {
       class="embed-test-section"
       :aria-label="`Embed preview for ${embed.title}`"
     >
-      <h2>{{ embed.title }}</h2>
+      <h2>
+        {{ embed.title }}
+        <span
+          class="status-badge"
+          :class="embed.status === 'draft' ? 'status-draft' : 'status-published'"
+          :aria-label="`Status: ${embed.status}`"
+        >
+          {{ embed.status }}
+        </span>
+      </h2>
 
       <div class="iframe-preview">
         <iframe
@@ -167,5 +171,29 @@ const embedCodes = embeds.map(e => {
   font-size: var(--size-0);
   white-space: pre-wrap;
   word-break: break-all;
+}
+
+.status-badge {
+  display: inline-block;
+  font-size: var(--size-0);
+  font-weight: 600;
+  padding: var(--space-3xs) var(--space-s);
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  vertical-align: middle;
+  margin-left: var(--space-xs);
+}
+
+.status-draft {
+  background: rgba(245, 158, 11, 0.2);
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  color: rgba(245, 158, 11, 0.95);
+}
+
+.status-published {
+  background: rgba(34, 197, 94, 0.2);
+  border: 1px solid rgba(34, 197, 94, 0.5);
+  color: rgba(34, 197, 94, 0.95);
 }
 </style>

@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { publishedInfographics } from '~/data/infographics'
+
 definePageMeta({
   layoutClass: 'layout-home',
   suppressRotateOverlay: true
@@ -14,29 +16,6 @@ useSeoMeta({
   ogDescription: 'Interactive data visualizations exploring energy, trade, and geopolitics across the Indo-Pacific region.',
   ogType: 'website'
 })
-
-interface InfographicEntry {
-  slug: string
-  title: string
-  description: string
-  thumbnail?: string
-  embedTitle: string
-}
-
-const infographics: InfographicEntry[] = [
-  {
-    slug: 'renewables',
-    title: 'Renewables on the Rise',
-    description: 'Explore how Indo-Pacific nations are expanding renewable energy infrastructure, with 2024 data on solar, wind, hydropower and more.',
-    embedTitle: 'Renewables on the Rise'
-  },
-  {
-    slug: 'straits',
-    title: 'Indo-Pacific Straits',
-    description: 'Visualize maritime traffic through six critical chokepoints, from Malacca to Hormuz, with vessel data from 2019 to 2025.',
-    embedTitle: 'Indo-Pacific Straits'
-  }
-]
 </script>
 
 <template>
@@ -47,7 +26,7 @@ const infographics: InfographicEntry[] = [
     </header>
     <div class="infographic-cards" role="list" aria-label="Available infographics">
       <InfographicCard
-        v-for="info in infographics"
+        v-for="info in publishedInfographics"
         :key="info.slug"
         v-bind="info"
         role="listitem"

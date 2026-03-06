@@ -1,7 +1,7 @@
 ---
 title: "feat: Add draft/published status to infographic registry"
 type: feat
-status: active
+status: completed
 date: 2026-03-06
 linear: BF-84
 deepened: 2026-03-06
@@ -366,21 +366,21 @@ routes: publishedInfographics.flatMap((i) => [
 
 ## Acceptance Criteria
 
-- [ ] `data/infographics.ts` exists with `InfographicEntry` type, `infographics` array, and `publishedInfographics` filtered export
-- [ ] Renewables has `status: 'published'`; Straits has `status: 'draft'`
-- [ ] `pages/index.vue` imports from registry; no inline infographic array remains
-- [ ] `pages/test/embeds.vue` imports from registry; no inline embeds array remains; shows status badges
-- [ ] `nuxt.config.ts` derives prerender routes from `publishedInfographics`
-- [ ] `npm run build` succeeds with only renewables routes prerendered (no `/embed/straits` or `/infographics/straits` in output)
-- [ ] Homepage shows only the renewables card
+- [x] `data/infographics.ts` exists with `InfographicEntry` type, `infographics` array, and `publishedInfographics` filtered export
+- [x] Renewables has `status: 'published'`; Straits has `status: 'draft'`
+- [x] `pages/index.vue` imports from registry; no inline infographic array remains
+- [x] `pages/test/embeds.vue` imports from registry; no inline embeds array remains; shows status badges
+- [x] `nuxt.config.ts` derives prerender routes from `publishedInfographics`
+- [x] `npm run build` succeeds with only renewables routes prerendered (no `/embed/straits` or `/infographics/straits` in output)
+- [x] Homepage shows only the renewables card
 - [ ] `/test/embeds` shows both renewables (green "published" badge) and straits (amber "draft" badge)
 - [ ] `/embed/straits` and `/infographics/straits` still load in `npm run dev`
-- [ ] TypeScript compilation has no errors
-- [ ] Adding a future infographic requires editing only `data/infographics.ts`
+- [x] TypeScript compilation has no errors
+- [x] Adding a future infographic requires editing only `data/infographics.ts`
 
 ### Research Insights: Additional Verification Steps
 
-- [ ] **Build output verification**: After `npm run build`, run `find .output/public -name "index.html" | grep -E "(embed|infographics)"` to confirm only renewables routes are pre-rendered
+- [x] **Build output verification**: After `npm run build`, run `find .output/public -name "index.html" | grep -E "(embed|infographics)"` to confirm only renewables routes are pre-rendered
 - [ ] **Attr fallthrough check**: Inspect the rendered homepage HTML to confirm no `status="published"` attribute appears on `<article>` elements (from `v-bind` spreading). If it does, add `defineOptions({ inheritAttrs: false })` to `InfographicCard.vue`
 - [ ] **Status badge contrast**: Visually verify the amber and green badge text is legible against the dark page background
 
