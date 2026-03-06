@@ -24,7 +24,7 @@ useSeoMeta({
       <h1 class="hub-title">BFNA Indo-Pacific</h1>
       <p class="hub-subtitle">Interactive data visualizations</p>
     </header>
-    <div class="infographic-cards" role="list" aria-label="Available infographics">
+    <div v-if="infographics.length" class="infographic-cards" role="list" aria-label="Available infographics">
       <InfographicCard
         v-for="info in publishedInfographics"
         :key="info.slug"
@@ -32,6 +32,7 @@ useSeoMeta({
         role="listitem"
       />
     </div>
+    <p v-else class="empty-state">No infographics available yet.</p>
   </main>
 </template>
 
@@ -71,5 +72,12 @@ useSeoMeta({
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr));
   gap: var(--space-l);
   width: 100%;
+}
+
+.empty-state {
+  text-align: center;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: var(--size-1);
+  margin: var(--space-xl) 0;
 }
 </style>
