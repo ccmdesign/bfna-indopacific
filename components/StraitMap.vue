@@ -9,8 +9,8 @@ const straits = straitsData.straits as Strait[]
 const meta = straitsData.meta
 
 // --- Circle scale ---
-const RADIUS_MIN = 24
-const RADIUS_MAX = 72
+const RADIUS_MIN = 48
+const RADIUS_MAX = 144
 
 const minFlow = min(straits, (d) => d.flowScalar)
 const maxFlow = max(straits, (d) => d.flowScalar)
@@ -27,19 +27,10 @@ const radiusScale = scaleSqrt()
   .clamp(true)
 
 // --- Color system ---
-const DEFAULT_COLOR = { h: 0, s: 0, l: 70 }
+const CIRCLE_COLOR = { h: 0, s: 0, l: 100 }
 
-const STRAIT_COLORS: Record<string, { h: number; s: number; l: number }> = {
-  'malacca':       { h: 186, s: 60, l: 50 },
-  'taiwan':        { h: 218, s: 60, l: 58 },
-  'bab-el-mandeb': { h: 34,  s: 60, l: 50 },
-  'luzon':         { h: 291, s: 60, l: 49 },
-  'lombok':        { h: 151, s: 60, l: 45 },
-  'hormuz':        { h: 340, s: 60, l: 63 },
-}
-
-function getColor(id: string) {
-  return STRAIT_COLORS[id] ?? DEFAULT_COLOR
+function getColor(_id: string) {
+  return CIRCLE_COLOR
 }
 
 // --- Interaction state ---
