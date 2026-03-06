@@ -74,7 +74,7 @@ html {
 
 /* layout-2: straits infographic grid — map-centric layout */
 .layout-2 {
-  .straits-infographic {
+  .strait-map {
     grid-row: 1 / 8;
     grid-column: 1 / -1;
   }
