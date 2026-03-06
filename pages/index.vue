@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { publishedInfographics } from '~/data/infographics'
 
+const cards = publishedInfographics.map(({ status, ...rest }) => rest)
+
 definePageMeta({
   layoutClass: 'layout-home',
   suppressRotateOverlay: true
@@ -24,9 +26,9 @@ useSeoMeta({
       <h1 class="hub-title">BFNA Indo-Pacific</h1>
       <p class="hub-subtitle">Interactive data visualizations</p>
     </header>
-    <div v-if="infographics.length" class="infographic-cards" role="list" aria-label="Available infographics">
+    <div v-if="cards.length" class="infographic-cards" role="list" aria-label="Available infographics">
       <InfographicCard
-        v-for="info in publishedInfographics"
+        v-for="info in cards"
         :key="info.slug"
         v-bind="info"
         role="listitem"

@@ -31,6 +31,9 @@ defineProps<{
         <NuxtLink :to="`/infographics/${slug}`" class="view-link btn-secondary">
           View Infographic
         </NuxtLink>
+        <NuxtLink :to="`/test/embeds/${slug}`" class="view-link btn-secondary">
+          Embed Preview
+        </NuxtLink>
       </div>
     </div>
   </article>
