@@ -12,5 +12,5 @@ useStraitsHead({
 </script>
 
 <template>
-  <StraitsInfographic />
+  <StraitMap class="strait-map" />
 </template>

@@ -33,6 +33,7 @@ export default defineNuxtConfig({
   // The default ~/components entry must be listed last to preserve auto-import for all other components.
   components: [
     { path: '~/components/infographics', pathPrefix: false },
+    { path: '~/components/straits', pathPrefix: false },
     '~/components'
   ],
 
