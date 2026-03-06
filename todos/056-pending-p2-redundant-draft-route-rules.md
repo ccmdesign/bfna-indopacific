@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "056"
 tags: [code-review, nuxt, architecture, BF-84]

@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "057"
 tags: [code-review, vue, quality, BF-84]
