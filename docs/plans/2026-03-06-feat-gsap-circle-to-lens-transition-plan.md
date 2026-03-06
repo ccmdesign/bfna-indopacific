@@ -1,7 +1,7 @@
 ---
 title: "feat: GSAP circle-to-lens transition"
 type: feat
-status: active
+status: completed
 date: 2026-03-06
 deepened: 2026-03-06
 origin: docs/brainstorms/2026-03-04-circle-lens-straits-brainstorm.md
@@ -720,28 +720,28 @@ onUnmounted(() => {
 
 ### Functional Requirements
 
-- [ ] Clicking a circle triggers the forward GSAP transition:
-  - [ ] Non-selected circles fade out (opacity -> 0)
-  - [ ] Selected circle scales and translates to fill the viewport
-  - [ ] Lens view cross-fades in with canvas and info panel
-- [ ] Lens -> Overview: clicking close button, backdrop, or pressing Escape reverses the timeline
-- [ ] Total transition duration is ~0.6-0.8s with ease-out easing
-- [ ] Lens view renders a `<canvas>` element (placeholder; particle animation is BF-78)
-- [ ] Lens background shows a zoomed crop of the satellite image centered on the selected strait
-- [ ] Info panel displays strait name, globalShareLabel, description, key facts, and threats
-- [ ] Double-clicking during transition does not trigger a second animation
+- [x] Clicking a circle triggers the forward GSAP transition:
+  - [x] Non-selected circles fade out (opacity -> 0)
+  - [x] Selected circle scales and translates to fill the viewport
+  - [x] Lens view cross-fades in with canvas and info panel
+- [x] Lens -> Overview: clicking close button, backdrop, or pressing Escape reverses the timeline
+- [x] Total transition duration is ~0.6-0.8s with ease-out easing
+- [x] Lens view renders a `<canvas>` element (placeholder; particle animation is BF-78)
+- [x] Lens background shows a zoomed crop of the satellite image centered on the selected strait
+- [x] Info panel displays strait name, globalShareLabel, description, key facts, and threats
+- [x] Double-clicking during transition does not trigger a second animation
 
 ### Non-Functional Requirements
 
-- [ ] `prefers-reduced-motion: reduce` skips all GSAP animations (instant show/hide) via `gsap.matchMedia()`
-- [ ] Lens dialog has `role="dialog"`, `aria-modal="true"`, and a descriptive `aria-label`
-- [ ] Focus moves to close button when lens opens; returns to clicked circle when lens closes
-- [ ] Focus is trapped within the lens dialog while open
-- [ ] Background content is marked `inert` while lens is open
-- [ ] Escape key closes the lens
-- [ ] GSAP context is reverted on component unmount (no memory leaks)
-- [ ] SSR-safe: no `window` or `document` access outside `onMounted` / `import.meta.client` guards
-- [ ] Lens uses `<Teleport to="body">` to avoid stacking context issues
+- [x] `prefers-reduced-motion: reduce` skips all GSAP animations (instant show/hide) via `gsap.matchMedia()`
+- [x] Lens dialog has `role="dialog"`, `aria-modal="true"`, and a descriptive `aria-label`
+- [x] Focus moves to close button when lens opens; returns to clicked circle when lens closes
+- [x] Focus is trapped within the lens dialog while open
+- [x] Background content is marked `inert` while lens is open
+- [x] Escape key closes the lens
+- [x] GSAP context is reverted on component unmount (no memory leaks)
+- [x] SSR-safe: no `window` or `document` access outside `onMounted` / `import.meta.client` guards
+- [x] Lens uses `<Teleport to="body">` to avoid stacking context issues
 
 ### Quality Gates
 
