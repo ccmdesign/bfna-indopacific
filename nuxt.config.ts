@@ -36,7 +36,7 @@ export default defineNuxtConfig({
     '~/components'
   ],
 
-  modules: ['nuxt-gtag'],
+  modules: ['nuxt-gtag', '@tresjs/nuxt'],
 
   gtag: {
     id: 'G-5X2S1H0R18'
