@@ -5,7 +5,7 @@
  * Manages the selectedStrait ref and orchestrates the GSAP-powered
  * circle-to-lens transition between Overview and Lens states.
  */
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, nextTick } from 'vue'
 import StraitMap from '~/components/StraitMap.vue'
 import StraitLens from '~/components/StraitLens.vue'
 import straitsData from '~/data/straits/straits.json'
@@ -56,8 +56,10 @@ function onSelectStrait(id: string) {
 // the GSAP timeline attempts to target its DOM node.
 watch(
   selectedStrait,
-  (newStrait) => {
+  async (newStrait) => {
     if (newStrait) {
+      // Ensure Teleport target and all child refs are fully resolved
+      await nextTick()
       // Look up viewBox coordinates from the mappedStraits computed
       const mapped = straitMapRef.value?.mappedStraits?.find(
         (m: { id: string }) => m.id === newStrait.id,
@@ -76,7 +78,7 @@ function onCloseLens() {
 </script>
 
 <template>
-  <div ref="mapContainer" class="straits-infographic">
+  <div ref="mapContainer" class="straits-infographic" data-main-content>
     <StraitMap
       ref="straitMapRef"
       class="strait-map"

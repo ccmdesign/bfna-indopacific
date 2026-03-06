@@ -15,6 +15,12 @@ import { gsap } from 'gsap'
 import { ref, onUnmounted } from 'vue'
 import type { Ref, ComputedRef } from 'vue'
 
+/** Regex for valid strait IDs (lowercase alphanumeric + hyphens) */
+const VALID_STRAIT_ID = /^[a-z0-9-]+$/
+
+/** Speed multiplier for the reverse (close) animation — 20% faster for a snappier feel */
+const CLOSE_TIME_SCALE = 1.2
+
 export interface TransitionTargets {
   /** The root container wrapping the map (used for viewport rect) */
   mapContainer: Ref<HTMLElement | null>
@@ -42,6 +48,9 @@ export function useStraitTransition(
 
   function open(straitId: string, straitData: { cx: number; cy: number }) {
     if (isAnimating.value || !import.meta.client) return
+
+    // Validate straitId to prevent CSS selector injection
+    if (!VALID_STRAIT_ID.test(straitId)) return
 
     // Store the currently focused element for restoration on close
     triggerElement.value = document.activeElement
@@ -161,13 +170,14 @@ export function useStraitTransition(
         ?.querySelectorAll('.strait-circle-group')
         .forEach((el) => gsap.set(el, { opacity: 1, scale: 1, x: 0, y: 0 }))
       ;(triggerElement.value as HTMLElement)?.focus()
+      kill() // Clean up stale GSAP context/timeline from the open() call
       callbacks?.onReverseComplete?.()
       return
     }
 
     if (timeline) {
       isAnimating.value = true
-      timeline.timeScale(1.2) // slightly snappier close
+      timeline.timeScale(CLOSE_TIME_SCALE)
       timeline.reverse()
     }
   }

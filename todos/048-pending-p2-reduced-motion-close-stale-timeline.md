@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "048"
 tags: [code-review, accessibility, animation, BF-77]

@@ -29,7 +29,7 @@ function getFocusableElements(): HTMLElement[] {
   if (!backdropRef.value) return []
   return Array.from(
     backdropRef.value.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      'button, [href], input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])',
     ),
   )
 }
@@ -63,7 +63,7 @@ function onKeydown(e: KeyboardEvent) {
 
 // --- Inert management for background content ---
 function setBackgroundInert(inert: boolean) {
-  const bg = document.querySelector('.straits-infographic')
+  const bg = document.querySelector('[data-main-content]')
   if (inert) {
     bg?.setAttribute('inert', '')
   } else {
@@ -90,7 +90,7 @@ onUnmounted(() => {
 
 // --- Backdrop click (close when clicking outside content) ---
 function onBackdropClick(e: MouseEvent) {
-  if ((e.target as HTMLElement).classList.contains('lens-backdrop')) {
+  if (e.target === e.currentTarget) {
     emit('close')
   }
 }
@@ -164,6 +164,7 @@ const lensBackgroundStyle = computed(() => ({
   background: rgba(0, 0, 0, 0.85);
   /* Start invisible — GSAP controls opacity */
   opacity: 0;
+  will-change: opacity, transform;
 }
 
 .lens-bg {

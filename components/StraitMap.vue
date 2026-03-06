@@ -219,6 +219,7 @@ defineExpose({ mappedStraits })
 .strait-circle-group {
   pointer-events: all;
   cursor: pointer;
+  will-change: opacity, transform;
 }
 
 .strait-circle {

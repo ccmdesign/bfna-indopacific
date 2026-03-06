@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "051"
 tags: [code-review, architecture, BF-77]
