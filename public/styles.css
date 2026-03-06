@@ -151,6 +151,19 @@ html {
   margin-top: auto;
 }
 
+/* layout-test: scrollable test pages — overrides master-grid viewport lock */
+.layout-test {
+  height: auto;
+  min-height: 100svh;
+  max-height: none;
+  overflow-y: auto;
+  display: block;
+}
+
+.layout-test footer {
+  position: relative;
+}
+
 
 .title {
   z-index: 1;
