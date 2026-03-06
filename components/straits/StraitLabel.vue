@@ -12,7 +12,7 @@ defineProps<{
   <span
     class="strait-label"
     :class="`strait-label--${anchor}`"
-    :style="{ '--offset': `${radius + 8}px` }"
+    :style="{ '--offset': `${radius + 16}px` }"
   >
     {{ text }}
   </span>

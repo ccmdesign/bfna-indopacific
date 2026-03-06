@@ -17,7 +17,8 @@
 <style lang="css" scoped>
 
 .grid-overlay {
-  mix-blend-mode: overlay;
+  mix-blend-mode: screen;
+  opacity: 0.25;
   position: absolute;
   top: 0;
   left: 0;

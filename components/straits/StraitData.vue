@@ -55,7 +55,7 @@ function onFocusOut(event: FocusEvent) {
     @focusout="onFocusOut($event)"
   >
     <StraitCircle :radius="radius" :color="color" :active="active" />
-    <StraitLabel :text="displayLabel()" :anchor="labelAnchor" :radius="radius" />
+    <StraitLabel :text="name" :anchor="(id === 'taiwan' || id === 'luzon') ? 'right' : 'below'" :radius="radius" />
   </div>
 </template>
 

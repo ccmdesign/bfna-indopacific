@@ -94,6 +94,7 @@ const legendEntries = (() => {
 <style scoped>
 .strait-map {
   position: relative;
+  z-index: 0;
   width: 100%;
   height: 100%;
   overflow: hidden;
