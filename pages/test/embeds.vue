@@ -32,8 +32,7 @@ const embeds = [
 // KNOWN DUPLICATION: Each embed's useEmbedCode is invoked here (for
 // displaying the code snippet) AND again inside <EmbedCodeButton>
 // (for clipboard functionality). This creates two reactive instances
-// per embed. Acceptable for a 2-item dev tool; revisit if the list
-// grows.  See review finding #040.
+// per embed. Acceptable for a 2-item dev tool; revisit if the list grows.
 const embedCodes = embeds.map(e => {
   const { embedCode } = useEmbedCode(() => e.slug, () => e.title)
   return { ...e, code: embedCode }

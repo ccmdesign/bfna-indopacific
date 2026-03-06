@@ -168,7 +168,7 @@ defineExpose({ mappedStraits })
           class="strait-circle"
         />
 
-        <!-- Label shadow (SVG text-shadow is not valid; use duplicate text with offset) -->
+        <!-- Label shadow -->
         <text
           :x="strait.labelX + 2"
           :y="strait.labelY + 2"
@@ -255,13 +255,6 @@ defineExpose({ mappedStraits })
   pointer-events: none;
 }
 
-/*
- * Label font-size is in viewBox coordinate units (not CSS px) and scales
- * proportionally with the SVG. On viewports narrower than ~900px, labels
- * may overlap — this is a known limitation accepted for this ticket.
- * A future responsive pass (media query to hide labels or reduce font-size)
- * can address sub-900px viewports.
- */
 .strait-label {
   fill: rgba(255, 255, 255, 0.9);
   font-family: 'Encode Sans', sans-serif;
