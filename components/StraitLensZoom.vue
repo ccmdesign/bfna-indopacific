@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { Vector2, TextureLoader, ClampToEdgeWrapping } from 'three'
 import type { Texture } from 'three'
 import { useLoader } from '@tresjs/core'
 import gsap from 'gsap'
 import { straitToUV } from '~/composables/useLensCoordinates'
+import { vertexShader, fragmentShader } from '~/shaders/lens-zoom'
 import type { Strait } from '~/types/strait'
 
 const props = defineProps<{ strait: Strait }>()
@@ -19,49 +20,33 @@ const closeButtonRef = ref<HTMLButtonElement>()
 // --- Focus management ---
 let previouslyFocusedElement: HTMLElement | null = null
 
-// --- Shader source ---
-const vertexShader = `
-varying vec2 vUv;
-void main() {
-  vUv = uv;
-  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-}
-`
-
-const fragmentShader = `
-uniform sampler2D uMap;
-uniform vec2 uCenter;
-uniform float uZoom;
-
-varying vec2 vUv;
-
-void main() {
-  vec2 fromCenter = vUv - 0.5;
-  float dist = length(fromCenter) * 2.0;
-
-  // Anti-aliased circle edge using smoothstep
-  float alpha = 1.0 - smoothstep(0.98, 1.0, dist);
-  if (alpha < 0.001) discard;
-
-  // Map local coords to texture UV space, centered on strait
-  vec2 uv = fromCenter / uZoom + uCenter;
-
-  // Clamp to prevent sampling outside texture
-  uv = clamp(uv, 0.0, 1.0);
-
-  vec4 texColor = texture2D(uMap, uv);
-  gl_FragColor = vec4(texColor.rgb, alpha);
-}
-`
+// --- Constants ---
+/** 4x zoom shows ~25% of the texture width in the lens viewport */
+const LENS_ZOOM_FACTOR = 4.0
 
 // --- Uniforms (created once, mutated in-place to avoid GPU recompilation) ---
 const uniforms = {
   uMap: { value: null as Texture | null },
   uCenter: { value: new Vector2() },
-  uZoom: { value: 4.0 },
+  uZoom: { value: LENS_ZOOM_FACTOR },
+}
+
+// --- WebGL support detection ---
+const webglSupported = ref(false)
+
+if (import.meta.client) {
+  try {
+    const canvas = document.createElement('canvas')
+    webglSupported.value = !!(
+      canvas.getContext('webgl') || canvas.getContext('experimental-webgl')
+    )
+  } catch {
+    webglSupported.value = false
+  }
 }
 
 // --- Texture loading ---
+const textureReady = ref(false)
 const { state: texture } = useLoader(TextureLoader, '/assets/map-indo-pacific-2x.webp')
 
 watch(texture, (tex) => {
@@ -69,8 +54,12 @@ watch(texture, (tex) => {
     tex.wrapS = ClampToEdgeWrapping
     tex.wrapT = ClampToEdgeWrapping
     uniforms.uMap.value = tex
+    textureReady.value = true
   }
 })
+
+// --- Derived state: show loading spinner when WebGL is supported but texture not yet ready ---
+const isLoading = computed(() => webglSupported.value && !textureReady.value)
 
 // --- Update UV center when strait changes ---
 watch(
@@ -82,14 +71,13 @@ watch(
   { immediate: true }
 )
 
-// --- Reduced motion ---
-const prefersReducedMotion =
-  typeof window !== 'undefined'
-    ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    : false
+// --- Reduced motion (evaluated only on client) ---
+const prefersReducedMotion = import.meta.client
+  ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  : false
 
-// --- GSAP context for cleanup ---
-let ctx: gsap.Context
+// --- GSAP context for cleanup (single context for component lifetime) ---
+let ctx: gsap.Context | null = null
 let isClosing = false
 
 function close() {
@@ -102,7 +90,7 @@ function close() {
     return
   }
 
-  ctx = gsap.context(() => {
+  ctx?.add(() => {
     const tl = gsap.timeline({
       onComplete: () => {
         previouslyFocusedElement?.focus()
@@ -143,12 +131,15 @@ onMounted(() => {
   // Lock body scroll
   document.body.style.overflow = 'hidden'
 
+  // Create a single GSAP context for the component lifetime
+  ctx = gsap.context(() => {})
+
   // Animate open
   if (prefersReducedMotion) {
     gsap.set(backdropRef.value, { opacity: 1 })
     gsap.set(lensCircleRef.value, { scale: 1, transformOrigin: '50% 50%' })
   } else {
-    ctx = gsap.context(() => {
+    ctx.add(() => {
       const tl = gsap.timeline()
       tl.fromTo(
         backdropRef.value,
@@ -171,7 +162,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  // Kill all GSAP animations
+  // Kill all GSAP animations (single context reverts everything)
   ctx?.revert()
 
   // Restore body scroll
@@ -199,7 +190,12 @@ onUnmounted(() => {
       />
       <!-- Lens circle -->
       <div ref="lensCircleRef" class="lens-circle">
-        <TresCanvas :clear-color="'#0a1628'">
+        <!-- Loading spinner (shown while texture loads) -->
+        <div v-if="isLoading" class="lens-loading" aria-label="Loading zoom view">
+          <div class="lens-spinner" />
+        </div>
+        <!-- WebGL lens -->
+        <TresCanvas v-if="webglSupported" :clear-color="'#0a1628'">
           <TresOrthographicCamera
             :position="[0, 0, 1]"
             :left="-1"
@@ -219,6 +215,10 @@ onUnmounted(() => {
             />
           </TresMesh>
         </TresCanvas>
+        <!-- Fallback when WebGL is not available -->
+        <div v-else class="lens-fallback">
+          <p>WebGL is required for the zoom view.<br>Please use a modern browser.</p>
+        </div>
       </div>
       <!-- Close button -->
       <button
@@ -227,7 +227,9 @@ onUnmounted(() => {
         aria-label="Close zoom"
         @click="close"
       >
-        &times;
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M1 1L17 17M17 1L1 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+        </svg>
       </button>
     </div>
   </Teleport>
@@ -257,6 +259,42 @@ onUnmounted(() => {
   overflow: hidden;
   z-index: 1;
   transform-origin: 50% 50%;
+}
+
+.lens-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a1628;
+  z-index: 2;
+}
+
+.lens-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-top-color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  animation: lens-spin 0.8s linear infinite;
+}
+
+@keyframes lens-spin {
+  to { transform: rotate(360deg); }
+}
+
+.lens-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0a1628;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+  text-align: center;
+  padding: 2rem;
 }
 
 .lens-close-button {
@@ -292,6 +330,9 @@ onUnmounted(() => {
 @media (prefers-reduced-motion: reduce) {
   .lens-close-button {
     transition: none;
+  }
+  .lens-spinner {
+    animation: none;
   }
 }
 </style>

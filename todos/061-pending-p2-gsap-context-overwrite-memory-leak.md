@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "061"
 tags: [code-review, performance, gsap, memory-leak]

@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "063"
 tags: [code-review, quality, webgl, race-condition]
