@@ -12,6 +12,8 @@ const meta = straitsData.meta
 const uid = useId()
 const titleId = `map-title-${uid}`
 const descId = `map-desc-${uid}`
+const glowFilterId = `glow-shared-${uid}`
+const labelShadowId = `label-shadow-${uid}`
 
 // --- SVG viewBox dimensions (matches satellite image aspect ratio) ---
 const VB_WIDTH = 1200
@@ -63,24 +65,26 @@ function straitFill(id: string): string {
   return `hsla(${c.h}, ${c.s}%, ${c.l}%, 0.12)`
 }
 
-function straitStroke(id: string): string {
+function straitStroke(id: string, alpha = 0.7): string {
   const c = getStraitColor(id)
-  return `hsla(${c.h}, ${c.s}%, ${c.l}%, 0.7)`
+  return `hsla(${c.h}, ${c.s}%, ${c.l}%, ${alpha})`
 }
 
-function straitGlowFill(id: string): string {
+function straitGlow(id: string, lightness?: number, alpha = 0.25): string {
   const c = getStraitColor(id)
-  return `hsla(${c.h}, ${c.s}%, 70%, 0.08)`
+  return `hsla(${c.h}, ${c.s}%, ${lightness ?? c.l}%, ${alpha})`
 }
 
 function straitActiveFill(id: string): string {
-  const c = getStraitColor(id)
-  return `hsla(${c.h}, ${c.s}%, ${c.l}%, 0.25)`
+  return straitGlow(id)
 }
 
-function straitGlowColor(id: string): string {
-  const c = getStraitColor(id)
-  return `hsla(${c.h}, ${c.s}%, ${c.l}%, 0.25)`
+function straitOuterGlow(id: string): string {
+  return straitGlow(id)
+}
+
+function straitInnerGlow(id: string): string {
+  return straitGlow(id, 70, 0.08)
 }
 
 // --- Hover state ---
@@ -106,7 +110,7 @@ function circleStyle(id: string) {
   const isActive = hoveredStraitId.value === id
   return {
     fill: isActive ? straitActiveFill(id) : straitFill(id),
-    stroke: isActive ? straitStroke(id).replace('0.7)', '1)') : straitStroke(id),
+    stroke: isActive ? straitStroke(id, 1) : straitStroke(id),
     strokeWidth: 1.5,
   }
 }
@@ -178,10 +182,13 @@ const mappedStraits = computed(() =>
 
 // --- Scale legend ---
 const legendEntries = computed(() => {
-  const values = [25, 50, 100]
-  return values.map((v) => ({
+  const lo = domain[0]
+  const hi = domain[1]
+  const mid = Math.round((lo + hi) / 2)
+  return [lo, mid, hi].map((v) => ({
     value: v,
     r: radiusScale(v),
+    label: v === hi ? 'High' : v === lo ? 'Low' : 'Med',
   }))
 })
 
@@ -236,13 +243,13 @@ function onStraitActivate(id: string) {
       <!-- SVG filter definitions -->
       <defs>
         <!-- Shared glow blur filter (single filter for all straits) -->
-        <filter id="glow-shared" color-interpolation-filters="sRGB"
+        <filter :id="glowFilterId" color-interpolation-filters="sRGB"
                 x="-50%" y="-50%" width="200%" height="200%">
           <feGaussianBlur in="SourceGraphic" stdDeviation="8" />
         </filter>
 
         <!-- Label shadow using SVG1.1 primitives for Safari compatibility -->
-        <filter id="label-shadow" color-interpolation-filters="sRGB"
+        <filter :id="labelShadowId" color-interpolation-filters="sRGB"
                 x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur in="SourceAlpha" stdDeviation="2" result="blur" />
           <feOffset in="blur" dx="0" dy="1" result="offsetBlur" />
@@ -279,8 +286,8 @@ function onStraitActivate(id: string) {
           :cx="strait.cx"
           :cy="strait.cy"
           :r="strait.r"
-          :fill="straitGlowColor(strait.id)"
-          filter="url(#glow-shared)"
+          :fill="straitOuterGlow(strait.id)"
+          :filter="`url(#${glowFilterId})`"
           class="strait-glow"
         />
 
@@ -298,7 +305,7 @@ function onStraitActivate(id: string) {
           :cx="strait.cx"
           :cy="strait.cy"
           :r="Math.max(strait.r - 3, 0)"
-          :fill="straitGlowFill(strait.id)"
+          :fill="straitInnerGlow(strait.id)"
           class="strait-inner-glow"
         />
 
@@ -315,7 +322,7 @@ function onStraitActivate(id: string) {
           :x="strait.labelX"
           :y="strait.labelY"
           :text-anchor="strait.textAnchor"
-          filter="url(#label-shadow)"
+          :filter="`url(#${labelShadowId})`"
           class="strait-label"
         >
           {{ displayLabel(strait) }}
@@ -351,7 +358,7 @@ function onStraitActivate(id: string) {
             :y="LEGEND_BASE_Y - entry.r * 2 + 4"
             class="legend-label"
           >
-            {{ entry.value === 100 ? 'High' : entry.value === 50 ? 'Med' : 'Low' }}
+            {{ entry.label }}
           </text>
         </template>
 
