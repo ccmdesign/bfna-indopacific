@@ -12,14 +12,15 @@ export default defineNuxtConfig({
     prerender: {
       routes: publishedInfographics.flatMap((i) => [
         `/embed/${i.slug}`,
-        `/infographics/${i.slug}`
+        `/infographics/${i.slug}`,
+        `/test/embeds/${i.slug}`
       ])
     }
   },
 
   // Exclude /test/* pages and draft infographics from prerendering -- dev/preview only.
   routeRules: {
-    '/test/**': { prerender: false },
+    '/test/embeds': { prerender: false },
     ...Object.fromEntries(
       draftInfographics.flatMap((i) => [
         [`/embed/${i.slug}`, { prerender: false }],
