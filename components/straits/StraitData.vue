@@ -15,23 +15,13 @@ const props = defineProps<{
   active: boolean
   selected: boolean
   zoomingOut: boolean
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{
   (e: 'hover', id: string | null): void
   (e: 'activate', id: string): void
 }>()
-
-function displayLabel(): string {
-  if (props.labelAnchor === 'left' && props.posX < 30) {
-    const shortShare = props.globalShareLabel
-      .replace('of global ', '')
-      .replace('by volume', '')
-      .trim()
-    return `${props.name} | ${shortShare}`
-  }
-  return `${props.name} | ${props.globalShareLabel}`
-}
 
 function onFocusOut(event: FocusEvent) {
   const currentTarget = event.currentTarget as Element
@@ -47,7 +37,7 @@ function onFocusOut(event: FocusEvent) {
     :class="{ 'strait-data--dimmed': dimmed, 'strait-data--hidden': hidden, 'strait-data--selected': selected, 'strait-data--zooming-out': zoomingOut }"
     :style="{ left: `${posX}%`, top: `${posY}%`, anchorName: selected ? '--selected-strait' : 'none' }"
     role="button"
-    :tabindex="0"
+    :tabindex="disabled ? -1 : 0"
     :aria-label="`${name}: ${globalShareLabel}`"
     @click="emit('activate', id)"
     @keydown.enter="emit('activate', id)"

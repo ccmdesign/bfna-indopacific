@@ -24,7 +24,8 @@ export default defineNuxtConfig({
     ...Object.fromEntries(
       draftInfographics.flatMap((i) => [
         [`/embed/${i.slug}`, { prerender: false }],
-        [`/infographics/${i.slug}`, { prerender: false }]
+        [`/infographics/${i.slug}`, { prerender: false }],
+        [`/infographics/${i.slug}/**`, { prerender: false }]
       ])
     )
   },
