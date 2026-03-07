@@ -15,8 +15,8 @@
       "id": "malacca",
       "portId": "chokepoint5",
       "name": "Strait of Malacca",
-      "posX": 55,
-      "posY": 62,
+      "posX": 59.8,
+      "posY": 56.5,
       "labelAnchor": "below",
       "flowScalar": 100,
       "valueUSD": 2428000000000,
@@ -32,14 +32,15 @@
         "40% of Japan's maritime trade",
         "China channels 80% of its oil imports through this strait",
         "Shortest maritime route between the Indian and Pacific Oceans"
-      ]
+      ],
+      "imageUrl": "/assets/straits/malacca.webp"
     },
     {
       "id": "taiwan",
       "portId": "chokepoint11",
       "name": "Taiwan Strait",
-      "posX": 68,
-      "posY": 38,
+      "posX": 73.4,
+      "posY": 22.6,
       "labelAnchor": "right",
       "flowScalar": 62,
       "valueUSD": 2385000000000,
@@ -55,14 +56,15 @@
         "$1.3 trillion of Chinese trade (15% of its exports)",
         "~1,200 ships cross per week",
         "Critical route for electronics and manufactured goods"
-      ]
+      ],
+      "imageUrl": "/assets/straits/taiwan.webp"
     },
     {
       "id": "bab-el-mandeb",
       "portId": "chokepoint4",
       "name": "Bab el-Mandeb",
-      "posX": 20,
-      "posY": 55,
+      "posX": 15.4,
+      "posY": 40.3,
       "labelAnchor": "left",
       "flowScalar": 46,
       "valueUSD": 1859000000000,
@@ -79,14 +81,15 @@
         "~11% of global seaborne oil trade",
         "Critical Asia-Europe link via Suez Canal",
         "Transit volume dropped ~65% in 2024 due to Houthi attacks"
-      ]
+      ],
+      "imageUrl": "/assets/straits/bab-el-mandeb.webp"
     },
     {
       "id": "luzon",
       "portId": "chokepoint14",
       "name": "Luzon Strait",
-      "posX": 72,
-      "posY": 48,
+      "posX": 73.9,
+      "posY": 28.6,
       "labelAnchor": "right",
       "flowScalar": 45,
       "valueUSD": 294000000000,
@@ -102,14 +105,15 @@
         "Primary gateway between South China Sea and the Pacific Ocean",
         "Default route for East Asia to Americas trade (US West Coast, Panama Canal)",
         "Strategic alternative if Taiwan Strait is disrupted"
-      ]
+      ],
+      "imageUrl": "/assets/straits/luzon.webp"
     },
     {
       "id": "lombok",
       "portId": "chokepoint15",
       "name": "Lombok Strait",
-      "posX": 60,
-      "posY": 72,
+      "posX": 70,
+      "posY": 71.2,
       "labelAnchor": "below",
       "flowScalar": 34,
       "valueUSD": 143000000000,
@@ -125,14 +129,15 @@
         "Mandatory route for Ultra-Large Crude Carriers and Valemax ore carriers",
         "Dominated by iron ore and coal — the 'Steel Highway'",
         "Indonesian government expanding local infrastructure"
-      ]
+      ],
+      "imageUrl": "/assets/straits/lombok.webp"
     },
     {
       "id": "hormuz",
       "portId": "chokepoint6",
       "name": "Strait of Hormuz",
-      "posX": 25,
-      "posY": 42,
+      "posX": 25.2,
+      "posY": 20,
       "labelAnchor": "left",
       "flowScalar": 25,
       "valueUSD": 885000000000,
@@ -149,7 +154,8 @@
         "~20% of global LNG trade",
         "80% of LNG going to Asia, 20% to Europe",
         "Lowest physical tonnage of the six, but highest energy-security risk"
-      ]
+      ],
+      "imageUrl": "/assets/straits/hormuz.webp"
     }
   ],
   "historical": {
