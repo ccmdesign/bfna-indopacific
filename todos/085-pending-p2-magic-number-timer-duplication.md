@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "085"
 tags: [code-review, quality, maintainability, BF-96]
@@ -61,6 +61,7 @@ Listen for `transitionend` on the map background to trigger panel visibility.
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-07 | Identified during PR #22 code review | Timer/CSS coupling should be explicit |
+| 2026-03-07 | Resolved (Option 1): extracted ZOOM_OUT_DURATION_MS and PANEL_SHOW_DELAY_MS constants with JSDoc comments | Single source of truth for timer values |
 
 ## Resources
 

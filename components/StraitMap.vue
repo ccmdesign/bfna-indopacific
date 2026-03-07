@@ -3,7 +3,7 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { scaleSqrt } from 'd3-scale'
 import { min, max } from 'd3-array'
 import straitsData from '~/data/straits/straits.json'
-import type { Strait } from '~/types/strait'
+import type { Strait, StraitHistoricalEntry } from '~/types/strait'
 
 // --- Props & Emits (dual-mode: route-driven vs local-state for embeds) ---
 const props = withDefaults(defineProps<{
@@ -18,13 +18,19 @@ const emit = defineEmits<{
 
 const straits = straitsData.straits as Strait[]
 const meta = straitsData.meta
-const historical = straitsData.historical as Record<string, Record<string, { capacityMt: number; vessels: { total: number; container: number; dryBulk: number; tanker: number }; capacityByType: { container: number; dryBulk: number; tanker: number } }>>
+const historical = straitsData.historical as Record<string, Record<string, StraitHistoricalEntry>>
+
+// --- Animation timing constants (must stay in sync with CSS transition durations) ---
+/** Duration of the zoom-out CSS transition on .map-bg (matches `transition: transform 0.6s`) */
+const ZOOM_OUT_DURATION_MS = 600
+/** Delay before showing panels after zoom-in completes */
+const PANEL_SHOW_DELAY_MS = 650
 
 // --- Size metric toggle ---
 type SizeMetric = 'tonnage' | 'ships'
 const sizeMetric = ref<SizeMetric>('tonnage')
 
-const LATEST_YEAR = Object.keys(historical).sort().pop()!
+const LATEST_YEAR = Object.keys(historical).sort().pop() ?? '2025'
 
 function historicalByStrait(straitId: string) {
   const result: Record<string, (typeof historical)[string][string]> = {}
@@ -110,7 +116,7 @@ function onActivate(id: string) {
       zoomingOut.value = true
       zoomOutFromId.value = wasSelected
       if (zoomOutTimer) clearTimeout(zoomOutTimer)
-      zoomOutTimer = setTimeout(() => { zoomingOut.value = false; zoomOutFromId.value = null }, 600)
+      zoomOutTimer = setTimeout(() => { zoomingOut.value = false; zoomOutFromId.value = null }, prefersReducedMotion.value ? 0 : ZOOM_OUT_DURATION_MS)
     } else if (zoomOutTimer) {
       clearTimeout(zoomOutTimer)
       zoomingOut.value = false
@@ -119,7 +125,7 @@ function onActivate(id: string) {
     _localSelectedId.value = next
 
     if (next) {
-      const delay = prefersReducedMotion.value ? 0 : 650
+      const delay = prefersReducedMotion.value ? 0 : PANEL_SHOW_DELAY_MS
       panelTimer = setTimeout(() => { panelsVisible.value = true }, delay)
     }
   }
@@ -134,8 +140,8 @@ watch(() => props.selectedStraitId, (newId, oldId) => {
   if (panelTimer) { clearTimeout(panelTimer); panelTimer = null }
   panelsVisible.value = false
 
-  const zoomOutDelay = prefersReducedMotion.value ? 0 : 600
-  const panelDelay = prefersReducedMotion.value ? 0 : 650
+  const zoomOutDelay = prefersReducedMotion.value ? 0 : ZOOM_OUT_DURATION_MS
+  const panelDelay = prefersReducedMotion.value ? 0 : PANEL_SHOW_DELAY_MS
 
   if (oldId && !newId) {
     // Zoom out
@@ -284,7 +290,7 @@ function deselect() {
     zoomingOut.value = true
     zoomOutFromId.value = effectiveSelectedId.value
     if (zoomOutTimer) clearTimeout(zoomOutTimer)
-    const delay = prefersReducedMotion.value ? 0 : 600
+    const delay = prefersReducedMotion.value ? 0 : ZOOM_OUT_DURATION_MS
     zoomOutTimer = setTimeout(() => { zoomingOut.value = false; zoomOutFromId.value = null }, delay)
     _localSelectedId.value = null
   }
@@ -292,10 +298,44 @@ function deselect() {
 
 function onBackgroundClick(event: MouseEvent) {
   const el = event.target as Element
-  if (event.target === event.currentTarget || el.classList.contains('map-bg') || el.classList.contains('map-inner')) {
+  if (event.target === event.currentTarget || el.hasAttribute('data-map-bg')) {
     deselect()
   }
 }
+
+// --- Panel fallback positioning (for browsers without CSS Anchor Positioning) ---
+const supportsAnchor = ref(false)
+onMounted(() => {
+  supportsAnchor.value = CSS.supports('anchor-name', '--x')
+})
+
+const panelFallbackLeft = computed(() => {
+  if (supportsAnchor.value || !selectedStrait.value) return undefined
+  const s = selectedStrait.value
+  const x = getZoomedPosX(s)
+  const y = getZoomedPosY(s)
+  const r = getZoomedRadius(s)
+  const rPct = (r / innerSize.value.w) * 100
+  return {
+    top: `${y}%`,
+    right: `${100 - x + rPct}%`,
+    translate: '-40px -50%',
+  }
+})
+
+const panelFallbackRight = computed(() => {
+  if (supportsAnchor.value || !selectedStrait.value) return undefined
+  const s = selectedStrait.value
+  const x = getZoomedPosX(s)
+  const y = getZoomedPosY(s)
+  const r = getZoomedRadius(s)
+  const rPct = (r / innerSize.value.w) * 100
+  return {
+    top: `${y}%`,
+    left: `${x + rPct}%`,
+    translate: '40px -50%',
+  }
+})
 
 // --- Scale legend ---
 const metricLabel = computed(() =>
@@ -316,9 +356,10 @@ const legendEntries = computed(() => {
 
 <template>
   <div ref="mapRef" class="strait-map" :aria-label="meta.title" @click="onBackgroundClick">
-    <div class="map-inner" :style="mapInnerStyle">
+    <div class="map-inner" data-map-bg :style="mapInnerStyle">
       <img
         class="map-bg"
+        data-map-bg
         :style="{ transform: mapBgTransform }"
         src="/assets/map-indo-pacific-2x.webp"
         alt=""
@@ -372,6 +413,7 @@ const legendEntries = computed(() => {
         :historical="historicalByStrait(selectedStrait.id)"
         :year="LATEST_YEAR"
         class="strait-panel-left"
+        :style="panelFallbackLeft"
       />
     </Transition>
 
@@ -381,6 +423,7 @@ const legendEntries = computed(() => {
         :key="'qual-' + selectedStrait.id"
         :strait="selectedStrait"
         class="strait-panel-right"
+        :style="panelFallbackRight"
         @close="deselect"
       />
     </Transition>
@@ -448,20 +491,30 @@ const legendEntries = computed(() => {
 
 .strait-panel-left {
   position: absolute;
-  position-anchor: --selected-strait;
-  top: anchor(center);
-  right: anchor(left);
-  translate: -40px -50%;
   z-index: 2;
 }
 
 .strait-panel-right {
   position: absolute;
-  position-anchor: --selected-strait;
-  top: anchor(center);
-  left: anchor(right);
-  translate: 40px -50%;
   z-index: 2;
+}
+
+/* CSS Anchor Positioning (Chromium 125+). Fallback for Firefox/Safari uses
+   JS-computed inline styles via panelFallbackLeft / panelFallbackRight. */
+@supports (anchor-name: --x) {
+  .strait-panel-left {
+    position-anchor: --selected-strait;
+    top: anchor(center);
+    right: anchor(left);
+    translate: -40px -50%;
+  }
+
+  .strait-panel-right {
+    position-anchor: --selected-strait;
+    top: anchor(center);
+    left: anchor(right);
+    translate: 40px -50%;
+  }
 }
 
 .panel-fade-enter-active,

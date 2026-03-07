@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "088"
 tags: [code-review, quality, maintainability, BF-96]
@@ -50,6 +50,7 @@ Add refs to the background elements and compare against `event.target`.
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-07 | Identified during PR #22 code review | Avoid class-name checks with scoped CSS |
+| 2026-03-07 | Resolved (Option 1): added `data-map-bg` attributes and switched to `el.hasAttribute('data-map-bg')` | Independent of CSS scoping |
 
 ## Resources
 

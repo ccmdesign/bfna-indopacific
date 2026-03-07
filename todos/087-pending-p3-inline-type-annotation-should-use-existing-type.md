@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "087"
 tags: [code-review, quality, typescript, BF-96]
@@ -49,6 +49,7 @@ const historical = straitsData.historical as Record<string, Record<string, Strai
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-07 | Identified during PR #22 code review | Reuse existing type definitions |
+| 2026-03-07 | Resolved: imported StraitHistoricalEntry and replaced inline type annotation | DRY, type-safe |
 
 ## Resources
 

@@ -4,7 +4,7 @@ definePageMeta({
   layoutClass: 'layout-2'
 })
 
-useStraitsHead({
+useStraitsHead(undefined, {
   meta: [
     { name: 'robots', content: 'noindex, nofollow' }
   ]

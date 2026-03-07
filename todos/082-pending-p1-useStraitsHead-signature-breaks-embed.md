@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p1
 issue_id: "082"
 tags: [code-review, regression, BF-96]
@@ -84,6 +84,7 @@ Option 1 -- quick fix in `pages/embed/straits.vue`.
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-07 | Identified during PR #22 code review | Positional arg changes require auditing all call sites |
+| 2026-03-07 | Resolved (Option 1): updated embed page to pass `undefined` as first arg | Quick fix preserves new API |
 
 ## Resources
 

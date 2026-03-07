@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "086"
 tags: [code-review, quality, dead-code, BF-96]
@@ -41,6 +41,7 @@ Delete the `displayLabel()` function entirely.
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-07 | Confirmed still present during PR #22 review | Related to existing todo 070 |
+| 2026-03-07 | Resolved: removed dead `displayLabel()` function from StraitData.vue | Template uses `:text="name"` directly |
 
 ## Resources
 

@@ -23,17 +23,6 @@ const emit = defineEmits<{
   (e: 'activate', id: string): void
 }>()
 
-function displayLabel(): string {
-  if (props.labelAnchor === 'left' && props.posX < 30) {
-    const shortShare = props.globalShareLabel
-      .replace('of global ', '')
-      .replace('by volume', '')
-      .trim()
-    return `${props.name} | ${shortShare}`
-  }
-  return `${props.name} | ${props.globalShareLabel}`
-}
-
 function onFocusOut(event: FocusEvent) {
   const currentTarget = event.currentTarget as Element
   if (!currentTarget.contains(event.relatedTarget as Node)) {

@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "083"
 tags: [code-review, architecture, browser-compatibility, BF-96]
@@ -68,6 +68,7 @@ Option 1 -- progressive enhancement with JS fallback.
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-07 | Identified during PR #22 code review | CSS Anchor Positioning is Chromium-only as of 2025 |
+| 2026-03-07 | Resolved (Option 1): added JS fallback via computed panel styles + @supports gate for CSS anchor | Progressive enhancement for Firefox/Safari |
 
 ## Resources
 

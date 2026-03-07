@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "084"
 tags: [code-review, quality, robustness, BF-96]
@@ -62,6 +62,7 @@ const LATEST_YEAR = years[years.length - 1]
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-03-07 | Identified during PR #22 code review | Non-null assertions on `.pop()` are fragile |
+| 2026-03-07 | Resolved (Option 1): replaced `!` with `?? '2025'` fallback | Safe default prevents crash on empty data |
 
 ## Resources
 
