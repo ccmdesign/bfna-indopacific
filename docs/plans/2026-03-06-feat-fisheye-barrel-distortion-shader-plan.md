@@ -1,7 +1,7 @@
 ---
 title: "feat: Fisheye barrel distortion shader on strait circles"
 type: feat
-status: active
+status: completed
 date: 2026-03-06
 linear: BF-86
 deepened: 2026-03-06
@@ -516,27 +516,27 @@ If the component unmounts while an image is loading, the `onload` callback must 
 
 ## Acceptance Criteria
 
-- [ ] Selected circle image renders through barrel distortion shader with visible edge warping
-- [ ] Distortion is noticeably exaggerated -- "looking through a glass lens" feel
-- [ ] Chromatic aberration visible at the circle rim (RGB split)
-- [ ] Rim darkening creates natural light falloff at edges
-- [ ] No new npm dependencies (raw WebGL only)
-- [ ] Existing zoom behavior (CSS `transform: scale()` in `StraitMap`) completely unchanged
-- [ ] Graceful fallback to plain `<img>` when WebGL unavailable
-- [ ] Graceful fallback to plain `<img>` when `prefers-reduced-motion` is active
-- [ ] Canvas resizes correctly during the circle grow animation
-- [ ] No performance regression -- shader runs at 60fps
-- [ ] GL resources cleaned up on component unmount (no WebGL context leaks)
-- [ ] Circles without `imageUrl` continue to render as CSS-only (backward compatible)
+- [x] Selected circle image renders through barrel distortion shader with visible edge warping
+- [x] Distortion is noticeably exaggerated -- "looking through a glass lens" feel
+- [x] Chromatic aberration visible at the circle rim (RGB split)
+- [x] Rim darkening creates natural light falloff at edges
+- [x] No new npm dependencies (raw WebGL only)
+- [x] Existing zoom behavior (CSS `transform: scale()` in `StraitMap`) completely unchanged
+- [x] Graceful fallback to plain `<img>` when WebGL unavailable
+- [x] Graceful fallback to plain `<img>` when `prefers-reduced-motion` is active
+- [x] Canvas resizes correctly during the circle grow animation
+- [x] No performance regression -- shader runs at 60fps
+- [x] GL resources cleaned up on component unmount (no WebGL context leaks)
+- [x] Circles without `imageUrl` continue to render as CSS-only (backward compatible)
 
 ### Research Insights: Additional Acceptance Criteria
 
-- [ ] `npx nuxi generate` completes without errors (SSR/SSG safety)
-- [ ] `webglcontextlost` event is handled -- shader recovers after context restoration
-- [ ] Rapidly switching between straits does not upload stale textures
-- [ ] Canvas renders sharp on HiDPI/Retina displays (no blurriness)
-- [ ] `prefers-reduced-motion` toggle at runtime (not just page load) switches rendering mode
-- [ ] Circle edges are anti-aliased (smoothstep, not hard clip)
+- [x] `npx nuxi generate` completes without errors (SSR/SSG safety)
+- [x] `webglcontextlost` event is handled -- shader recovers after context restoration
+- [x] Rapidly switching between straits does not upload stale textures
+- [x] Canvas renders sharp on HiDPI/Retina displays (no blurriness)
+- [x] `prefers-reduced-motion` toggle at runtime (not just page load) switches rendering mode
+- [x] Circle edges are anti-aliased (smoothstep, not hard clip)
 
 ---
 

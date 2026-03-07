@@ -32,7 +32,8 @@
         "40% of Japan's maritime trade",
         "China channels 80% of its oil imports through this strait",
         "Shortest maritime route between the Indian and Pacific Oceans"
-      ]
+      ],
+      "imageUrl": "/assets/straits/malacca.webp"
     },
     {
       "id": "taiwan",
@@ -55,7 +56,8 @@
         "$1.3 trillion of Chinese trade (15% of its exports)",
         "~1,200 ships cross per week",
         "Critical route for electronics and manufactured goods"
-      ]
+      ],
+      "imageUrl": "/assets/straits/taiwan.webp"
     },
     {
       "id": "bab-el-mandeb",
@@ -79,7 +81,8 @@
         "~11% of global seaborne oil trade",
         "Critical Asia-Europe link via Suez Canal",
         "Transit volume dropped ~65% in 2024 due to Houthi attacks"
-      ]
+      ],
+      "imageUrl": "/assets/straits/bab-el-mandeb.webp"
     },
     {
       "id": "luzon",
@@ -102,7 +105,8 @@
         "Primary gateway between South China Sea and the Pacific Ocean",
         "Default route for East Asia to Americas trade (US West Coast, Panama Canal)",
         "Strategic alternative if Taiwan Strait is disrupted"
-      ]
+      ],
+      "imageUrl": "/assets/straits/luzon.webp"
     },
     {
       "id": "lombok",
@@ -125,7 +129,8 @@
         "Mandatory route for Ultra-Large Crude Carriers and Valemax ore carriers",
         "Dominated by iron ore and coal — the 'Steel Highway'",
         "Indonesian government expanding local infrastructure"
-      ]
+      ],
+      "imageUrl": "/assets/straits/lombok.webp"
     },
     {
       "id": "hormuz",
@@ -149,7 +154,8 @@
         "~20% of global LNG trade",
         "80% of LNG going to Asia, 20% to Europe",
         "Lowest physical tonnage of the six, but highest energy-security risk"
-      ]
+      ],
+      "imageUrl": "/assets/straits/hormuz.webp"
     }
   ],
   "historical": {

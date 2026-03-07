@@ -83,6 +83,7 @@ const legendEntries = (() => {
       :color="getColor(strait.id)"
       :dimmed="!!hoveredStraitId && hoveredStraitId !== strait.id"
       :active="hoveredStraitId === strait.id"
+      :image-url="strait.imageUrl"
       @hover="onHover"
       @activate="onActivate"
     />

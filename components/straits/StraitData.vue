@@ -12,6 +12,7 @@ const props = defineProps<{
   color: { h: number; s: number; l: number }
   dimmed: boolean
   active: boolean
+  imageUrl?: string
 }>()
 
 const emit = defineEmits<{
@@ -54,7 +55,7 @@ function onFocusOut(event: FocusEvent) {
     @focusin="emit('hover', id)"
     @focusout="onFocusOut($event)"
   >
-    <StraitCircle :radius="radius" :color="color" :active="active" />
+    <StraitCircle :radius="radius" :color="color" :active="active" :image-url="imageUrl" />
     <StraitLabel :text="name" :anchor="(id === 'taiwan' || id === 'luzon') ? 'right' : 'below'" :radius="radius" />
   </div>
 </template>

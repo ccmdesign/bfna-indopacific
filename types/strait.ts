@@ -24,6 +24,8 @@ export interface Strait {
   topIndustries: string[]
   threats: string[]
   keyFacts: string[]
+  /** Optional URL to a per-strait satellite image crop for the fisheye shader */
+  imageUrl?: string
 }
 
 export interface StraitsDataMeta {
