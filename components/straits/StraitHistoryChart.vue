@@ -24,7 +24,9 @@ const xScale = computed(() =>
 )
 
 const yScaleCargo = computed(() => {
-  const [lo, hi] = extent(cargoData.value) as [number, number]
+  const ext = extent(cargoData.value)
+  const lo = ext[0] ?? 0
+  const hi = ext[1] ?? 0
   const pad = (hi - lo) * 0.15 || 100
   return scaleLinear()
     .domain([Math.max(0, lo - pad), hi + pad])
@@ -32,7 +34,9 @@ const yScaleCargo = computed(() => {
 })
 
 const yScaleVessels = computed(() => {
-  const [lo, hi] = extent(vesselData.value) as [number, number]
+  const ext = extent(vesselData.value)
+  const lo = ext[0] ?? 0
+  const hi = ext[1] ?? 0
   const pad = (hi - lo) * 0.15 || 1000
   return scaleLinear()
     .domain([Math.max(0, lo - pad), hi + pad])

@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "089"
 tags: [code-review, architecture, geometry]
@@ -45,7 +45,7 @@ The Hormuz corridor data has doors A=[25,26] and B=[26,27] that share vertex 26.
 
 ## Recommended Action
 
-_(To be filled during triage)_
+Option B implemented: `extractWallChains` now detects when a wall chain is a single point (shared vertex) and mirrors it from the opposite wall, producing a valid centerline that bisects the corridor.
 
 ## Technical Details
 

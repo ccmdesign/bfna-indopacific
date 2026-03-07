@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "091"
 tags: [code-review, performance, architecture]
@@ -37,7 +37,7 @@ dependencies: []
 
 ## Recommended Action
 
-_(To be filled during triage)_
+Option A implemented: Cache is now guarded with `typeof window !== 'undefined'` check. On the server (SSR), `geometryCache` is `null` and geometry is recomputed per request. On the client, the Map cache works as before.
 
 ## Technical Details
 

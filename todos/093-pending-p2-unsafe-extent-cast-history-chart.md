@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "093"
 tags: [code-review, quality, security]
@@ -37,7 +37,7 @@ In `StraitHistoryChart.vue` lines 27 and 35, `extent()` returns are cast with `a
 
 ## Recommended Action
 
-_(To be filled during triage)_
+Option B implemented: Replaced unsafe `as [number, number]` casts with nullish coalescing (`ext[0] ?? 0`, `ext[1] ?? 0`) so empty data produces a safe 0-0 domain instead of NaN.
 
 ## Technical Details
 

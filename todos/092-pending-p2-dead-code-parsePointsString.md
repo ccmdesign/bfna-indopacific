@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "092"
 tags: [code-review, quality]
@@ -30,7 +30,7 @@ dependencies: []
 
 ## Recommended Action
 
-_(To be filled during triage)_
+Option A implemented: Removed the unused `parsePointsString` function from `scripts/parse-corridor-svg.ts`.
 
 ## Technical Details
 

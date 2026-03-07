@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "094"
 tags: [code-review, quality, architecture]
@@ -37,7 +37,7 @@ dependencies: []
 
 ## Recommended Action
 
-_(To be filled during triage)_
+Option A implemented: `CorridorId` is now derived as `keyof typeof corridorsRaw` from the JSON import, so adding a new corridor to `corridors.json` automatically extends the union type.
 
 ## Technical Details
 

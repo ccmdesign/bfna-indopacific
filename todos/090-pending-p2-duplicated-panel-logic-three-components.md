@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "090"
 tags: [code-review, architecture, quality]
@@ -38,7 +38,7 @@ dependencies: []
 
 ## Recommended Action
 
-_(To be filled during triage)_
+Option A implemented: Extracted `fmtUsd`, `fmtNum`, and `computeVesselSegments` to `utils/format.ts`. Both `StraitDetailPanel.vue` and `StraitQuantPanel.vue` now import from the shared module.
 
 ## Technical Details
 

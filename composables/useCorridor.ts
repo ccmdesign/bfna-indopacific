@@ -7,8 +7,10 @@ import type { CorridorsData } from '~/types/strait'
 
 const corridorsData = corridorsRaw as CorridorsData
 
-// Module-level cache: corridor geometry is static, no need to recompute
-const geometryCache = new Map<string, CorridorGeometry>()
+// Module-level cache: corridor geometry is static, no need to recompute.
+// Guarded to client-only to avoid SSR shared-state leaks across requests.
+const geometryCache: Map<string, CorridorGeometry> | null =
+  typeof window !== 'undefined' ? new Map<string, CorridorGeometry>() : null
 
 /**
  * Extract two wall chains from a corridor polygon given door edge indices.
@@ -47,6 +49,26 @@ function extractWallChains(
   const wallLeft = walkChain(doors.b[1], doors.a[0])
   // Wall Right: from door A end (a1) to door B start (b0)
   const wallRight = walkChain(doors.a[1], doors.b[0])
+
+  // Handle degenerate wall from shared door vertex (e.g., doors a=[25,26], b=[26,27]):
+  // When a1 === b0, the right wall is a single repeated point. Mirror it from the
+  // left wall by offsetting each left-wall point toward the degenerate vertex.
+  if (wallRight.length === 1 && wallLeft.length > 1) {
+    const anchor = wallRight[0]
+    const mirrored: Point2D[] = wallLeft.map(([lx, ly]) => [
+      2 * anchor[0] - lx,
+      2 * anchor[1] - ly,
+    ] as Point2D)
+    return { wallLeft, wallRight: mirrored }
+  }
+  if (wallLeft.length === 1 && wallRight.length > 1) {
+    const anchor = wallLeft[0]
+    const mirrored: Point2D[] = wallRight.map(([rx, ry]) => [
+      2 * anchor[0] - rx,
+      2 * anchor[1] - ry,
+    ] as Point2D)
+    return { wallLeft: mirrored, wallRight }
+  }
 
   return { wallLeft, wallRight }
 }
@@ -123,11 +145,11 @@ export function useCorridor(corridorId: Ref<string | null>): {
     const id = corridorId.value
     if (!id || !corridor.value) return null
 
-    const cached = geometryCache.get(id)
+    const cached = geometryCache?.get(id)
     if (cached) return cached
 
     const geo = deriveGeometry(corridor.value)
-    geometryCache.set(id, geo)
+    geometryCache?.set(id, geo)
     return geo
   })
 

@@ -37,7 +37,7 @@ This PR adds several large assets that inflate the repository permanently: `Blan
 
 ## Recommended Action
 
-_(To be filled during triage)_
+Cannot be resolved via code change. Removing large assets from git history requires destructive operations (BFG Repo-Cleaner or git filter-repo) that rewrite all commit SHAs. This must be coordinated as a manual team operation, not a code review fix. The assets are already permanently in git history; deleting them from HEAD alone does not reduce clone size. Recommend deferring to a dedicated repo-cleanup task with Git LFS migration.
 
 ## Technical Details
 

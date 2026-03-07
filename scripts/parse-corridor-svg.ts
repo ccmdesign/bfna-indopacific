@@ -33,22 +33,6 @@ interface StraitCorridor {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function parsePointsString(raw: string): Point2D[] {
-  return raw
-    .trim()
-    .split(/\s+/)
-    .map((pair) => {
-      // SVG points can use comma or space separation
-      // Handle both "x,y" and "x y" formats
-      const parts = pair.includes(',') ? pair.split(',') : [pair]
-      if (parts.length === 2) {
-        return [parseFloat(parts[0]), parseFloat(parts[1])] as Point2D
-      }
-      return null
-    })
-    .filter((p): p is Point2D => p !== null)
-}
-
 function parsePointsAttribute(attr: string): Point2D[] {
   // SVG points attribute: space-separated "x,y" pairs OR space-separated x y values
   const tokens = attr.trim().split(/[\s,]+/).map(Number)

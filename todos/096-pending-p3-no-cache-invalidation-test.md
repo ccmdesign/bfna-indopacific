@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "096"
 tags: [code-review, quality, testing]
@@ -37,7 +37,7 @@ The `geometryCache` in `useCorridor.ts` is never tested for cache behavior: no t
 
 ## Recommended Action
 
-_(To be filled during triage)_
+Added a determinism test in `tests/corridor-geometry.test.ts` that verifies repeated `deriveGeometry` calls return identical results. The cache itself is now SSR-guarded (null in Node/SSR), so the test exercises the pure function path directly.
 
 ## Technical Details
 

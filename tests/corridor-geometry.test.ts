@@ -75,11 +75,14 @@ describe('deriveGeometry - Hormuz', () => {
     }
   })
 
-  it('handles degenerate wall (shared vertex) without errors', () => {
-    // Hormuz doors share vertex 26 -- one wall is degenerate
-    // The geometry should still be valid
+  it('handles shared door vertex with mirrored wall', () => {
+    // Hormuz doors share vertex 26 -- the degenerate wall is now
+    // mirrored from the opposite wall, producing a valid centerline
     expect(geo.wallLeft.length).toBeGreaterThanOrEqual(30)
     expect(geo.wallRight.length).toBeGreaterThanOrEqual(30)
+    // Both walls should have more than 1 unique point
+    const uniqueRight = new Set(geo.wallRight.map(p => `${p[0]},${p[1]}`))
+    expect(uniqueRight.size).toBeGreaterThan(1)
   })
 })
 
@@ -118,5 +121,17 @@ describe('deriveGeometry - synthetic rectangle', () => {
 
   it('has all non-negative widths', () => {
     expect(geo.widths.every(w => w >= 0)).toBe(true)
+  })
+})
+
+describe('deriveGeometry - cache / determinism', () => {
+  it('returns identical results for repeated calls on the same corridor', () => {
+    // Since geometryCache is null in Node (no window), this tests
+    // that deriveGeometry is a pure, deterministic function.
+    const geo1 = deriveGeometry(hormuz)
+    const geo2 = deriveGeometry(hormuz)
+    expect(geo1.centerlineLength).toBe(geo2.centerlineLength)
+    expect(geo1.centerline).toEqual(geo2.centerline)
+    expect(geo1.widths).toEqual(geo2.widths)
   })
 })

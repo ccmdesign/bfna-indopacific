@@ -1,3 +1,5 @@
+import corridorsRaw from '~/data/straits/corridors.json'
+
 /**
  * Shape of a single strait entry in data/straits/straits.json.
  * Keeps the JSON data contract explicit and enables compile-time checks.
@@ -77,8 +79,8 @@ export interface StraitPath {
 /** A 2D point as [x, y] in corridor-local coordinates */
 export type Point2D = [number, number]
 
-/** Known strait corridor IDs (extend as corridors are added) */
-export type CorridorId = 'hormuz' | 'malacca' | 'lombok' | 'sunda' | 'taiwan' | 'bab-el-mandeb'
+/** Known strait corridor IDs, derived from corridors.json keys at compile time */
+export type CorridorId = keyof typeof corridorsRaw
 
 /** A strait corridor polygon with classified door edges. */
 export interface StraitCorridor {
