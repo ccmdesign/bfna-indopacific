@@ -55,7 +55,9 @@ const hoveredStraitId = ref<string | null>(null)
 const selectedStraitId = ref<string | null>(null)
 const zoomingOut = ref(false)
 const zoomOutFromId = ref<string | null>(null)
+const panelsVisible = ref(false)
 let zoomOutTimer: ReturnType<typeof setTimeout> | null = null
+let panelTimer: ReturnType<typeof setTimeout> | null = null
 
 function onHover(id: string | null) {
   hoveredStraitId.value = id
@@ -64,6 +66,10 @@ function onHover(id: string | null) {
 function onActivate(id: string) {
   const wasSelected = selectedStraitId.value
   const next = wasSelected === id ? null : id
+
+  // Always hide panels immediately on any selection change
+  panelsVisible.value = false
+  if (panelTimer) clearTimeout(panelTimer)
 
   if (wasSelected && !next) {
     // Zooming out — keep circles hidden until zoom animation finishes (0.6s)
@@ -78,6 +84,11 @@ function onActivate(id: string) {
   }
 
   selectedStraitId.value = next
+
+  // Show panels after zoom transition completes
+  if (next) {
+    panelTimer = setTimeout(() => { panelsVisible.value = true }, 650)
+  }
 }
 
 // --- Zoom ---
@@ -104,6 +115,7 @@ onMounted(() => {
 onBeforeUnmount(() => {
   resizeObserver?.disconnect()
   if (zoomOutTimer) clearTimeout(zoomOutTimer)
+  if (panelTimer) clearTimeout(panelTimer)
 })
 
 const innerSize = computed(() => {
@@ -182,6 +194,8 @@ function isHidden(strait: Strait) {
 
 function deselect() {
   if (!selectedStraitId.value) return
+  panelsVisible.value = false
+  if (panelTimer) clearTimeout(panelTimer)
   zoomingOut.value = true
   zoomOutFromId.value = selectedStraitId.value
   if (zoomOutTimer) clearTimeout(zoomOutTimer)
@@ -226,6 +240,11 @@ const legendEntries = computed(() => {
         width="2400"
         height="1350"
       />
+      <div
+        class="map-dim-overlay"
+        :class="{ active: !!selectedStraitId }"
+        :style="{ transform: mapBgTransform }"
+      />
       <StraitData
         v-for="strait in straits"
         :key="strait.id"
@@ -248,20 +267,29 @@ const legendEntries = computed(() => {
     </div>
 
     <Transition name="panel-fade">
-      <StraitDetailPanel
-        v-if="selectedStrait"
-        :key="selectedStrait.id"
+      <StraitQuantPanel
+        v-if="panelsVisible && selectedStrait"
+        :key="'quant-' + selectedStrait.id"
         :strait="selectedStrait"
         :historical="historicalByStrait(selectedStrait.id)"
         :year="LATEST_YEAR"
-        class="strait-detail-position"
+        class="strait-panel-left"
+      />
+    </Transition>
+
+    <Transition name="panel-fade">
+      <StraitQualPanel
+        v-if="panelsVisible && selectedStrait"
+        :key="'qual-' + selectedStrait.id"
+        :strait="selectedStrait"
+        class="strait-panel-right"
         @close="deselect"
       />
     </Transition>
 
-    <ScaleLegend :entries="legendEntries" :title="metricLabel" />
+    <ScaleLegend :entries="legendEntries" :title="metricLabel" :class="{ 'controls-hidden': !!selectedStraitId }" />
 
-    <div class="metric-toggle">
+    <div class="metric-toggle" :class="{ 'controls-hidden': !!selectedStraitId }">
       <button
         :class="{ active: sizeMetric === 'tonnage' }"
         @click="sizeMetric = 'tonnage'"
@@ -303,13 +331,38 @@ const legendEntries = computed(() => {
   transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.map-dim-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0);
+  transform-origin: 0 0;
+  will-change: transform;
+  transition: background 0.6s cubic-bezier(0.4, 0, 0.2, 1), transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
 
-.strait-detail-position {
+.map-dim-overlay.active {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+
+.strait-panel-left {
+  position: absolute;
+  position-anchor: --selected-strait;
+  top: anchor(center);
+  right: anchor(left);
+  translate: -40px -50%;
+  z-index: 2;
+}
+
+.strait-panel-right {
   position: absolute;
   position-anchor: --selected-strait;
   top: anchor(center);
   left: anchor(right);
-  translate: 80px -50%;
+  translate: 40px -50%;
   z-index: 2;
 }
 
@@ -323,6 +376,11 @@ const legendEntries = computed(() => {
   opacity: 0;
 }
 
+.controls-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .metric-toggle {
   position: absolute;
   bottom: 16px;
@@ -330,6 +388,7 @@ const legendEntries = computed(() => {
   display: flex;
   gap: 0;
   z-index: 1;
+  transition: opacity 0.3s ease;
 }
 
 .metric-toggle button {
