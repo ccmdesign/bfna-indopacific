@@ -45,6 +45,11 @@
   --color-text-muted: rgba(255, 255, 255, 0.6);
   --color-accent: hsl(218, 60%, 58%);
   --color-shadow: rgba(0, 0, 0, 0.3);
+
+  /* Cargo type colors (from Renewables palette) */
+  --color-cargo-container: hsl(218, 60%, 58%);
+  --color-cargo-dry-bulk: hsl(34, 60%, 50%);
+  --color-cargo-tanker: hsl(348, 60%, 55%);
 }
 
 

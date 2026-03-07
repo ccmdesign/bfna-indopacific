@@ -17,7 +17,7 @@ const VALID_IDS = new Set(straitsData.straits.map((s: { id: string }) => s.id))
 
 const straitId = computed(() => {
   const id = route.params.id as string | undefined
-  return id || undefined
+  return id || null
 })
 
 // Validate route param reactively (handles param-only changes that skip beforeEnter)

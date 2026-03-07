@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Strait } from '~/types/strait'
+import { fmtUsd, fmtNum, computeVesselSegments } from '~/utils/format'
 
 const props = defineProps<{
   strait: Strait
@@ -13,27 +14,7 @@ const emit = defineEmits<{
 
 const yearData = computed(() => props.historical[props.year])
 
-const vesselSegments = computed(() => {
-  const d = yearData.value
-  if (!d) return []
-  const total = d.vessels.container + d.vessels.dryBulk + d.vessels.tanker
-  if (total === 0) return []
-  return [
-    { key: 'container', label: 'Container', value: d.vessels.container, pct: (d.vessels.container / total) * 100, color: 'var(--color-cargo-container)' },
-    { key: 'dryBulk', label: 'Dry Bulk', value: d.vessels.dryBulk, pct: (d.vessels.dryBulk / total) * 100, color: 'var(--color-cargo-dry-bulk)' },
-    { key: 'tanker', label: 'Tanker', value: d.vessels.tanker, pct: (d.vessels.tanker / total) * 100, color: 'var(--color-cargo-tanker)' },
-  ]
-})
-
-function fmtUsd(v: number): string {
-  if (v >= 1e12) return `$${(v / 1e12).toFixed(1)}T`
-  if (v >= 1e9) return `$${(v / 1e9).toFixed(0)}B`
-  return `$${(v / 1e6).toFixed(0)}M`
-}
-
-function fmtNum(v: number): string {
-  return v.toLocaleString('en-US')
-}
+const vesselSegments = computed(() => computeVesselSegments(yearData.value?.vessels))
 </script>
 
 <template>
@@ -106,6 +87,9 @@ function fmtNum(v: number): string {
         </div>
       </div>
     </div>
+
+    <!-- Historical trend chart -->
+    <StraitHistoryChart v-if="Object.keys(historical).length > 1" :historical="historical" />
 
     <!-- Top Industries -->
     <div v-if="strait.topIndustries.length" class="strait-panel__section">
