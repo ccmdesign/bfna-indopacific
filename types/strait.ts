@@ -43,5 +43,29 @@ export interface StraitsDataMeta {
 export interface StraitsData {
   meta: StraitsDataMeta
   straits: Strait[]
-  historical: Record<string, Record<string, unknown>>
+  historical: Record<string, Record<string, StraitHistoricalEntry>>
+}
+
+// ---------------------------------------------------------------------------
+// Particle system types (BF-78)
+// ---------------------------------------------------------------------------
+
+export type ParticleType = 'container' | 'dryBulk' | 'tanker'
+
+export interface StraitHistoricalEntry {
+  capacityMt: number
+  vessels: { total: number; container: number; dryBulk: number; tanker: number }
+  capacityByType: { container: number; dryBulk: number; tanker: number }
+}
+
+export interface Point {
+  x: number // 0..1 normalized to map width
+  y: number // 0..1 normalized to map height
+}
+
+export interface StraitPath {
+  /** Control points for a cubic Bezier: [start, cp1, cp2, end] */
+  points: [Point, Point, Point, Point]
+  /** Optional second lane for more complex straits */
+  altPoints?: [Point, Point, Point, Point]
 }

@@ -7,6 +7,7 @@ import type { Strait } from '~/types/strait'
 
 const straits = straitsData.straits as Strait[]
 const meta = straitsData.meta
+const LATEST_YEAR = '2025'
 
 // --- Circle scale ---
 const RADIUS_MIN = 48
@@ -137,6 +138,13 @@ function getZoomedRadius(strait: Strait) {
   return radiusScale(strait.flowScalar)
 }
 
+/** Clip radius for the particle canvas (matches the selected circle radius). */
+const particleClipRadius = computed(() => {
+  const s = selectedStrait.value
+  if (!s) return 0
+  return getZoomedRadius(s)
+})
+
 const OVERLAP_PAIRS = new Set(['taiwan', 'luzon'])
 
 function isHidden(strait: Strait) {
@@ -195,6 +203,16 @@ const legendEntries = (() => {
         :selected="selectedStraitId === strait.id"
         @hover="onHover"
         @activate="onActivate"
+      />
+
+      <StraitParticleCanvas
+        v-if="selectedStraitId"
+        :strait-id="selectedStraitId"
+        :year="LATEST_YEAR"
+        :inner-size="innerSize"
+        :zoom-scale="zoomScale"
+        :selected-strait="selectedStrait"
+        :clip-radius="particleClipRadius"
       />
     </div>
 
