@@ -15,6 +15,7 @@ const props = defineProps<{
   active: boolean
   selected: boolean
   zoomingOut: boolean
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -47,7 +48,7 @@ function onFocusOut(event: FocusEvent) {
     :class="{ 'strait-data--dimmed': dimmed, 'strait-data--hidden': hidden, 'strait-data--selected': selected, 'strait-data--zooming-out': zoomingOut }"
     :style="{ left: `${posX}%`, top: `${posY}%`, anchorName: selected ? '--selected-strait' : 'none' }"
     role="button"
-    :tabindex="0"
+    :tabindex="disabled ? -1 : 0"
     :aria-label="`${name}: ${globalShareLabel}`"
     @click="emit('activate', id)"
     @keydown.enter="emit('activate', id)"

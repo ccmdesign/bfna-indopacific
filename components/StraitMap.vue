@@ -1,9 +1,20 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
+import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { scaleSqrt } from 'd3-scale'
 import { min, max } from 'd3-array'
 import straitsData from '~/data/straits/straits.json'
 import type { Strait } from '~/types/strait'
+
+// --- Props & Emits (dual-mode: route-driven vs local-state for embeds) ---
+const props = withDefaults(defineProps<{
+  selectedStraitId?: string | null
+}>(), {
+  selectedStraitId: undefined
+})
+
+const emit = defineEmits<{
+  (e: 'select', id: string | null): void
+}>()
 
 const straits = straitsData.straits as Strait[]
 const meta = straitsData.meta
@@ -50,12 +61,29 @@ function getColor(_id: string) {
   return CIRCLE_COLOR
 }
 
-// --- Interaction state ---
+// --- Interaction state (dual-mode: route-driven or local) ---
 const hoveredStraitId = ref<string | null>(null)
-const selectedStraitId = ref<string | null>(null)
+const _localSelectedId = ref<string | null>(null)
+
+// Route-controlled mode: prop is provided (not undefined)
+const isRouteControlled = computed(() => props.selectedStraitId !== undefined)
+
+// Effective selected ID: prop wins if provided
+const effectiveSelectedId = computed(() =>
+  isRouteControlled.value ? (props.selectedStraitId ?? null) : _localSelectedId.value
+)
+
 const zoomingOut = ref(false)
 const zoomOutFromId = ref<string | null>(null)
-const panelsVisible = ref(false)
+
+// Detect prefers-reduced-motion for timer delays
+const prefersReducedMotion = ref(false)
+onMounted(() => {
+  prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+})
+
+// Initialize panelsVisible based on whether we have a deep-link selection
+const panelsVisible = ref(!!props.selectedStraitId)
 let zoomOutTimer: ReturnType<typeof setTimeout> | null = null
 let panelTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -64,32 +92,71 @@ function onHover(id: string | null) {
 }
 
 function onActivate(id: string) {
-  const wasSelected = selectedStraitId.value
+  // While a strait is selected, other strait clicks are suppressed
+  if (effectiveSelectedId.value && effectiveSelectedId.value !== id) return
+
+  const wasSelected = effectiveSelectedId.value
   const next = wasSelected === id ? null : id
 
-  // Always hide panels immediately on any selection change
-  panelsVisible.value = false
-  if (panelTimer) clearTimeout(panelTimer)
+  if (isRouteControlled.value) {
+    // Route-driven mode: emit event, let parent handle navigation
+    emit('select', next)
+  } else {
+    // Local-state mode (embed): handle locally with animation
+    panelsVisible.value = false
+    if (panelTimer) clearTimeout(panelTimer)
 
-  if (wasSelected && !next) {
-    // Zooming out — keep circles hidden until zoom animation finishes (0.6s)
-    zoomingOut.value = true
-    zoomOutFromId.value = wasSelected
-    if (zoomOutTimer) clearTimeout(zoomOutTimer)
-    zoomOutTimer = setTimeout(() => { zoomingOut.value = false; zoomOutFromId.value = null }, 600)
-  } else if (zoomOutTimer) {
-    // Zooming into a new strait, cancel any pending zoom-out
-    clearTimeout(zoomOutTimer)
-    zoomingOut.value = false
-  }
+    if (wasSelected && !next) {
+      zoomingOut.value = true
+      zoomOutFromId.value = wasSelected
+      if (zoomOutTimer) clearTimeout(zoomOutTimer)
+      zoomOutTimer = setTimeout(() => { zoomingOut.value = false; zoomOutFromId.value = null }, 600)
+    } else if (zoomOutTimer) {
+      clearTimeout(zoomOutTimer)
+      zoomingOut.value = false
+    }
 
-  selectedStraitId.value = next
+    _localSelectedId.value = next
 
-  // Show panels after zoom transition completes
-  if (next) {
-    panelTimer = setTimeout(() => { panelsVisible.value = true }, 650)
+    if (next) {
+      const delay = prefersReducedMotion.value ? 0 : 650
+      panelTimer = setTimeout(() => { panelsVisible.value = true }, delay)
+    }
   }
 }
+
+// --- Route-driven animation watcher (only in route-controlled mode) ---
+watch(() => props.selectedStraitId, (newId, oldId) => {
+  if (!isRouteControlled.value) return
+
+  // Clear ALL pending timers on ANY param change (prevents race conditions on rapid nav)
+  if (zoomOutTimer) { clearTimeout(zoomOutTimer); zoomOutTimer = null }
+  if (panelTimer) { clearTimeout(panelTimer); panelTimer = null }
+  panelsVisible.value = false
+
+  const zoomOutDelay = prefersReducedMotion.value ? 0 : 600
+  const panelDelay = prefersReducedMotion.value ? 0 : 650
+
+  if (oldId && !newId) {
+    // Zoom out
+    zoomingOut.value = true
+    zoomOutFromId.value = oldId
+    zoomOutTimer = setTimeout(() => {
+      zoomingOut.value = false
+      zoomOutFromId.value = null
+    }, zoomOutDelay)
+  } else if (newId && !oldId) {
+    // Zoom in
+    zoomingOut.value = false
+    zoomOutFromId.value = null
+    panelTimer = setTimeout(() => { panelsVisible.value = true }, panelDelay)
+  } else if (newId && oldId && newId !== oldId) {
+    // Direct strait-to-strait transition (defensive)
+    zoomingOut.value = false
+    zoomOutFromId.value = null
+    panelTimer = setTimeout(() => { panelsVisible.value = true }, panelDelay)
+  }
+})
 
 // --- Zoom ---
 const mapRef = ref<HTMLElement | null>(null)
@@ -110,6 +177,11 @@ onMounted(() => {
   update()
   resizeObserver = new ResizeObserver(update)
   resizeObserver.observe(mapRef.value)
+
+  // Deep link: if a strait is already selected on mount, show panels immediately
+  if (effectiveSelectedId.value) {
+    panelsVisible.value = true
+  }
 })
 
 onBeforeUnmount(() => {
@@ -146,7 +218,7 @@ const mapInnerStyle = computed(() => {
 })
 
 const selectedStrait = computed(() =>
-  straits.find((s) => s.id === selectedStraitId.value) ?? null
+  straits.find((s) => s.id === effectiveSelectedId.value) ?? null
 )
 
 const zoomScale = computed(() => {
@@ -179,7 +251,7 @@ function getZoomedPosY(strait: Strait) {
 }
 
 function getZoomedRadius(strait: Strait) {
-  if (strait.id === selectedStraitId.value) {
+  if (strait.id === effectiveSelectedId.value) {
     return innerSize.value.h * 0.45
   }
   return radiusScale.value(getMetricValue(strait.id))
@@ -195,19 +267,27 @@ const particleClipRadius = computed(() => {
 const OVERLAP_PAIRS = new Set(['taiwan', 'luzon'])
 
 function isHidden(strait: Strait) {
-  if (!selectedStraitId.value) return false
-  return OVERLAP_PAIRS.has(strait.id) && OVERLAP_PAIRS.has(selectedStraitId.value) && strait.id !== selectedStraitId.value
+  if (!effectiveSelectedId.value) return false
+  return OVERLAP_PAIRS.has(strait.id) && OVERLAP_PAIRS.has(effectiveSelectedId.value) && strait.id !== effectiveSelectedId.value
 }
 
 function deselect() {
-  if (!selectedStraitId.value) return
-  panelsVisible.value = false
-  if (panelTimer) clearTimeout(panelTimer)
-  zoomingOut.value = true
-  zoomOutFromId.value = selectedStraitId.value
-  if (zoomOutTimer) clearTimeout(zoomOutTimer)
-  zoomOutTimer = setTimeout(() => { zoomingOut.value = false; zoomOutFromId.value = null }, 600)
-  selectedStraitId.value = null
+  if (!effectiveSelectedId.value) return
+
+  if (isRouteControlled.value) {
+    // Route-driven mode: emit event, let parent handle navigation
+    emit('select', null)
+  } else {
+    // Local-state mode (embed): handle locally
+    panelsVisible.value = false
+    if (panelTimer) clearTimeout(panelTimer)
+    zoomingOut.value = true
+    zoomOutFromId.value = effectiveSelectedId.value
+    if (zoomOutTimer) clearTimeout(zoomOutTimer)
+    const delay = prefersReducedMotion.value ? 0 : 600
+    zoomOutTimer = setTimeout(() => { zoomingOut.value = false; zoomOutFromId.value = null }, delay)
+    _localSelectedId.value = null
+  }
 }
 
 function onBackgroundClick(event: MouseEvent) {
@@ -249,7 +329,7 @@ const legendEntries = computed(() => {
       />
       <div
         class="map-dim-overlay"
-        :class="{ active: !!selectedStraitId }"
+        :class="{ active: !!effectiveSelectedId }"
         :style="{ transform: mapBgTransform }"
       />
       <StraitData
@@ -266,15 +346,16 @@ const legendEntries = computed(() => {
         :hidden="isHidden(strait)"
         :dimmed="!!hoveredStraitId && hoveredStraitId !== strait.id"
         :active="hoveredStraitId === strait.id"
-        :selected="selectedStraitId === strait.id"
+        :selected="effectiveSelectedId === strait.id"
+        :disabled="!!effectiveSelectedId && effectiveSelectedId !== strait.id"
         :zooming-out="zoomingOut && strait.id !== zoomOutFromId"
         @hover="onHover"
         @activate="onActivate"
       />
 
       <StraitParticleCanvas
-        v-if="selectedStraitId"
-        :strait-id="selectedStraitId"
+        v-if="effectiveSelectedId"
+        :strait-id="effectiveSelectedId"
         :year="LATEST_YEAR"
         :inner-size="innerSize"
         :zoom-scale="zoomScale"
@@ -304,9 +385,9 @@ const legendEntries = computed(() => {
       />
     </Transition>
 
-    <ScaleLegend :entries="legendEntries" :title="metricLabel" :class="{ 'controls-hidden': !!selectedStraitId }" />
+    <ScaleLegend :entries="legendEntries" :title="metricLabel" :class="{ 'controls-hidden': !!effectiveSelectedId }" />
 
-    <div class="metric-toggle" :class="{ 'controls-hidden': !!selectedStraitId }">
+    <div class="metric-toggle" :class="{ 'controls-hidden': !!effectiveSelectedId }">
       <button
         :class="{ active: sizeMetric === 'tonnage' }"
         @click="sizeMetric = 'tonnage'"
