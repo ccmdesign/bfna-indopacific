@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "079"
 tags: [code-review, quality, canvas, BF-78]

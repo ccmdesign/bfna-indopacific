@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "081"
 tags: [code-review, quality, BF-78]
