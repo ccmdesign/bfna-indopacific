@@ -1,6 +1,7 @@
 <script setup lang="ts">
 defineProps<{
   entries: { value: number; r: number; label: string }[]
+  title?: string
 }>()
 
 const SVG_WIDTH = 200
@@ -39,7 +40,7 @@ const CX = 100
       </template>
 
       <text :x="CX" :y="BASE_Y + 18" text-anchor="middle" class="legend-title">
-        Trade Volume
+        {{ title ?? 'Trade Volume' }}
       </text>
     </svg>
   </div>
@@ -52,6 +53,7 @@ const CX = 100
   right: 16px;
   pointer-events: none;
   width: 160px;
+  transition: opacity 0.3s ease;
 }
 
 .legend-svg {

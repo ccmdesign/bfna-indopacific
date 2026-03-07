@@ -107,6 +107,9 @@ function fmtNum(v: number): string {
       </div>
     </div>
 
+    <!-- Historical trend chart -->
+    <StraitHistoryChart v-if="Object.keys(historical).length > 1" :historical="historical" />
+
     <!-- Top Industries -->
     <div v-if="strait.topIndustries.length" class="strait-panel__section">
       <h3 class="strait-panel__section-title">Top Industries</h3>
