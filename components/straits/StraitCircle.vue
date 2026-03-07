@@ -11,22 +11,34 @@ const props = defineProps<{
 
 // --- Reduced motion (reactive, SSR-safe) ---
 const prefersReducedMotion = ref(false)
+let _mql: MediaQueryList | null = null
+let _motionHandler: ((e: MediaQueryListEvent) => void) | null = null
 
 onMounted(() => {
-  const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
-  prefersReducedMotion.value = mql.matches
-  const handler = (e: MediaQueryListEvent) => {
+  _mql = window.matchMedia('(prefers-reduced-motion: reduce)')
+  prefersReducedMotion.value = _mql.matches
+  _motionHandler = (e: MediaQueryListEvent) => {
     prefersReducedMotion.value = e.matches
   }
-  mql.addEventListener('change', handler)
-  onUnmounted(() => mql.removeEventListener('change', handler))
+  _mql.addEventListener('change', _motionHandler)
 })
 
-// --- Fisheye shader ---
+onUnmounted(() => {
+  if (_mql && _motionHandler) {
+    _mql.removeEventListener('change', _motionHandler)
+  }
+})
+
+// --- Fisheye shader tuning ---
+/** Barrel distortion strength (0 = none, 1 = maximum). Visually tuned for satellite crops. */
+const FISHEYE_DISTORTION = 0.65
+/** Chromatic aberration offset in UV-space. Subtle fringing at circle edges. */
+const FISHEYE_ABERRATION = 0.008
+
 const fisheyeCanvas = ref<HTMLCanvasElement | null>(null)
 const imageUrlRef = computed(() => props.imageUrl)
-const distortion = ref(0.65)
-const aberration = ref(0.008)
+const distortion = ref(FISHEYE_DISTORTION)
+const aberration = ref(FISHEYE_ABERRATION)
 
 const { webglAvailable } = useFisheyeCanvas(fisheyeCanvas, imageUrlRef, distortion, aberration)
 

@@ -20,17 +20,6 @@ const emit = defineEmits<{
   (e: 'activate', id: string): void
 }>()
 
-function displayLabel(): string {
-  if (props.labelAnchor === 'left' && props.posX < 30) {
-    const shortShare = props.globalShareLabel
-      .replace('of global ', '')
-      .replace('by volume', '')
-      .trim()
-    return `${props.name} | ${shortShare}`
-  }
-  return `${props.name} | ${props.globalShareLabel}`
-}
-
 function onFocusOut(event: FocusEvent) {
   const currentTarget = event.currentTarget as Element
   if (!currentTarget.contains(event.relatedTarget as Node)) {
@@ -56,7 +45,7 @@ function onFocusOut(event: FocusEvent) {
     @focusout="onFocusOut($event)"
   >
     <StraitCircle :radius="radius" :color="color" :active="active" :image-url="imageUrl" />
-    <StraitLabel :text="name" :anchor="(id === 'taiwan' || id === 'luzon') ? 'right' : 'below'" :radius="radius" />
+    <StraitLabel :text="name" :anchor="labelAnchor" :radius="radius" />
   </div>
 </template>
 

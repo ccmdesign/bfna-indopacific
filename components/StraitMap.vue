@@ -35,14 +35,8 @@ function getColor(_id: string) {
 
 // --- Interaction state ---
 const hoveredStraitId = ref<string | null>(null)
-const selectedStraitId = ref<string | null>(null)
-
 function onHover(id: string | null) {
   hoveredStraitId.value = id
-}
-
-function onActivate(id: string) {
-  selectedStraitId.value = selectedStraitId.value === id ? null : id
 }
 
 // --- Scale legend ---
@@ -85,7 +79,6 @@ const legendEntries = (() => {
       :active="hoveredStraitId === strait.id"
       :image-url="strait.imageUrl"
       @hover="onHover"
-      @activate="onActivate"
     />
 
     <ScaleLegend :entries="legendEntries" />
