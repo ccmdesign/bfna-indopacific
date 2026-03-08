@@ -481,8 +481,14 @@ export function useShipSimulation(options: {
   // Lifecycle
   // -------------------------------------------------------------------------
 
-  onMounted(() => {
-    mounted = true
+  /** Register global event listeners (resize, visibilitychange, reduced-motion).
+   *  Deferred until geometry becomes available for the first time so that
+   *  non-selected StraitCircle instances don't waste 3 listeners each (#104). */
+  let listenersRegistered = false
+
+  function registerListeners() {
+    if (listenersRegistered) return
+    listenersRegistered = true
 
     // Cache target count on resize instead of reading window.innerWidth every frame (#102)
     resizeHandler = () => updateTargetCount()
@@ -517,9 +523,15 @@ export function useShipSimulation(options: {
       }
     }
     document.addEventListener('visibilitychange', visibilityHandler)
+  }
 
-    // Start if geometry is already available
+  onMounted(() => {
+    mounted = true
+
+    // Only register listeners and start if geometry is already available.
+    // Otherwise, the geometry watcher will register them on first availability.
     if (geometry.value) {
+      registerListeners()
       start()
     }
   })
@@ -529,6 +541,7 @@ export function useShipSimulation(options: {
   watch(geometry, (newGeo, _oldGeo, onCleanup) => {
     if (!mounted) return
     if (newGeo) {
+      registerListeners() // Lazy registration on first geometry availability (#104)
       start()
     } else {
       stop()

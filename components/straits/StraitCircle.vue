@@ -19,7 +19,12 @@ const props = defineProps<{
 // --- Ship simulation wiring ---
 
 const corridorId = computed(() => props.showShips ? (props.straitId ?? null) : null)
-const { geometry } = useCorridor(corridorId)
+const { geometry, corridor } = useCorridor(corridorId)
+
+const corridorViewBox = computed(() => {
+  const vb = corridor.value?.viewBox
+  return vb ? `${vb[0]} ${vb[1]} ${vb[2]} ${vb[3]}` : '0 0 1080 1080'
+})
 
 const trafficConfigRef = computed(() => props.trafficConfig ?? null)
 
@@ -54,6 +59,7 @@ watch(ships, (allShips) => {
       update => update
         .attr('cx', d => d.x)
         .attr('cy', d => d.y),
+      exit => exit.remove(),
     )
 }, { flush: 'post' })
 </script>
@@ -80,7 +86,7 @@ watch(ships, (allShips) => {
       v-if="showShips"
       ref="svgRef"
       class="strait-circle__ships"
-      viewBox="0 0 1080 1080"
+      :viewBox="corridorViewBox"
       preserveAspectRatio="xMidYMid meet"
       aria-hidden="true"
     >
@@ -113,7 +119,7 @@ watch(ships, (allShips) => {
   transition: opacity 0.4s ease 0.2s;
 }
 
-.strait-circle:has(.strait-circle__image) {
+.strait-circle:has(.strait-circle__image, .strait-circle__ships) {
   position: relative;
   overflow: hidden;
 }

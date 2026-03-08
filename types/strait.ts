@@ -49,13 +49,13 @@ export interface StraitsData {
 }
 
 // ---------------------------------------------------------------------------
-// Vessel / particle type (shared by ship simulation & particle system)
+// Vessel type (ship simulation)
 // ---------------------------------------------------------------------------
 
 /** Canonical vessel type tuple — single source of truth for runtime + type. */
 export const VESSEL_TYPES = ['container', 'dryBulk', 'tanker'] as const
 
-/** Vessel classification used by both the ship simulation and particle system. */
+/** Vessel classification used by the ship simulation. */
 export type VesselType = (typeof VESSEL_TYPES)[number]
 
 
@@ -63,18 +63,6 @@ export interface StraitHistoricalEntry {
   capacityMt: number
   vessels: { total: number; container: number; dryBulk: number; tanker: number }
   capacityByType: { container: number; dryBulk: number; tanker: number }
-}
-
-export interface Point {
-  x: number // 0..1 normalized to map width
-  y: number // 0..1 normalized to map height
-}
-
-export interface StraitPath {
-  /** Control points for a cubic Bezier: [start, cp1, cp2, end] */
-  points: [Point, Point, Point, Point]
-  /** Optional second lane for more complex straits */
-  altPoints?: [Point, Point, Point, Point]
 }
 
 // ---------------------------------------------------------------------------
