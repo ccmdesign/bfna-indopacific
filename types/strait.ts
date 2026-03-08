@@ -49,10 +49,20 @@ export interface StraitsData {
 }
 
 // ---------------------------------------------------------------------------
-// Particle system types (BF-78)
+// Vessel / particle type (shared by ship simulation & particle system)
 // ---------------------------------------------------------------------------
 
-export type ParticleType = 'container' | 'dryBulk' | 'tanker'
+/** Canonical vessel type tuple — single source of truth for runtime + type. */
+export const VESSEL_TYPES = ['container', 'dryBulk', 'tanker'] as const
+
+/** Vessel classification used by both the ship simulation and particle system. */
+export type VesselType = (typeof VESSEL_TYPES)[number]
+
+/**
+ * @deprecated Use `VesselType` instead. Kept as alias for backward-compatibility
+ * with the particle system until it is fully migrated.
+ */
+export type ParticleType = VesselType
 
 export interface StraitHistoricalEntry {
   capacityMt: number
@@ -112,4 +122,32 @@ export interface CorridorGeometry {
   centerlineLength: number
   /** Cumulative arc length at each centerline sample, normalized to [0, 1] */
   progress: number[]
+}
+
+// ---------------------------------------------------------------------------
+// Ship simulation types (BF-100)
+// ---------------------------------------------------------------------------
+
+// VesselType is now defined above alongside VESSEL_TYPES (single source of truth)
+
+export interface Ship {
+  id: number
+  /** Progress along centerline, 0..1 */
+  progress: number
+  /** Direction of travel: 1 = door A -> door B, -1 = door B -> door A */
+  direction: 1 | -1
+  /** Vessel classification */
+  vesselType: VesselType
+  /** Lateral offset from centerline, normalized -1..1 (negative = left lane, positive = right lane) */
+  laneOffset: number
+  /** Speed in progress-units per frame at 60fps (varies by vessel type) */
+  speed: number
+  /** Resolved position x in corridor-local coordinates */
+  x: number
+  /** Resolved position y in corridor-local coordinates */
+  y: number
+  /** Whether this ship slot is currently active (for object pool) */
+  active: boolean
+  /** Cached segment index for O(1) amortized position resolution */
+  segmentIndex: number
 }
