@@ -28,19 +28,20 @@ import {
   triggerRef,
   watch,
   onMounted,
-  onUnmounted,
   onScopeDispose,
   type Ref,
   type ShallowRef,
 } from 'vue'
 import type { CorridorGeometry, Point2D } from '~/types/strait'
 import type { Ship, VesselType } from '~/types/strait'
+import { VESSEL_TYPES } from '~/types/strait'
+
+// Re-export for backward-compatibility with consumers that imported from here.
+export { VESSEL_TYPES }
 
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-
-export const VESSEL_TYPES = ['container', 'dryBulk', 'tanker'] as const
 
 /** Speed multiplier per vessel type (containers fastest, tankers slowest). */
 const SPEED_MULTIPLIERS: Record<VesselType, number> = {
@@ -160,14 +161,18 @@ export function useShipSimulation(options: {
 
   // Internal state
   let pool: Ship[] = []
+  let freeIndices: number[] = [] // Free-list stack for O(1) slot allocation (#100)
   let lut: GeometryLUT | null = null
   let animationFrameId: number | null = null
   let cancelled = false
   let lastTimestamp = 0
+  /** Ship ID counter. Reset to pool size in initPool() on every start(). */
   let nextId = 0
   let baseSpeed = 0
   let vesselThresholds: [number, number, number] = [0.333, 0.667, 1.0]
   let prefersReducedMotion = false
+  let cachedTargetCount = DEFAULT_TARGET_COUNT // Cached target count (#102)
+  let resizeHandler: (() => void) | null = null
   let visibilityHandler: (() => void) | null = null
   let motionMql: MediaQueryList | null = null
   let motionHandler: ((e: MediaQueryListEvent) => void) | null = null
@@ -177,13 +182,18 @@ export function useShipSimulation(options: {
   // Target count (halved on mobile)
   // -------------------------------------------------------------------------
 
-  function computeTargetCount(): number {
+  /**
+   * Re-compute the cached target count from traffic config and viewport width.
+   * Called once on start() and on window resize -- NOT every frame (#102).
+   */
+  function updateTargetCount(): void {
     const config = trafficConfig.value
     const base = config?.targetCount ?? DEFAULT_TARGET_COUNT
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
-      return Math.round(base / 2)
+      cachedTargetCount = Math.round(base / 2)
+    } else {
+      cachedTargetCount = base
     }
-    return base
   }
 
   // -------------------------------------------------------------------------
@@ -201,14 +211,19 @@ export function useShipSimulation(options: {
       x: 0,
       y: 0,
       active: false,
+      segmentIndex: 0,
     }))
     nextId = size
+    // Build free-list: all slots are free initially (#100)
+    freeIndices = Array.from({ length: size }, (_, i) => i)
     ships.value = pool
   }
 
   function clearPool() {
-    for (const ship of pool) {
-      ship.active = false
+    freeIndices.length = 0
+    for (let i = 0; i < pool.length; i++) {
+      pool[i].active = false
+      freeIndices.push(i)
     }
   }
 
@@ -244,8 +259,10 @@ export function useShipSimulation(options: {
   // -------------------------------------------------------------------------
 
   function spawnShip(direction: 1 | -1): Ship | null {
-    const slot = pool.find(s => !s.active)
-    if (!slot) return null // pool exhausted
+    // O(1) slot allocation via free-list (#100)
+    if (freeIndices.length === 0) return null // pool exhausted
+    const slotIndex = freeIndices.pop()!
+    const slot = pool[slotIndex]
 
     const vesselType = pickVesselType()
 
@@ -254,6 +271,7 @@ export function useShipSimulation(options: {
     slot.direction = direction
     slot.vesselType = vesselType
     slot.progress = direction === 1 ? 0 : 1
+    slot.segmentIndex = 0
     // Lane offset: direction 1 (A->B) = left lane (negative), direction -1 (B->A) = right lane (positive)
     // Range excludes exact 0 to prevent centerline collisions with opposing traffic.
     // Math.random() returns [0, 1), so offset is [0.1, 0.9).
@@ -274,8 +292,9 @@ export function useShipSimulation(options: {
   /**
    * Resolve a ship's [x, y] position from its progress along the centerline.
    *
-   * Uses a linear scan from a cached segment index (ships move incrementally,
-   * so the segment typically stays the same or advances by 1).
+   * Uses a linear scan from the ship's cached segment index (#099). Ships move
+   * incrementally, so the segment typically stays the same or advances by 1,
+   * giving O(1) amortized lookups instead of O(n) from index 0.
    */
   function resolvePosition(ship: Ship) {
     if (!lut) return
@@ -284,17 +303,17 @@ export function useShipSimulation(options: {
     const n = centerline.length
     const t = ship.progress
 
-    // Find segment index: linear scan is faster than binary search for incremental movement
-    let i = 0
-    for (let j = 1; j < n; j++) {
-      if (progress[j] >= t) {
-        i = j - 1
-        break
-      }
-      if (j === n - 1) {
-        i = n - 2 // clamp to last segment
-      }
+    // Start scan from cached segment index for O(1) amortized resolution (#099)
+    let i = Math.min(ship.segmentIndex, n - 2)
+    // Scan forward or backward depending on direction
+    if (ship.direction === 1) {
+      while (i < n - 2 && progress[i + 1] < t) i++
+      while (i > 0 && progress[i] > t) i--
+    } else {
+      while (i > 0 && progress[i] > t) i--
+      while (i < n - 2 && progress[i + 1] < t) i++
     }
+    ship.segmentIndex = i
 
     // Interpolation factor within segment
     const segStart = progress[i]
@@ -339,11 +358,10 @@ export function useShipSimulation(options: {
     const dt = Math.min((timestamp - lastTimestamp) / 16.667, DT_CLAMP)
     lastTimestamp = timestamp
 
-    const targetCount = computeTargetCount()
-
     // --- Tick: advance ships ---
     let activeCount = 0
-    for (const ship of pool) {
+    for (let idx = 0; idx < pool.length; idx++) {
+      const ship = pool[idx]
       if (!ship.active) continue
       activeCount++
 
@@ -353,6 +371,7 @@ export function useShipSimulation(options: {
       if ((ship.direction === 1 && ship.progress > 1) ||
           (ship.direction === -1 && ship.progress < 0)) {
         ship.active = false
+        freeIndices.push(idx) // Return to free-list (#100)
         activeCount--
         continue
       }
@@ -362,7 +381,7 @@ export function useShipSimulation(options: {
 
     // --- Spawn: fill up to target count, max MAX_SPAWNS_PER_FRAME per frame ---
     let spawned = 0
-    while (activeCount < targetCount && spawned < MAX_SPAWNS_PER_FRAME) {
+    while (activeCount < cachedTargetCount && spawned < MAX_SPAWNS_PER_FRAME) {
       // 50/50 direction split
       const direction: 1 | -1 = Math.random() > 0.5 ? 1 : -1
       const ship = spawnShip(direction)
@@ -387,11 +406,11 @@ export function useShipSimulation(options: {
   function placeStaticShips() {
     if (!lut) return
 
-    const targetCount = computeTargetCount()
     clearPool()
 
-    for (let i = 0; i < targetCount && i < pool.length; i++) {
+    for (let i = 0; i < cachedTargetCount && i < pool.length; i++) {
       const ship = pool[i]
+      freeIndices.splice(freeIndices.indexOf(i), 1) // Remove from free-list
       const vesselType = pickVesselType()
       const direction: 1 | -1 = i % 2 === 0 ? 1 : -1
 
@@ -399,7 +418,8 @@ export function useShipSimulation(options: {
       ship.id = nextId++
       ship.direction = direction
       ship.vesselType = vesselType
-      ship.progress = i / targetCount
+      ship.progress = i / cachedTargetCount
+      ship.segmentIndex = 0
       ship.laneOffset = direction === 1
         ? -(0.1 + Math.random() * 0.8)
         : (0.1 + Math.random() * 0.8)
@@ -433,9 +453,11 @@ export function useShipSimulation(options: {
     // Set up vessel distribution thresholds
     computeVesselThresholds()
 
+    // Compute target count from traffic config and viewport (#102)
+    updateTargetCount()
+
     // Initialize pool
-    const targetCount = computeTargetCount()
-    const poolSize = Math.round(targetCount * POOL_MULTIPLIER)
+    const poolSize = Math.round(cachedTargetCount * POOL_MULTIPLIER)
     initPool(poolSize)
 
     if (prefersReducedMotion) {
@@ -461,6 +483,10 @@ export function useShipSimulation(options: {
 
   onMounted(() => {
     mounted = true
+
+    // Cache target count on resize instead of reading window.innerWidth every frame (#102)
+    resizeHandler = () => updateTargetCount()
+    window.addEventListener('resize', resizeHandler)
 
     // Reduced motion
     motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -525,6 +551,10 @@ export function useShipSimulation(options: {
     stop()
     clearPool()
 
+    if (resizeHandler) {
+      window.removeEventListener('resize', resizeHandler)
+      resizeHandler = null
+    }
     if (visibilityHandler) {
       document.removeEventListener('visibilitychange', visibilityHandler)
       visibilityHandler = null
@@ -539,7 +569,8 @@ export function useShipSimulation(options: {
     mounted = false
   }
 
-  onUnmounted(cleanup)
+  // Use onScopeDispose only — it fires on both component unmount and standalone
+  // scope disposal, so onUnmounted is redundant and would cause double cleanup (#098).
   onScopeDispose(cleanup)
 
   return { ships, start, stop, isRunning }

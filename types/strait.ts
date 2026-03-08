@@ -49,10 +49,20 @@ export interface StraitsData {
 }
 
 // ---------------------------------------------------------------------------
-// Particle system types (BF-78)
+// Vessel / particle type (shared by ship simulation & particle system)
 // ---------------------------------------------------------------------------
 
-export type ParticleType = 'container' | 'dryBulk' | 'tanker'
+/** Canonical vessel type tuple — single source of truth for runtime + type. */
+export const VESSEL_TYPES = ['container', 'dryBulk', 'tanker'] as const
+
+/** Vessel classification used by both the ship simulation and particle system. */
+export type VesselType = (typeof VESSEL_TYPES)[number]
+
+/**
+ * @deprecated Use `VesselType` instead. Kept as alias for backward-compatibility
+ * with the particle system until it is fully migrated.
+ */
+export type ParticleType = VesselType
 
 export interface StraitHistoricalEntry {
   capacityMt: number
@@ -118,7 +128,7 @@ export interface CorridorGeometry {
 // Ship simulation types (BF-100)
 // ---------------------------------------------------------------------------
 
-export type VesselType = 'container' | 'dryBulk' | 'tanker'
+// VesselType is now defined above alongside VESSEL_TYPES (single source of truth)
 
 export interface Ship {
   id: number
@@ -138,4 +148,6 @@ export interface Ship {
   y: number
   /** Whether this ship slot is currently active (for object pool) */
   active: boolean
+  /** Cached segment index for O(1) amortized position resolution */
+  segmentIndex: number
 }
