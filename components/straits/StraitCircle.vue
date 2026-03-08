@@ -1,10 +1,61 @@
 <script setup lang="ts">
-defineProps<{
+import { ref, computed, watch } from 'vue'
+import { select } from 'd3-selection'
+import { useCorridor } from '~/composables/useCorridor'
+import { useShipSimulation } from '~/composables/useShipSimulation'
+import type { Ship, VesselType } from '~/types/strait'
+import type { TrafficConfig } from '~/composables/useShipSimulation'
+
+const props = defineProps<{
   radius: number
   color: { h: number; s: number; l: number }
   active: boolean
   imageUrl?: string
+  straitId?: string | null
+  showShips?: boolean
+  trafficConfig?: TrafficConfig | null
 }>()
+
+// --- Ship simulation wiring ---
+
+const corridorId = computed(() => props.showShips ? (props.straitId ?? null) : null)
+const { geometry } = useCorridor(corridorId)
+
+const trafficConfigRef = computed(() => props.trafficConfig ?? null)
+
+const { ships } = useShipSimulation({ geometry, trafficConfig: trafficConfigRef })
+
+const svgRef = ref<SVGSVGElement | null>(null)
+
+const SHIP_COLORS: Record<VesselType, string> = {
+  container: 'hsl(218, 60%, 58%)',
+  dryBulk: 'hsl(34, 60%, 50%)',
+  tanker: 'hsl(350, 60%, 55%)',
+}
+
+const SHIP_RADIUS = 6
+
+// IMPORTANT: watch(ships, ...) must use the ref directly — NOT watch(() => ships.value, ...).
+// triggerRef(ships) only fires watchers that watch the ref object. See vuejs/core#9579.
+watch(ships, (allShips) => {
+  if (!svgRef.value) return
+  const svg = select(svgRef.value)
+  const active = allShips.filter(s => s.active)
+
+  svg.selectAll<SVGCircleElement, Ship>('circle.ship')
+    .data(active, d => String(d.id))
+    .join(
+      enter => enter.append('circle')
+        .attr('class', 'ship')
+        .attr('r', SHIP_RADIUS)
+        .attr('fill', d => SHIP_COLORS[d.vesselType])
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y),
+      update => update
+        .attr('cx', d => d.x)
+        .attr('cy', d => d.y),
+    )
+}, { flush: 'post' })
 </script>
 
 <template>
@@ -25,6 +76,16 @@ defineProps<{
       alt=""
       aria-hidden="true"
     />
+    <svg
+      v-if="showShips"
+      ref="svgRef"
+      class="strait-circle__ships"
+      viewBox="0 0 1080 1080"
+      preserveAspectRatio="xMidYMid meet"
+      aria-hidden="true"
+    >
+      <!-- D3 manages children -->
+    </svg>
   </div>
 </template>
 
@@ -59,6 +120,20 @@ defineProps<{
 
 .strait-circle:has(.strait-circle__image) .strait-circle__image {
   opacity: 1;
+}
+
+.strait-circle__ships {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.strait-circle__ships :deep(circle.ship) {
+  opacity: 0.85;
+  transition: none; /* no CSS transitions — D3 handles position updates */
 }
 
 .strait-circle--active {

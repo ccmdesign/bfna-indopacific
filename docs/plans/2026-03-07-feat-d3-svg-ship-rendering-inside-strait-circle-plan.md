@@ -1,7 +1,7 @@
 ---
 title: "feat: D3 + SVG ship rendering inside StraitCircle"
 type: feat
-status: active
+status: completed
 date: 2026-03-07
 linear: BF-101
 origin: docs/brainstorms/2026-03-04-circle-lens-straits-brainstorm.md
@@ -409,27 +409,27 @@ The plan calls `useCorridor` inside `StraitCircle.vue`. Since `useCorridor` uses
 
 ## Acceptance Criteria
 
-- [ ] `StraitCircle.vue` renders an `<svg viewBox="0 0 1080 1080">` as sibling of `<img>` when `showShips` is true
-- [ ] SVG circles represent active ships from `useShipSimulation`, keyed by `ship.id`
-- [ ] Ships are color-coded: container=blue (`hsl(218,60%,58%)`), dryBulk=amber (`hsl(34,60%,50%)`), tanker=rose (`hsl(350,60%,55%)`)
-- [ ] Ships are clipped to circle boundary via parent `overflow: hidden` + `border-radius: 50%` (no manual clip-path)
-- [ ] Animation runs at 60fps with ~100 ships (no dropped frames in Chrome DevTools Performance panel)
-- [ ] Rendering is strait-agnostic: works for any strait ID that has corridor data in `corridors.json`
-- [ ] `prefers-reduced-motion` respected: ships render as static dots (handled by `useShipSimulation` internally)
-- [ ] Old `StraitParticleCanvas` and `useParticleSystem` removed (if not already deleted)
-- [ ] No regressions: overview map circles, zoom transitions, panel positioning all work unchanged
-- [ ] SSR safe: no `window`/`document` access outside `onMounted`
+- [x] `StraitCircle.vue` renders an `<svg viewBox="0 0 1080 1080">` as sibling of `<img>` when `showShips` is true
+- [x] SVG circles represent active ships from `useShipSimulation`, keyed by `ship.id`
+- [x] Ships are color-coded: container=blue (`hsl(218,60%,58%)`), dryBulk=amber (`hsl(34,60%,50%)`), tanker=rose (`hsl(350,60%,55%)`)
+- [x] Ships are clipped to circle boundary via parent `overflow: hidden` + `border-radius: 50%` (no manual clip-path)
+- [x] Animation runs at 60fps with ~100 ships (no dropped frames in Chrome DevTools Performance panel)
+- [x] Rendering is strait-agnostic: works for any strait ID that has corridor data in `corridors.json`
+- [x] `prefers-reduced-motion` respected: ships render as static dots (handled by `useShipSimulation` internally)
+- [x] Old `StraitParticleCanvas` and `useParticleSystem` removed (if not already deleted)
+- [x] No regressions: overview map circles, zoom transitions, panel positioning all work unchanged
+- [x] SSR safe: no `window`/`document` access outside `onMounted`
 
 ### Research Insights — Acceptance Criteria Additions
 
 Additional criteria discovered through research:
 
-- [ ] `watch(ships, ...)` uses the ref directly (NOT `watch(() => ships.value, ...)`) to ensure `triggerRef` fires the watcher
-- [ ] No `will-change` on SVG elements (attribute animations, not CSS transforms)
-- [ ] `transition: none` explicitly set on `circle.ship` elements to prevent CSS transition lag
-- [ ] Ship dots visible at zoomed-in scale — verify `r=4` in 1080x1080 space renders at ~2-3px on screen and is perceptible (increase to 5-6 if not)
-- [ ] Zoom-out does not cause console errors from D3 selecting a null SVG ref
-- [ ] `ParticleType` alias removed from `types/strait.ts` after particle system deletion
+- [x] `watch(ships, ...)` uses the ref directly (NOT `watch(() => ships.value, ...)`) to ensure `triggerRef` fires the watcher
+- [x] No `will-change` on SVG elements (attribute animations, not CSS transforms)
+- [x] `transition: none` explicitly set on `circle.ship` elements to prevent CSS transition lag
+- [x] Ship dots visible at zoomed-in scale — verify `r=4` in 1080x1080 space renders at ~2-3px on screen and is perceptible (increase to 5-6 if not)
+- [x] Zoom-out does not cause console errors from D3 selecting a null SVG ref
+- [x] `ParticleType` alias removed from `types/strait.ts` after particle system deletion
 
 ## Dependencies & Risks
 

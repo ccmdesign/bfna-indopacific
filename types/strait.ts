@@ -58,11 +58,6 @@ export const VESSEL_TYPES = ['container', 'dryBulk', 'tanker'] as const
 /** Vessel classification used by both the ship simulation and particle system. */
 export type VesselType = (typeof VESSEL_TYPES)[number]
 
-/**
- * @deprecated Use `VesselType` instead. Kept as alias for backward-compatibility
- * with the particle system until it is fully migrated.
- */
-export type ParticleType = VesselType
 
 export interface StraitHistoricalEntry {
   capacityMt: number
