@@ -113,3 +113,29 @@ export interface CorridorGeometry {
   /** Cumulative arc length at each centerline sample, normalized to [0, 1] */
   progress: number[]
 }
+
+// ---------------------------------------------------------------------------
+// Ship simulation types (BF-100)
+// ---------------------------------------------------------------------------
+
+export type VesselType = 'container' | 'dryBulk' | 'tanker'
+
+export interface Ship {
+  id: number
+  /** Progress along centerline, 0..1 */
+  progress: number
+  /** Direction of travel: 1 = door A -> door B, -1 = door B -> door A */
+  direction: 1 | -1
+  /** Vessel classification */
+  vesselType: VesselType
+  /** Lateral offset from centerline, normalized -1..1 (negative = left lane, positive = right lane) */
+  laneOffset: number
+  /** Speed in progress-units per frame at 60fps (varies by vessel type) */
+  speed: number
+  /** Resolved position x in corridor-local coordinates */
+  x: number
+  /** Resolved position y in corridor-local coordinates */
+  y: number
+  /** Whether this ship slot is currently active (for object pool) */
+  active: boolean
+}
