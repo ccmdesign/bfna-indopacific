@@ -1,7 +1,7 @@
 ---
 title: "feat: Strait card preview component enhancement"
 type: feat
-status: active
+status: completed
 date: 2026-03-09
 linear: BF-90
 origin: docs/brainstorms/2026-03-07-mobile-strait-cards-brainstorm.md
@@ -239,23 +239,23 @@ import { LATEST_YEAR } from '~/utils/straitsData'
 
 ## Acceptance Criteria
 
-- [ ] `StraitCircle` in each card uses a brand-appropriate color (not plain white `{h:0,s:0,l:100}`)
-- [ ] `straitId` is passed to `StraitCircle` (enables future particle rendering)
-- [ ] `LATEST_YEAR` is imported and passed as `year` prop to `StraitCircle`
-- [ ] Aria-label uses `fmtUsd()` output instead of raw `valueLabel` to match visual content
-- [ ] Hover state includes subtle box-shadow for depth
-- [ ] Thumbnail container has `overflow: hidden` to clip circle glow
-- [ ] Cards still navigate correctly to `/infographics/straits/[id]` on tap
-- [ ] No visual regression on the card list page (test on 375px and 414px viewports)
-- [ ] `prefers-reduced-motion` still disables transitions
+- [x] `StraitCircle` in each card uses a brand-appropriate color (not plain white `{h:0,s:0,l:100}`)
+- [x]`straitId` is passed to `StraitCircle` (enables future particle rendering)
+- [x]`LATEST_YEAR` is imported and passed as `year` prop to `StraitCircle`
+- [x]Aria-label uses `fmtUsd()` output instead of raw `valueLabel` to match visual content
+- [x]Hover state includes subtle box-shadow for depth
+- [x]Thumbnail container has `overflow: hidden` to clip circle glow
+- [x]Cards still navigate correctly to `/infographics/straits/[id]` on tap
+- [x]No visual regression on the card list page (test on 375px and 414px viewports)
+- [x]`prefers-reduced-motion` still disables transitions
 
 ### Enhanced Acceptance Criteria (from research)
 
-- [ ] Hover effects are guarded with `@media (hover: hover)` to prevent sticky hover on touch devices
-- [ ] Aria-label uses commas instead of em-dashes for natural screen-reader flow
-- [ ] Focus-visible state includes the same box-shadow as hover for keyboard parity
-- [ ] Safari overflow+border-radius compositing is handled with `-webkit-transform: translateZ(0)` on thumbnail
-- [ ] Test the no-image fallback path (remove one `imageUrl` from JSON temporarily) to verify the accent-colored glow renders correctly without a satellite image
+- [x]Hover effects are guarded with `@media (hover: hover)` to prevent sticky hover on touch devices
+- [x]Aria-label uses commas instead of em-dashes for natural screen-reader flow
+- [x]Focus-visible state includes the same box-shadow as hover for keyboard parity
+- [x]Safari overflow+border-radius compositing is handled with `-webkit-transform: translateZ(0)` on thumbnail
+- [x]Test the no-image fallback path (remove one `imageUrl` from JSON temporarily) to verify the accent-colored glow renders correctly without a satellite image
 
 ## Dependencies & Risks
 
