@@ -84,7 +84,7 @@ const ariaLabel = computed(() =>
 .strait-card__name {
   font-size: 16px;
   font-weight: 600;
-  color: #fff;
+  color: var(--color-text-primary);
   margin: 0 0 2px;
   letter-spacing: -0.01em;
 }
@@ -99,7 +99,7 @@ const ariaLabel = computed(() =>
 .strait-card__value {
   font-size: 14px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--color-text-secondary);
   margin: 0;
   font-variant-numeric: tabular-nums;
 }
@@ -107,7 +107,7 @@ const ariaLabel = computed(() =>
 .strait-card__value span {
   font-weight: 400;
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-dim);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-left: 4px;

@@ -2,6 +2,11 @@
 import { ref, onMounted } from 'vue'
 import polygonData from '~/data/straits/hormuz-polygon.json'
 
+// Dev-only page — redirect to home in production builds
+if (!import.meta.dev) {
+  navigateTo('/', { replace: true })
+}
+
 const SIZE = 1080
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 

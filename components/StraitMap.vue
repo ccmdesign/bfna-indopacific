@@ -2,7 +2,7 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { scaleSqrt } from 'd3-scale'
 import { min, max } from 'd3-array'
-import { straits, meta, historical, LATEST_YEAR, historicalByStrait } from '~/composables/useStraitsData'
+import { straits, meta, historical, LATEST_YEAR, historicalByStrait } from '~/utils/straitsData'
 import type { Strait } from '~/types/strait'
 
 // --- Props & Emits (dual-mode: route-driven vs local-state for embeds) ---

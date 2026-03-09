@@ -144,7 +144,7 @@ const HERO_RADIUS = 144
   max-width: 600px;
   margin: 0 auto;
   padding: 0 1rem 3rem;
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--color-text-secondary);
   font-family: 'Encode Sans', sans-serif;
 }
 
@@ -195,7 +195,7 @@ const HERO_RADIUS = 144
 .strait-mobile-detail__name {
   font-size: 28px;
   font-weight: 700;
-  color: #fff;
+  color: var(--color-text-primary);
   margin: 0 0 4px;
   text-align: center;
   letter-spacing: -0.02em;
@@ -223,7 +223,7 @@ const HERO_RADIUS = 144
 .strait-mobile-detail__hero-value {
   font-size: 32px;
   font-weight: 700;
-  color: #fff;
+  color: var(--color-text-primary);
   letter-spacing: -0.02em;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
@@ -231,7 +231,7 @@ const HERO_RADIUS = 144
 
 .strait-mobile-detail__hero-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-dim);
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-top: 4px;
@@ -257,14 +257,14 @@ const HERO_RADIUS = 144
 .strait-mobile-detail__metric-value {
   font-size: 18px;
   font-weight: 600;
-  color: #fff;
+  color: var(--color-text-primary);
   font-variant-numeric: tabular-nums;
   line-height: 1.2;
 }
 
 .strait-mobile-detail__metric-label {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+  color: var(--color-text-dim);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-top: 2px;
@@ -313,9 +313,9 @@ const HERO_RADIUS = 144
 }
 
 .strait-mobile-detail__tag--threat {
-  color: hsl(348, 80%, 72%);
-  background: hsla(348, 60%, 55%, 0.1);
-  border-color: hsla(348, 60%, 55%, 0.2);
+  color: var(--color-threat);
+  background: var(--color-threat-bg);
+  border-color: var(--color-threat-border);
 }
 
 /* --- Key facts --- */
@@ -346,69 +346,7 @@ const HERO_RADIUS = 144
   opacity: 0.6;
 }
 
-/* --- Stacked bar (shared pattern from StraitDetailPanel) --- */
-.stacked-bar {
-  width: 100%;
-}
-
-.stacked-bar__track {
-  display: flex;
-  width: 100%;
-  height: 28px;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.stacked-bar__segment {
-  flex: none;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-.stacked-bar__segment + .stacked-bar__segment {
-  border-left: 1px solid rgba(0, 0, 0, 0.3);
-}
-
-.stacked-bar__value {
-  font-size: 11px;
-  font-weight: 600;
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  white-space: nowrap;
-}
-
-.stacked-bar__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 10px;
-}
-
-.stacked-bar__legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.stacked-bar__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.stacked-bar__legend-count {
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-}
+/* Stacked bar styles now live in public/styles.css */
 
 @media (prefers-reduced-motion: reduce) {
   .strait-mobile-detail__back {

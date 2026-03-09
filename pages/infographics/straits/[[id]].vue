@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useViewport } from '~/composables/useViewport'
-import { straits, LATEST_YEAR, historicalByStrait } from '~/composables/useStraitsData'
+import { straits, LATEST_YEAR, historicalByStrait } from '~/utils/straitsData'
 import type { Strait } from '~/types/strait'
 
 definePageMeta({
@@ -58,17 +58,18 @@ function onSelect(id: string | null) {
 </script>
 
 <template>
-  <ClientOnly>
-    <!-- Desktop: existing map -->
-    <StraitMap
-      v-if="!isMobile"
-      :selected-strait-id="straitId"
-      class="strait-map"
-      @select="onSelect"
-    />
+  <!-- Desktop: SSR-rendered map (isMobile defaults to false during SSR) -->
+  <StraitMap
+    v-if="!isMobile"
+    :selected-strait-id="straitId"
+    class="strait-map"
+    @select="onSelect"
+  />
+  <!-- Mobile: client-only (depends on viewport detection) -->
+  <ClientOnly v-else>
     <!-- Mobile: card list (no strait selected) -->
     <StraitCardList
-      v-else-if="!straitId"
+      v-if="!straitId"
       :straits="straits"
     />
     <!-- Mobile: detail page (strait selected) -->
@@ -78,6 +79,11 @@ function onSelect(id: string | null) {
       :historical="selectedStraitHistorical"
       :year="LATEST_YEAR"
     />
+    <!-- Fallback: strait not found or data loading -->
+    <div v-else class="strait-not-found">
+      <p>Strait not found.</p>
+      <NuxtLink to="/infographics/straits">View all straits</NuxtLink>
+    </div>
     <template #fallback>
       <div class="strait-loading-skeleton" />
     </template>
@@ -90,5 +96,21 @@ function onSelect(id: string | null) {
   height: 100%;
   min-height: 200px;
   background: #0a1628;
+}
+
+.strait-not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+}
+
+.strait-not-found a {
+  margin-top: 0.5rem;
+  color: var(--color-accent);
+  text-decoration: underline;
 }
 </style>

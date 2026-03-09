@@ -285,72 +285,9 @@ const vesselSegments = computed(() => {
   margin: 0 0 8px;
 }
 
-/* --- Stacked bar --- */
+/* --- Stacked bar (styles in public/styles.css) --- */
 .strait-panel__bar-section {
   margin-bottom: 16px;
-}
-
-.stacked-bar {
-  width: 100%;
-}
-
-.stacked-bar__track {
-  display: flex;
-  width: 100%;
-  height: 24px;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.stacked-bar__segment {
-  flex: none;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-.stacked-bar__segment + .stacked-bar__segment {
-  border-left: 1px solid rgba(0, 0, 0, 0.3);
-}
-
-.stacked-bar__value {
-  font-size: 10px;
-  font-weight: 600;
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  white-space: nowrap;
-}
-
-.stacked-bar__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.stacked-bar__legend-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.stacked-bar__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.stacked-bar__legend-count {
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
 }
 
 /* --- Sections --- */

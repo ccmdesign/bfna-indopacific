@@ -38,7 +38,7 @@ const BASE_SPEED = 1.2
 const TOTAL_BUDGET = 240
 const ENABLE_GLOW = true
 /** Set to true to render polygon boundaries, edges, and containment grid */
-const DEBUG_BOUNDARIES = true
+const DEBUG_BOUNDARIES = import.meta.dev
 
 /** Particle colors per vessel type */
 const PARTICLE_COLORS: Record<ParticleType, string> = {
@@ -388,7 +388,6 @@ export function useParticleSystem(options: {
   function updateParticle(p: Particle, dt: number) {
     if (!grid || !polygonData) return
 
-    frameCount++
     const time = frameCount * 0.02 + p.noiseOffset
 
     // Organic lateral drift using noise
@@ -601,6 +600,7 @@ export function useParticleSystem(options: {
     const dt = Math.min((timestamp - lastTimestamp) / 16.667, 3)
     lastTimestamp = timestamp
 
+    frameCount++
     for (const p of particles) {
       updateParticle(p, dt)
     }

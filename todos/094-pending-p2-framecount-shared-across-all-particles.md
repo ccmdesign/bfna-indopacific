@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "094"
 tags: [code-review, architecture, correctness, BF-89]

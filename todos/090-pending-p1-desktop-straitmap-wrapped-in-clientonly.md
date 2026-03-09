@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p1
 issue_id: "090"
 tags: [code-review, architecture, seo, ssr, BF-89]

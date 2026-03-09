@@ -1,5 +1,5 @@
 ---
-status: pending
+status: wont_fix
 priority: p3
 issue_id: "101"
 tags: [code-review, architecture, BF-89, BF-78]

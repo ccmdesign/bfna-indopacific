@@ -1,4 +1,4 @@
-import { ref, readonly, onScopeDispose } from 'vue'
+import { ref, readonly, onScopeDispose, getCurrentScope } from 'vue'
 
 /**
  * Reactive viewport detection composable.
@@ -14,7 +14,12 @@ export function useViewport() {
 
     const handler = (e: MediaQueryListEvent) => { isMobile.value = e.matches }
     mql.addEventListener('change', handler)
-    onScopeDispose(() => mql.removeEventListener('change', handler))
+
+    if (getCurrentScope()) {
+      onScopeDispose(() => mql.removeEventListener('change', handler))
+    } else {
+      console.warn('[useViewport] Called outside Vue scope — listener will not be cleaned up automatically.')
+    }
   }
 
   return { isMobile: readonly(isMobile) }
