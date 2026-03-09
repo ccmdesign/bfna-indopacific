@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "BF-93"
 tags: [code-review, quality]

@@ -1,4 +1,4 @@
-import { ref, readonly, onScopeDispose, getCurrentScope } from 'vue'
+import { ref, readonly, type Ref, type DeepReadonly, onScopeDispose, getCurrentScope } from 'vue'
 
 export type TransitionState =
   | 'idle'
@@ -14,11 +14,23 @@ interface UseStraitTransitionOptions {
   reverseEasing?: string
 }
 
+/** Return type for useStraitTransition composable. */
+export interface UseStraitTransitionReturn {
+  transitionState: DeepReadonly<Ref<TransitionState>>
+  captureCard: (straitId: string, cardEl: HTMLElement) => void
+  playForward: (heroCircleEl: HTMLElement) => void
+  playReverse: () => Promise<void>
+  cardRect: DeepReadonly<Ref<DOMRect | null>>
+  scrollY: DeepReadonly<Ref<number>>
+}
+
 const DEFAULTS = {
   forwardDuration: 350,
   reverseDuration: 300,
   forwardEasing: 'cubic-bezier(0.4, 0, 0.2, 1)',
   reverseEasing: 'cubic-bezier(0.4, 0, 0.6, 1)',
+  /** Delay for content exit fade (must match CSS .strait-transition-content--exit transition duration) */
+  exitDelay: 100,
 }
 
 // ----------------------------------------------------------------
@@ -34,6 +46,42 @@ let capturedStraitId: string | null = null
 let reducedMotion = false
 let orientationChanged = false
 let listenersInitialized = false
+/** Stored reference to the hero circle element from playForward, used in playReverse. */
+let heroCircleRef: HTMLElement | null = null
+/** Guard to prevent double back-navigation from both handleBack and popstate firing. */
+let isNavigatingBack = false
+
+// Store listener references for HMR cleanup
+let motionMql: MediaQueryList | null = null
+let motionListener: ((e: MediaQueryListEvent) => void) | null = null
+let orientMql: MediaQueryList | null = null
+let orientListener: (() => void) | null = null
+
+// HMR cleanup: remove old listeners and reset state on module replacement
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    if (motionMql && motionListener) {
+      motionMql.removeEventListener('change', motionListener)
+    }
+    if (orientMql && orientListener) {
+      orientMql.removeEventListener('change', orientListener)
+    }
+    listenersInitialized = false
+    motionMql = null
+    motionListener = null
+    orientMql = null
+    orientListener = null
+    currentAnimation?.cancel()
+    currentAnimation = null
+    cloneEl?.remove()
+    cloneEl = null
+    heroCircleRef = null
+    isNavigatingBack = false
+    state.value = 'idle'
+    cardRect.value = null
+    storedScrollY.value = 0
+  })
+}
 
 /**
  * Shared-element FLIP transition for the strait card-to-detail animation.
@@ -46,7 +94,7 @@ let listenersInitialized = false
  *
  * SSR-safe: returns no-op functions during SSR.
  */
-export function useStraitTransition(options?: UseStraitTransitionOptions) {
+export function useStraitTransition(options?: UseStraitTransitionOptions): UseStraitTransitionReturn {
   // SSR guard — return inert stubs on the server
   if (!import.meta.client) {
     return {
@@ -65,12 +113,14 @@ export function useStraitTransition(options?: UseStraitTransitionOptions) {
   if (!listenersInitialized) {
     listenersInitialized = true
 
-    const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
-    reducedMotion = mql.matches
-    mql.addEventListener('change', (e) => { reducedMotion = e.matches })
+    motionMql = window.matchMedia('(prefers-reduced-motion: reduce)')
+    reducedMotion = motionMql.matches
+    motionListener = (e) => { reducedMotion = e.matches }
+    motionMql.addEventListener('change', motionListener)
 
-    const orientMql = window.matchMedia('(orientation: portrait)')
-    orientMql.addEventListener('change', () => { orientationChanged = true })
+    orientMql = window.matchMedia('(orientation: portrait)')
+    orientListener = () => { orientationChanged = true }
+    orientMql.addEventListener('change', orientListener)
   }
 
   // Per-scope cleanup: cancel animations if the consuming component unmounts
@@ -94,6 +144,8 @@ export function useStraitTransition(options?: UseStraitTransitionOptions) {
 
   function createClone(sourceEl: HTMLElement, rect: DOMRect): HTMLElement {
     const clone = sourceEl.cloneNode(true) as HTMLElement
+    // Remove canvas elements from clone (canvas content is not cloned, would show as blank)
+    clone.querySelectorAll('canvas').forEach(c => c.remove())
     clone.className = 'strait-transition-clone'
     // Lock dimensions to source rect
     clone.style.width = `${rect.width}px`
@@ -118,6 +170,7 @@ export function useStraitTransition(options?: UseStraitTransitionOptions) {
     state.value = 'capturing'
     capturedStraitId = straitId
     orientationChanged = false
+    isNavigatingBack = false
 
     // Stop scroll momentum on iOS before measuring
     window.scrollTo(window.scrollX, window.scrollY)
@@ -131,6 +184,9 @@ export function useStraitTransition(options?: UseStraitTransitionOptions) {
    * Called from StraitMobileDetail's onMounted.
    */
   function playForward(heroCircleEl: HTMLElement) {
+    // Store the hero circle reference for use in playReverse
+    heroCircleRef = heroCircleEl
+
     if (state.value !== 'capturing' || !cardRect.value) {
       // No capture happened (e.g., direct URL navigation) — go straight to settled
       state.value = 'settled'
@@ -199,8 +255,12 @@ export function useStraitTransition(options?: UseStraitTransitionOptions) {
 
       animation.finished
         .then(() => {
-          animation.commitStyles()
-          animation.cancel()
+          try {
+            animation.commitStyles()
+            animation.cancel()
+          } catch {
+            // Element may be detached from DOM (e.g., rapid navigation)
+          }
           currentAnimation = null
 
           // Show the real hero, remove clone
@@ -223,9 +283,19 @@ export function useStraitTransition(options?: UseStraitTransitionOptions) {
   /**
    * Play the reverse FLIP animation (hero -> card position).
    * Returns a promise that resolves when the animation completes.
+   *
+   * Uses the stored hero circle reference from playForward instead of
+   * querying the DOM by class name.
+   *
+   * Guarded by isNavigatingBack flag to prevent double navigation
+   * from both the in-app back button and the popstate handler.
    */
   async function playReverse(): Promise<void> {
+    // Guard against double navigation (both handleBack and popstate firing)
+    if (isNavigatingBack) return
     if (state.value !== 'settled') return
+
+    isNavigatingBack = true
 
     if (reducedMotion || !cardRect.value || orientationChanged) {
       state.value = 'idle'
@@ -235,12 +305,12 @@ export function useStraitTransition(options?: UseStraitTransitionOptions) {
 
     state.value = 'animating-back'
 
-    // Brief delay for content to fade out (100ms, driven by CSS)
-    await new Promise(resolve => setTimeout(resolve, 100))
+    // Brief delay for content to fade out (driven by CSS .strait-transition-content--exit)
+    await new Promise(resolve => setTimeout(resolve, config.exitDelay))
 
-    // Find the hero circle element in the current DOM
-    const heroCircleEl = document.querySelector('.strait-mobile-detail__hero-circle') as HTMLElement | null
-    if (!heroCircleEl) {
+    // Use stored hero circle reference instead of fragile DOM query
+    const heroCircleEl = heroCircleRef
+    if (!heroCircleEl || !heroCircleEl.isConnected) {
       state.value = 'idle'
       cardRect.value = null
       return

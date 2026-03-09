@@ -373,10 +373,6 @@ html {
   }
 }
 
-/* Hide particle canvas during transition */
-.strait-circle[data-transitioning] .strait-particle-canvas {
-  display: none;
-}
 
 .visually-hidden {
   position: absolute;
