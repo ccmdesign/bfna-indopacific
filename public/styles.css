@@ -99,7 +99,7 @@
 .stacked-bar__legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 8px 14px;
   margin-top: 8px;
 }
 

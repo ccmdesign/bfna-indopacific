@@ -55,6 +55,13 @@ onMounted(() => {
   })
 })
 
+// --- Global share percentage extraction ---
+const globalSharePct = computed(() => {
+  if (!props.strait.globalShareLabel) return null
+  const match = props.strait.globalShareLabel.match(/~?[\d.\p{Dash_Punctuation}]+%/u)
+  return match ? match[0] : props.strait.globalShareLabel
+})
+
 // --- Conditional divider ---
 const hasQualContent = computed(() =>
   !!props.strait.description ||
@@ -157,6 +164,10 @@ const hasQualContent = computed(() =>
         <span class="strait-mobile-detail__metric-value">{{ fmtNum(yearData.vessels.total) }}</span>
         <span class="strait-mobile-detail__metric-label">Vessels</span>
       </div>
+      <div v-if="globalSharePct" class="strait-mobile-detail__metric">
+        <span class="strait-mobile-detail__metric-value">{{ globalSharePct }}</span>
+        <span class="strait-mobile-detail__metric-label">Global share</span>
+      </div>
     </section>
 
     <!-- Quantitative content: Vessel breakdown bar -->
@@ -184,7 +195,7 @@ const hasQualContent = computed(() =>
 
     <!-- Quantitative content: Historical trend chart -->
     <section v-if="Object.keys(historical).length > 1" class="strait-mobile-detail__section" aria-label="Historical trends">
-      <StraitHistoryChart :historical="historical" />
+      <StraitHistoryChart :historical="historical" :width="320" :height="180" />
     </section>
   </div>
 </template>
