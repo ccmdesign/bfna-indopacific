@@ -1,18 +1,21 @@
 <script setup lang="ts">
 import type { Strait } from '~/types/strait'
 import { fmtUsd } from '~/utils/straitFormatters'
+import { LATEST_YEAR } from '~/utils/straitsData'
 
 const props = defineProps<{
   strait: Strait
 }>()
 
+const CIRCLE_COLOR = { h: 218, s: 60, l: 58 }
+
 const ariaLabel = computed(() =>
-  `${props.strait.name} — ${props.strait.globalShareLabel} — ${props.strait.valueLabel}`
+  `${props.strait.name}, ${props.strait.globalShareLabel}, ${fmtUsd(props.strait.valueUSD)} annual trade`
 )
 </script>
 
 <template>
-  <li class="strait-card" role="listitem">
+  <li class="strait-card">
     <NuxtLink
       :to="`/infographics/straits/${strait.id}`"
       class="strait-card__link"
@@ -21,9 +24,11 @@ const ariaLabel = computed(() =>
       <div class="strait-card__thumbnail">
         <StraitCircle
           :radius="36"
-          :color="{ h: 0, s: 0, l: 100 }"
+          :color="CIRCLE_COLOR"
           :active="false"
           :image-url="strait.imageUrl"
+          :strait-id="strait.id"
+          :year="LATEST_YEAR"
         />
       </div>
       <div class="strait-card__content">
@@ -54,17 +59,21 @@ const ariaLabel = computed(() =>
   text-decoration: none;
   color: inherit;
   min-height: 44px;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.strait-card__link:hover {
-  background: rgba(2, 38, 64, 1);
-  border-color: rgba(255, 255, 255, 0.25);
+@media (hover: hover) {
+  .strait-card__link:hover {
+    background: rgba(2, 38, 64, 1);
+    border-color: rgba(255, 255, 255, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
 }
 
 .strait-card__link:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.7);
   outline-offset: 2px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .strait-card__thumbnail {
@@ -74,6 +83,9 @@ const ariaLabel = computed(() =>
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+  border-radius: 50%;
+  -webkit-transform: translateZ(0); /* Safari overflow+radius compositing fix */
 }
 
 .strait-card__content {
