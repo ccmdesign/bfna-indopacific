@@ -13,8 +13,9 @@ const props = withDefaults(defineProps<{
   height: 140,
 })
 
-const W = computed(() => props.width)
-const H = computed(() => props.height)
+/** Clamp to sensible minimums so PAD calculations never produce NaN or negative ranges */
+const W = computed(() => Math.max(props.width, 40))
+const H = computed(() => Math.max(props.height, 40))
 const PAD = computed(() => ({
   top: Math.round(H.value * 0.11),
   right: Math.round(W.value * 0.14),

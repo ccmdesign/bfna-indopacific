@@ -1,5 +1,5 @@
 ---
-status: pending
+status: wont_fix
 priority: p2
 issue_id: "112"
 tags: [code-review, architecture, maintainability]

@@ -58,7 +58,7 @@ onMounted(() => {
 // --- Global share percentage extraction ---
 const globalSharePct = computed(() => {
   if (!props.strait.globalShareLabel) return null
-  const match = props.strait.globalShareLabel.match(/~?[\d.–-]+%/)
+  const match = props.strait.globalShareLabel.match(/~?[\d.\p{Dash_Punctuation}]+%/u)
   return match ? match[0] : props.strait.globalShareLabel
 })
 
