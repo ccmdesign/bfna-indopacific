@@ -1,22 +1,18 @@
 <script setup lang="ts">
 /**
- * StraitParticleCanvas — thin wrapper around the useParticleSystem composable.
+ * StraitParticleCanvas — canvas overlay inside StraitCircle.
  *
- * Renders a <canvas> element inside .map-inner with absolute positioning.
- * The canvas shows animated particle dots along Bezier shipping-lane paths
- * when a strait is selected and zoomed.
+ * Renders animated particle dots flowing through the strait's water polygon.
+ * Sits absolutely positioned inside the circle, clipped by border-radius.
+ * Coordinate space is 1080x1080 (matching strait polygon SVG viewBox).
  */
 import { ref, toRef, onMounted } from 'vue'
-import type { Strait } from '~/types/strait'
 import { useParticleSystem } from '~/composables/useParticleSystem'
 
 const props = defineProps<{
-  straitId: string | null
+  straitId: string
   year: string
-  innerSize: { w: number; h: number }
-  zoomScale: number
-  selectedStrait: Strait | null
-  clipRadius: number
+  circleSize: number
 }>()
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
@@ -26,14 +22,10 @@ useParticleSystem({
   canvasRef,
   straitId: toRef(props, 'straitId'),
   year: toRef(props, 'year'),
-  innerSize: toRef(props, 'innerSize'),
-  zoomScale: toRef(props, 'zoomScale'),
-  selectedStrait: toRef(props, 'selectedStrait'),
-  clipRadius: toRef(props, 'clipRadius'),
+  circleSize: toRef(props, 'circleSize'),
 })
 
 onMounted(() => {
-  // Trigger CSS fade-in on next frame
   requestAnimationFrame(() => {
     visible.value = true
   })

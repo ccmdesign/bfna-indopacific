@@ -4,6 +4,9 @@ defineProps<{
   color: { h: number; s: number; l: number }
   active: boolean
   imageUrl?: string
+  straitId?: string
+  year?: string
+  selected?: boolean
 }>()
 </script>
 
@@ -24,6 +27,12 @@ defineProps<{
       :src="imageUrl"
       alt=""
       aria-hidden="true"
+    />
+    <StraitParticleCanvas
+      v-if="selected && straitId && year"
+      :strait-id="straitId"
+      :year="year"
+      :circle-size="radius * 2"
     />
   </div>
 </template>

@@ -263,12 +263,6 @@ function getZoomedRadius(strait: Strait) {
   return radiusScale.value(getMetricValue(strait.id))
 }
 
-/** Clip radius for the particle canvas (matches the selected circle radius). */
-const particleClipRadius = computed(() => {
-  const s = selectedStrait.value
-  if (!s) return 0
-  return getZoomedRadius(s)
-})
 
 const OVERLAP_PAIRS = new Set(['taiwan', 'luzon'])
 
@@ -390,18 +384,9 @@ const legendEntries = computed(() => {
         :selected="effectiveSelectedId === strait.id"
         :disabled="!!effectiveSelectedId && effectiveSelectedId !== strait.id"
         :zooming-out="zoomingOut && strait.id !== zoomOutFromId"
+        :year="LATEST_YEAR"
         @hover="onHover"
         @activate="onActivate"
-      />
-
-      <StraitParticleCanvas
-        v-if="effectiveSelectedId"
-        :strait-id="effectiveSelectedId"
-        :year="LATEST_YEAR"
-        :inner-size="innerSize"
-        :zoom-scale="zoomScale"
-        :selected-strait="selectedStrait"
-        :clip-radius="particleClipRadius"
       />
     </div>
 
