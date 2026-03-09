@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useViewport } from '~/composables/useViewport'
+import { useStraitTransition } from '~/composables/useStraitTransition'
 import { straits, LATEST_YEAR, historicalByStrait } from '~/utils/straitsData'
 import type { Strait } from '~/types/strait'
 
@@ -16,6 +17,7 @@ definePageMeta({
 
 const route = useRoute()
 const { isMobile } = useViewport()
+const { scrollY } = useStraitTransition()
 
 const VALID_IDS = new Set(straits.map((s: Strait) => s.id))
 
@@ -34,6 +36,16 @@ watch(
   },
   { immediate: true }
 )
+
+// Restore scroll position when returning from detail to list
+watch(straitId, (newId, oldId) => {
+  if (!newId && oldId && import.meta.client) {
+    // Returning from detail to list — restore scroll after DOM updates
+    nextTick(() => {
+      window.scrollTo(0, scrollY.value)
+    })
+  }
+})
 
 // Dynamic page title based on selected strait
 const selectedStrait = computed(() =>

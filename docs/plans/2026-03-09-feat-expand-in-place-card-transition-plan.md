@@ -1,7 +1,7 @@
 ---
 title: "feat: Expand-in-place shared element transition"
 type: feat
-status: active
+status: completed
 date: 2026-03-09
 deepened: 2026-03-09
 origin: docs/brainstorms/2026-03-07-mobile-strait-cards-brainstorm.md
@@ -380,12 +380,12 @@ When `prefers-reduced-motion: reduce`:
 - `pages/infographics/straits/[[id]].vue` (modify: coordinate transition overlay)
 
 **Tasks:**
-- [ ] Create `useStraitTransition` composable with FLIP logic
-- [ ] Capture card thumbnail rect on click in `StraitCard.vue`
-- [ ] Create floating circle clone positioned at card rect
-- [ ] Animate clone to hero position using Web Animations API
-- [ ] Fade in detail content with staggered delay
-- [ ] Handle `prefers-reduced-motion`
+- [x] Create `useStraitTransition` composable with FLIP logic
+- [x] Capture card thumbnail rect on click in `StraitCard.vue`
+- [x] Create floating circle clone positioned at card rect
+- [x] Animate clone to hero position using Web Animations API
+- [x] Fade in detail content with staggered delay
+- [x] Handle `prefers-reduced-motion`
 
 **Success criteria:** Tapping a card plays a smooth circle-morph animation into the hero, detail content fades in below.
 
@@ -477,12 +477,12 @@ const scaleY = cardRect.height / heroRect.height
 - `components/straits/StraitMobileDetail.vue` (modify: intercept back navigation)
 
 **Tasks:**
-- [ ] Store the last card rect for reverse animation
-- [ ] Intercept back button click and browser back
-- [ ] Animate hero circle back to stored card position
-- [ ] Fade out detail content first, then play reverse FLIP
-- [ ] Navigate to list after animation completes
-- [ ] Handle edge case: card list may have scrolled (re-measure or use stored position)
+- [x] Store the last card rect for reverse animation
+- [x] Intercept back button click and browser back
+- [x] Animate hero circle back to stored card position
+- [x] Fade out detail content first, then play reverse FLIP
+- [x] Navigate to list after animation completes
+- [x] Handle edge case: card list may have scrolled (re-measure or use stored position)
 
 **Success criteria:** Pressing back plays the reverse animation; the hero circle shrinks back to where the card was.
 
@@ -521,11 +521,11 @@ const scaleY = cardRect.height / heroRect.height
 ### Phase 3: Polish and edge cases
 
 **Tasks:**
-- [ ] Handle rapid tap (debounce or ignore taps during animation)
-- [ ] Handle browser back button (popstate) vs in-app back link
-- [ ] Scroll position restoration: return to the same scroll offset in the card list
+- [x] Handle rapid tap (debounce or ignore taps during animation)
+- [x] Handle browser back button (popstate) vs in-app back link
+- [x] Scroll position restoration: return to the same scroll offset in the card list
 - [ ] Test with slow network (skeleton state during transition)
-- [ ] Verify particle canvas doesn't interfere with the clone animation
+- [x] Verify particle canvas doesn't interfere with the clone animation
 - [ ] Test across iOS Safari, Chrome Android, Firefox Android
 - [ ] Performance profile: ensure 60fps on mid-range mobile
 
@@ -562,23 +562,23 @@ const scaleY = cardRect.height / heroRect.height
 
 ## Acceptance Criteria
 
-- [ ] Tapping a strait card plays an expand-in-place animation where the circle thumbnail morphs into the hero circle
-- [ ] Detail content (name, stats, description) fades in after the circle animation settles
-- [ ] Back navigation (both in-app link and browser back) plays the reverse animation
-- [ ] Animation is skipped entirely when `prefers-reduced-motion: reduce` is active
-- [ ] No layout shift or flash-of-unstyled-content during transition
+- [x] Tapping a strait card plays an expand-in-place animation where the circle thumbnail morphs into the hero circle
+- [x] Detail content (name, stats, description) fades in after the circle animation settles
+- [x] Back navigation (both in-app link and browser back) plays the reverse animation
+- [x] Animation is skipped entirely when `prefers-reduced-motion: reduce` is active
+- [x] No layout shift or flash-of-unstyled-content during transition
 - [ ] Works on iOS Safari 17+, Chrome Android, Firefox Android
 - [ ] Animation maintains 60fps on mid-range devices
-- [ ] Desktop layout is completely unaffected
+- [x] Desktop layout is completely unaffected
 
 ### Research Insights: Additional Acceptance Criteria
 
 Based on edge case research, consider adding:
-- [ ] Rapid taps during animation are ignored (no double-transition)
-- [ ] Orientation change between forward and reverse degrades gracefully (crossfade fallback)
-- [ ] Clone element is always cleaned up, even on unexpected navigation
-- [ ] Scroll position is restored to the tapped card's position on back navigation
-- [ ] `aria-busy` is set during animation to prevent screen reader announcement of partial content
+- [x] Rapid taps during animation are ignored (no double-transition)
+- [x] Orientation change between forward and reverse degrades gracefully (crossfade fallback)
+- [x] Clone element is always cleaned up, even on unexpected navigation
+- [x] Scroll position is restored to the tapped card's position on back navigation
+- [x] `aria-busy` is set during animation to prevent screen reader announcement of partial content
 
 ## Risks and Mitigations
 
