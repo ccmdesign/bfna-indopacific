@@ -4,13 +4,23 @@ import { scaleLinear, scalePoint } from 'd3-scale'
 import { line } from 'd3-shape'
 import { extent } from 'd3-array'
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
   historical: Record<string, { capacityMt: number; vessels: { total: number; container: number; dryBulk: number; tanker: number }; capacityByType: { container: number; dryBulk: number; tanker: number } }>
-}>()
+  width?: number
+  height?: number
+}>(), {
+  width: 280,
+  height: 140,
+})
 
-const W = 280
-const H = 140
-const PAD = { top: 16, right: 40, bottom: 24, left: 36 }
+const W = computed(() => props.width)
+const H = computed(() => props.height)
+const PAD = computed(() => ({
+  top: Math.round(H.value * 0.11),
+  right: Math.round(W.value * 0.14),
+  bottom: Math.round(H.value * 0.17),
+  left: Math.round(W.value * 0.13),
+}))
 
 const years = computed(() => Object.keys(props.historical).sort())
 
@@ -20,7 +30,7 @@ const vesselData = computed(() => years.value.map(y => props.historical[y].vesse
 const xScale = computed(() =>
   scalePoint<string>()
     .domain(years.value)
-    .range([PAD.left, W - PAD.right])
+    .range([PAD.value.left, W.value - PAD.value.right])
 )
 
 const yScaleCargo = computed(() => {
@@ -28,7 +38,7 @@ const yScaleCargo = computed(() => {
   const pad = (hi - lo) * 0.15 || 100
   return scaleLinear()
     .domain([Math.max(0, lo - pad), hi + pad])
-    .range([H - PAD.bottom, PAD.top])
+    .range([H.value - PAD.value.bottom, PAD.value.top])
 })
 
 const yScaleVessels = computed(() => {
@@ -36,7 +46,7 @@ const yScaleVessels = computed(() => {
   const pad = (hi - lo) * 0.15 || 1000
   return scaleLinear()
     .domain([Math.max(0, lo - pad), hi + pad])
-    .range([H - PAD.bottom, PAD.top])
+    .range([H.value - PAD.value.bottom, PAD.value.top])
 })
 
 const cargoLine = computed(() => {
@@ -82,7 +92,7 @@ const vesselColor = 'rgba(255, 180, 100, 0.9)'
 <template>
   <div class="history-chart">
     <h3 class="history-chart__title">Historical Trends</h3>
-    <svg :viewBox="`0 0 ${W} ${H}`" class="history-chart__svg">
+    <svg :viewBox="`0 0 ${W} ${H}`" preserveAspectRatio="xMidYMid meet" class="history-chart__svg">
       <!-- Grid lines -->
       <line
         v-for="tick in cargoTicks"
@@ -122,7 +132,7 @@ const vesselColor = 'rgba(255, 180, 100, 0.9)'
       <text
         v-for="tick in cargoTicks"
         :key="'yl-' + tick.v"
-        :x="PAD.left - 4"
+        :x="PAD.left - 3"
         :y="tick.y"
         text-anchor="end"
         dominant-baseline="middle"
@@ -173,7 +183,7 @@ const vesselColor = 'rgba(255, 180, 100, 0.9)'
 }
 
 .history-chart__title {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -208,7 +218,7 @@ const vesselColor = 'rgba(255, 180, 100, 0.9)'
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 10px;
+  font-size: 11px;
   color: rgba(255, 255, 255, 0.5);
 }
 

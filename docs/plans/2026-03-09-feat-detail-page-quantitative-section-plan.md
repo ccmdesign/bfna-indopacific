@@ -1,7 +1,7 @@
 ---
 title: "feat: Detail page quantitative section"
 type: feat
-status: active
+status: completed
 date: 2026-03-09
 linear: BF-92
 origin: docs/brainstorms/2026-03-07-mobile-strait-cards-brainstorm.md
@@ -296,16 +296,16 @@ The plan uses `withDefaults(defineProps<{...}>(), {...})` which is the correct V
 
 ## Acceptance Criteria
 
-- [ ] **Chart readable at mobile widths**: `StraitHistoryChart` renders with adequate label sizing and spacing on viewports 320px-600px wide
-- [ ] **Chart props**: `StraitHistoryChart` accepts optional `width` and `height` props, defaulting to current 280/140
-- [ ] **Mobile detail passes mobile-optimized dimensions**: `StraitMobileDetail` passes wider viewBox dimensions (e.g., 320x180) to the chart
-- [ ] **Global share in metrics grid**: The global share stat appears as a metric card in the quantitative section
-- [ ] **Chart title/legend legible**: Title and legend text are at least 11px on mobile
-- [ ] **Vessel legend wraps cleanly**: The stacked bar legend uses `flex-wrap: wrap` with appropriate gap
-- [ ] **Desktop unaffected**: `StraitHistoryChart` in desktop `StraitDetailPanel` and `StraitQuantPanel` renders identically (default props match current hardcoded values)
-- [ ] **No regressions**: All 6 straits render correctly on mobile, historical chart shows for straits with >1 year of data, vessel breakdown renders for all straits
-- [ ] **Global share value formatting**: The metric card shows only the percentage (e.g., "~30%"), not the full sentence
-- [ ] **Variable metric count**: Straits with null oil/LNG values (Taiwan, Luzon, Lombok) render a 3-item grid correctly
+- [x] **Chart readable at mobile widths**: `StraitHistoryChart` renders with adequate label sizing and spacing on viewports 320px-600px wide
+- [x] **Chart props**: `StraitHistoryChart` accepts optional `width` and `height` props, defaulting to current 280/140
+- [x] **Mobile detail passes mobile-optimized dimensions**: `StraitMobileDetail` passes wider viewBox dimensions (e.g., 320x180) to the chart
+- [x] **Global share in metrics grid**: The global share stat appears as a metric card in the quantitative section
+- [x] **Chart title/legend legible**: Title and legend text are at least 11px on mobile
+- [x] **Vessel legend wraps cleanly**: The stacked bar legend uses `flex-wrap: wrap` with appropriate gap
+- [x] **Desktop unaffected**: `StraitHistoryChart` in desktop `StraitDetailPanel` and `StraitQuantPanel` renders identically (default props match current hardcoded values)
+- [x] **No regressions**: All 6 straits render correctly on mobile, historical chart shows for straits with >1 year of data, vessel breakdown renders for all straits
+- [x] **Global share value formatting**: The metric card shows only the percentage (e.g., "~30%"), not the full sentence
+- [x] **Variable metric count**: Straits with null oil/LNG values (Taiwan, Luzon, Lombok) render a 3-item grid correctly
 
 ## Files to Modify
 
