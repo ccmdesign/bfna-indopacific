@@ -83,6 +83,23 @@ html {
     grid-row: 1 / 8;
     grid-column: 1 / -1;
   }
+
+  @media (max-width: 900px) {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0;
+  }
+}
+
+/* Mobile footer override for layout-2 — match .layout-home pattern */
+.layout-2 footer {
+  @media (max-width: 900px) {
+    position: relative;
+    margin-top: auto;
+  }
 }
 
 .layout-1 {

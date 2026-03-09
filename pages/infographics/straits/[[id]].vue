@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import straitsData from '~/data/straits/straits.json'
+import { useViewport } from '~/composables/useViewport'
+import { straits, LATEST_YEAR, historicalByStrait } from '~/composables/useStraitsData'
+import type { Strait } from '~/types/strait'
 
 definePageMeta({
   layoutClass: 'layout-2',
   embedSlug: 'straits',
   embedTitle: 'Indo-Pacific Straits',
+  suppressRotateOverlay: true,
   footerSource: {
     url: 'https://portwatch.imf.org/',
     label: 'Source: IMF PortWatch'
@@ -12,8 +15,9 @@ definePageMeta({
 })
 
 const route = useRoute()
+const { isMobile } = useViewport()
 
-const VALID_IDS = new Set(straitsData.straits.map((s: { id: string }) => s.id))
+const VALID_IDS = new Set(straits.map((s: Strait) => s.id))
 
 const straitId = computed(() => {
   const id = route.params.id as string | undefined
@@ -33,10 +37,16 @@ watch(
 
 // Dynamic page title based on selected strait
 const selectedStrait = computed(() =>
-  straitsData.straits.find((s: { id: string }) => s.id === straitId.value)
+  straits.find((s: Strait) => s.id === straitId.value)
 )
 const straitName = computed(() => selectedStrait.value?.name)
 useStraitsHead(straitName)
+
+// Historical data for selected strait (used by mobile detail)
+const selectedStraitHistorical = computed(() => {
+  if (!straitId.value) return {}
+  return historicalByStrait(straitId.value)
+})
 
 function onSelect(id: string | null) {
   if (id) {
@@ -48,10 +58,37 @@ function onSelect(id: string | null) {
 </script>
 
 <template>
-  <!-- BF-89: Mobile branch will conditionally render here based on CSS media query -->
-  <StraitMap
-    :selected-strait-id="straitId"
-    class="strait-map"
-    @select="onSelect"
-  />
+  <ClientOnly>
+    <!-- Desktop: existing map -->
+    <StraitMap
+      v-if="!isMobile"
+      :selected-strait-id="straitId"
+      class="strait-map"
+      @select="onSelect"
+    />
+    <!-- Mobile: card list (no strait selected) -->
+    <StraitCardList
+      v-else-if="!straitId"
+      :straits="straits"
+    />
+    <!-- Mobile: detail page (strait selected) -->
+    <StraitMobileDetail
+      v-else-if="selectedStrait"
+      :strait="selectedStrait"
+      :historical="selectedStraitHistorical"
+      :year="LATEST_YEAR"
+    />
+    <template #fallback>
+      <div class="strait-loading-skeleton" />
+    </template>
+  </ClientOnly>
 </template>
+
+<style scoped>
+.strait-loading-skeleton {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  background: #0a1628;
+}
+</style>

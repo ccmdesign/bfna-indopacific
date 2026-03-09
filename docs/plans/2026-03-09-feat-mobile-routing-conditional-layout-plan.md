@@ -1,7 +1,7 @@
 ---
 title: "feat: Mobile routing + conditional layout (list vs map)"
 type: feat
-status: active
+status: completed
 date: 2026-03-09
 linear: BF-89
 origin: docs/brainstorms/2026-03-07-mobile-strait-cards-brainstorm.md
@@ -246,16 +246,16 @@ const StraitMap = defineAsyncComponent(() => import('~/components/StraitMap.vue'
 
 #### Acceptance Criteria
 
-- [ ] `composables/useViewport.ts` exists and exports `useViewport()` with reactive `isMobile`
-- [ ] Desktop (>=900px): `<StraitMap>` renders, no change from current behavior
-- [ ] Mobile (<900px), list view: card list renders with all straits in alphabetical order
-- [ ] Mobile (<900px), detail view: placeholder detail component renders for `/infographics/straits/:id`
-- [ ] `RotateDeviceOverlay` does not appear on the straits page at any viewport size
-- [ ] `.layout-2` becomes scrollable below 900px
-- [ ] Back button from detail navigates to list (existing `navigateTo` logic)
-- [ ] No SSR hydration mismatch warnings in console
-- [ ] Cards are keyboard-navigable and have proper focus indicators
-- [ ] Footer does not overlap card list content on mobile
+- [x] `composables/useViewport.ts` exists and exports `useViewport()` with reactive `isMobile`
+- [x] Desktop (>=900px): `<StraitMap>` renders, no change from current behavior
+- [x] Mobile (<900px), list view: card list renders with all straits in alphabetical order
+- [x] Mobile (<900px), detail view: placeholder detail component renders for `/infographics/straits/:id`
+- [x] `RotateDeviceOverlay` does not appear on the straits page at any viewport size
+- [x] `.layout-2` becomes scrollable below 900px
+- [x] Back button from detail navigates to list (existing `navigateTo` logic)
+- [x] No SSR hydration mismatch warnings in console
+- [x] Cards are keyboard-navigable and have proper focus indicators
+- [x] Footer does not overlap card list content on mobile
 
 ---
 
@@ -311,13 +311,13 @@ const StraitMap = defineAsyncComponent(() => import('~/components/StraitMap.vue'
 
 #### Acceptance Criteria
 
-- [ ] Detail page renders all data sections from the brainstorm spec
-- [ ] `<StraitCircle>` renders as hero with satellite image at ~90vw (or capped at max resolution)
-- [ ] `<StraitHistoryChart>` renders responsively on mobile widths
-- [ ] Back navigation returns to card list
-- [ ] Deep link to `/infographics/straits/malacca` renders the detail page directly on mobile
-- [ ] `fmtUsd` and `fmtNum` are shared between desktop panel and mobile detail (no duplication)
-- [ ] `historicalByStrait` and `LATEST_YEAR` live in `composables/useStraitsData.ts`
+- [x] Detail page renders all data sections from the brainstorm spec
+- [x] `<StraitCircle>` renders as hero with satellite image at ~90vw (or capped at max resolution)
+- [x] `<StraitHistoryChart>` renders responsively on mobile widths
+- [x] Back navigation returns to card list
+- [x] Deep link to `/infographics/straits/malacca` renders the detail page directly on mobile
+- [x] `fmtUsd` and `fmtNum` are shared between desktop panel and mobile detail (no duplication)
+- [x] `historicalByStrait` and `LATEST_YEAR` live in `composables/useStraitsData.ts`
 
 ---
 
