@@ -184,11 +184,6 @@ function randomPointOnEdge(edge: [number, number][]): { x: number; y: number } {
   return { x: edge[0]![0], y: edge[0]![1] }
 }
 
-function edgeCentroid(edge: [number, number][]): { x: number; y: number } {
-  let sx = 0, sy = 0
-  for (const p of edge) { sx += p[0]; sy += p[1] }
-  return { x: sx / edge.length, y: sy / edge.length }
-}
 
 function distToEdge(px: number, py: number, edge: [number, number][]): number {
   let minD = Infinity
@@ -209,6 +204,7 @@ function noise(x: number): number {
 }
 
 // --- Particle ---
+const WAIT_SECONDS = 2 // How long particles sit at the edge before moving
 interface Particle {
   x: number; y: number
   vx: number; vy: number
@@ -216,6 +212,8 @@ interface Particle {
   noiseOffset: number
   speed: number
   color: string
+  waitFrames: number // Countdown frames before particle starts moving
+  forward: boolean   // true = entry→exit, false = exit→entry
 }
 
 const COLORS = ['hsl(218,60%,58%)', 'hsl(34,60%,50%)', 'hsl(186,60%,50%)']
@@ -226,7 +224,7 @@ const COLORS = ['hsl(218,60%,58%)', 'hsl(34,60%,50%)', 'hsl(186,60%,50%)']
 // Large width (e.g. 60–100) = particles spread out in open water.
 // Order: entry → exit. Particles going "backward" reverse this.
 const FLOW_SPINE: [number, number, number][] = [
-  [290, 456, 92],    // 0  open water
+  [290, 456, 58],    // 0  open water
   [332, 510, 42],    // 1  funneling in
   [390, 548, 34],    // 2  funneling in
   [444, 576, 38],    // 3  approaching strait
@@ -236,7 +234,7 @@ const FLOW_SPINE: [number, number, number][] = [
   [580, 601, 30],    // 7  leaving strait
   [657, 631, 46],    // 8  spreading out
   [773, 705, 110],   // 9  spreading out
-  [831, 895, 150],   // 10 open water
+  [856, 1044, 344],  // 10 open water
 ]
 
 // Precompute spine segment tangents and cumulative lengths
@@ -282,13 +280,6 @@ function spineNearest(px: number, py: number, pts: [number, number, number][], t
   }
   const len = Math.hypot(bestTx, bestTy) || 1
   return { cx: bestCx, cy: bestCy, tx: bestTx / len, ty: bestTy / len, dist: bestDist, width: bestWidth, segIdx: bestSegIdx, segT: bestSegT }
-}
-
-/** Find the local flow direction at (px, py) by projecting onto the nearest spine segment */
-function spineFlowAt(px: number, py: number, pts: [number, number, number][], tans: { tx: number; ty: number }[], forward: boolean): { fx: number; fy: number } {
-  const { tx, ty } = spineNearest(px, py, pts, tans)
-  const sign = forward ? 1 : -1
-  return { fx: sign * tx, fy: sign * ty }
 }
 
 // Mutable copy for drag/drop editing (reactive for template bindings)
@@ -397,23 +388,22 @@ onMounted(() => {
 
   const grid = rasterize()
   const distField = buildDistanceField(grid)
-  const ec = edgeCentroid(polygon.entryEdge)
-  const xc = edgeCentroid(polygon.exitEdge)
 
   function spawn(): Particle {
     const forward = Math.random() > 0.5
     const spawnEdge = forward ? polygon.entryEdge : polygon.exitEdge
     const pos = randomPointOnEdge(spawnEdge)
-    // Initial velocity from spine direction at spawn point
-    const { fx, fy } = spineFlowAt(pos.x, pos.y, spine, spineTangents, forward)
     const speed = params.speed * (1 - params.speedVariation + Math.random() * params.speedVariation * 2)
+    // Spawn static — particle waits at edge before moving
     return {
       x: pos.x, y: pos.y,
-      vx: fx * speed, vy: fy * speed,
+      vx: 0, vy: 0,
       radius: params.dotMin + Math.random() * (params.dotMax - params.dotMin),
       noiseOffset: Math.random() * 1000,
       speed,
       color: COLORS[Math.floor(Math.random() * 3)]!,
+      waitFrames: Math.round(WAIT_SECONDS * 60), // ~2s at 60fps
+      forward,
     }
   }
 
@@ -423,13 +413,11 @@ onMounted(() => {
 
   // Build particles, scatter some along their path
   const particles: Particle[] = []
+  const waitBudget = Math.round(WAIT_SECONDS * 60)
   for (let i = 0; i < params.particleCount; i++) {
     const p = spawn()
-    // Scatter along spine direction
-    const scatter = Math.random() * 300
-    const sx = p.x + p.vx / p.speed * scatter
-    const sy = p.y + p.vy / p.speed * scatter
-    if (isInWater(sx, sy, grid)) { p.x = sx; p.y = sy }
+    // Stagger initial particles: some already waiting, some already in-flight
+    p.waitFrames = Math.floor(Math.random() * waitBudget)
     particles.push(p)
   }
 
@@ -461,8 +449,31 @@ onMounted(() => {
     const minSpeed = params.speed * (1 - params.speedVariation)
 
     for (const p of particles) {
-      // Determine if this particle is going forward (entry→exit) or backward
-      const forward = p.vx * (xc.x - ec.x) + p.vy * (xc.y - ec.y) > 0
+      // Wait phase: particle sits at edge, then launches toward nearest waypoint
+      if (p.waitFrames > 0) {
+        p.waitFrames -= dt
+        if (p.waitFrames <= 0) {
+          // Launch: aim toward nearby waypoints based on spawn edge
+          // Entry (green) → waypoints 0 or 1, Exit (pink) → waypoints 9 or 10
+          const targets = p.forward
+            ? [spine[0]!, spine[1]!]
+            : [spine[spine.length - 1]!, spine[spine.length - 2]!]
+          // Pick the closer of the two target waypoints
+          let bestDist = Infinity, bestWp = targets[0]!
+          for (const wp of targets) {
+            const d = Math.hypot(p.x - wp[0], p.y - wp[1])
+            if (d < bestDist) { bestDist = d; bestWp = wp }
+          }
+          const dx = bestWp[0] - p.x, dy = bestWp[1] - p.y
+          const dLen = Math.hypot(dx, dy) || 1
+          p.vx = (dx / dLen) * p.speed
+          p.vy = (dy / dLen) * p.speed
+        }
+        continue
+      }
+
+      // Direction from spawn edge
+      const forward = p.forward
       const sign = forward ? 1 : -1
 
       // Find nearest spine point + tangent
@@ -722,7 +733,7 @@ onMounted(async () => {
   for (let i = 0; i < spine.length; i++) {
     const key = `pt${i}`
     widthParams[key] = spine[i]![2]
-    widthFolder.addBinding(widthParams, key, { label: `Pt ${i}`, min: 2, max: 150, step: 2 })
+    widthFolder.addBinding(widthParams, key, { label: `Pt ${i}`, min: 2, max: 400, step: 2 })
       .on('change', (ev: { value: number }) => { spine[i][2] = ev.value; rebuildSpine() })
   }
 
