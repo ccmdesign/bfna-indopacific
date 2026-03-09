@@ -1,7 +1,7 @@
 ---
 title: "feat: Detail page layout + hero + qualitative content"
 type: feat
-status: active
+status: completed
 date: 2026-03-09
 linear: BF-91
 origin: docs/brainstorms/2026-03-07-mobile-strait-cards-brainstorm.md
@@ -272,21 +272,21 @@ The brainstorm mentions "horizontal swipe on the detail page navigates to adjace
 
 ## Acceptance Criteria
 
-- [ ] **Qual-first ordering**: Description, Industries, Threats, and Key Facts appear above Trade Value, Metrics, Vessel Breakdown, and Historical Chart
-- [ ] **Visual divider**: A subtle horizontal rule separates the qualitative and quantitative sections
-- [ ] **Responsive hero circle**: The hero circle scales with viewport width, capped at 288px diameter, using `clamp(160px, 65vw, 288px)` or equivalent
-- [ ] **StraitCircle radius prop**: The `radius` passed to `StraitCircle` reflects the actual rendered size (via ResizeObserver), not a hardcoded constant
-- [ ] **Particle readiness**: `StraitCircle` continues to receive `:selected="true"` so particles render for polygon-ready straits at the correct size
-- [ ] **No regression**: Back navigation, sticky nav, all 6 straits render correctly, no broken styles on viewports 320px-899px
-- [ ] **Desktop unaffected**: `StraitMobileDetail` only renders on mobile (`isMobile` guard in `[[id]].vue`)
+- [x] **Qual-first ordering**: Description, Industries, Threats, and Key Facts appear above Trade Value, Metrics, Vessel Breakdown, and Historical Chart
+- [x] **Visual divider**: A subtle horizontal rule separates the qualitative and quantitative sections
+- [x] **Responsive hero circle**: The hero circle scales with viewport width, capped at 288px diameter, using `clamp(160px, 65vw, 288px)` or equivalent
+- [x] **StraitCircle radius prop**: The `radius` passed to `StraitCircle` reflects the actual rendered size (via ResizeObserver), not a hardcoded constant
+- [x] **Particle readiness**: `StraitCircle` continues to receive `:selected="true"` so particles render for polygon-ready straits at the correct size
+- [x] **No regression**: Back navigation, sticky nav, all 6 straits render correctly, no broken styles on viewports 320px-899px
+- [x] **Desktop unaffected**: `StraitMobileDetail` only renders on mobile (`isMobile` guard in `[[id]].vue`)
 
 ### Additional Acceptance Criteria (from research)
 
-- [ ] **ResizeObserver RAF debounce**: The ResizeObserver callback uses the project's established `requestAnimationFrame` gate pattern (matching `useFisheyeCanvas.ts` and `useParticleSystem.ts`)
-- [ ] **Cleanup correctness**: `onScopeDispose` disconnects the ResizeObserver AND cancels any pending `requestAnimationFrame`
-- [ ] **No initial flash**: The hero circle does not visibly animate from a wrong size on first paint (use synchronous initial calculation or suppress transition)
-- [ ] **Divider accessibility**: The divider uses `role="separator"` or is an `<hr>` element
-- [ ] **Divider conditional**: The divider only renders when both qualitative and quantitative content exist
+- [x] **ResizeObserver RAF debounce**: The ResizeObserver callback uses the project's established `requestAnimationFrame` gate pattern (matching `useFisheyeCanvas.ts` and `useParticleSystem.ts`)
+- [x] **Cleanup correctness**: `onScopeDispose` disconnects the ResizeObserver AND cancels any pending `requestAnimationFrame`
+- [x] **No initial flash**: The hero circle does not visibly animate from a wrong size on first paint (use synchronous initial calculation or suppress transition)
+- [x] **Divider accessibility**: The divider uses `role="separator"` or is an `<hr>` element
+- [x] **Divider conditional**: The divider only renders when both qualitative and quantitative content exist
 
 ## Files to Modify
 

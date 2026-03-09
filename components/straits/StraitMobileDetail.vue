@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { getCurrentScope, onScopeDispose } from 'vue'
 import type { Strait, StraitHistoricalEntry } from '~/types/strait'
 import { fmtUsd, fmtNum, computeVesselSegments } from '~/utils/straitFormatters'
 
@@ -16,8 +17,47 @@ const vesselSegments = computed(() => {
   return computeVesselSegments(d.vessels)
 })
 
-/** Max hero circle radius — capped to prevent pixelation of satellite images */
-const HERO_RADIUS = 144
+// --- Responsive hero circle ---
+const heroCircleRef = ref<HTMLElement | null>(null)
+
+/** Synchronous initial calc to avoid flash on first paint (SSR-safe) */
+const heroRadius = ref(
+  import.meta.client
+    ? Math.round(Math.min(window.innerWidth * 0.65, 288) / 2)
+    : 144
+)
+
+let resizeRafId: number | null = null
+
+onMounted(() => {
+  if (!heroCircleRef.value) return
+  const ro = new ResizeObserver(([entry]) => {
+    if (resizeRafId !== null) return // RAF gate (project pattern)
+    resizeRafId = requestAnimationFrame(() => {
+      resizeRafId = null
+      heroRadius.value = Math.round(entry.contentRect.width / 2)
+    })
+  })
+  ro.observe(heroCircleRef.value)
+
+  if (getCurrentScope()) {
+    onScopeDispose(() => {
+      ro.disconnect()
+      if (resizeRafId !== null) {
+        cancelAnimationFrame(resizeRafId)
+        resizeRafId = null
+      }
+    })
+  }
+})
+
+// --- Conditional divider ---
+const hasQualContent = computed(() =>
+  !!props.strait.description ||
+  props.strait.topIndustries.length > 0 ||
+  props.strait.threats.length > 0 ||
+  props.strait.keyFacts.length > 0
+)
 </script>
 
 <template>
@@ -38,9 +78,9 @@ const HERO_RADIUS = 144
 
     <!-- Hero section -->
     <section class="strait-mobile-detail__hero" aria-label="Strait overview">
-      <div class="strait-mobile-detail__hero-circle">
+      <div ref="heroCircleRef" class="strait-mobile-detail__hero-circle">
         <StraitCircle
-          :radius="HERO_RADIUS"
+          :radius="heroRadius"
           :color="{ h: 0, s: 0, l: 100 }"
           :active="false"
           :image-url="strait.imageUrl"
@@ -53,13 +93,49 @@ const HERO_RADIUS = 144
       <p class="strait-mobile-detail__share">{{ strait.globalShareLabel }}</p>
     </section>
 
-    <!-- Trade value hero stat -->
+    <!-- Qualitative content: Description -->
+    <p v-if="strait.description" class="strait-mobile-detail__desc">
+      {{ strait.description }}
+    </p>
+
+    <!-- Qualitative content: Top Industries -->
+    <section v-if="strait.topIndustries.length" class="strait-mobile-detail__section" aria-label="Top industries">
+      <h2 class="strait-mobile-detail__section-title">Top Industries</h2>
+      <div class="strait-mobile-detail__tags">
+        <span v-for="ind in strait.topIndustries" :key="ind" class="strait-mobile-detail__tag">{{ ind }}</span>
+      </div>
+    </section>
+
+    <!-- Qualitative content: Threats -->
+    <section v-if="strait.threats.length" class="strait-mobile-detail__section" aria-label="Threats">
+      <h2 class="strait-mobile-detail__section-title">Threats</h2>
+      <div class="strait-mobile-detail__tags">
+        <span v-for="threat in strait.threats" :key="threat" class="strait-mobile-detail__tag strait-mobile-detail__tag--threat">{{ threat }}</span>
+      </div>
+    </section>
+
+    <!-- Qualitative content: Key Facts -->
+    <section v-if="strait.keyFacts.length" class="strait-mobile-detail__section" aria-label="Key facts">
+      <h2 class="strait-mobile-detail__section-title">Key Facts</h2>
+      <ul class="strait-mobile-detail__facts">
+        <li v-for="fact in strait.keyFacts" :key="fact">{{ fact }}</li>
+      </ul>
+    </section>
+
+    <!-- Divider between qualitative and quantitative sections -->
+    <hr
+      v-if="hasQualContent"
+      class="strait-mobile-detail__divider"
+      role="separator"
+    />
+
+    <!-- Quantitative content: Trade value hero stat -->
     <section class="strait-mobile-detail__hero-stat" aria-label="Trade value">
       <span class="strait-mobile-detail__hero-value">{{ fmtUsd(strait.valueUSD) }}</span>
       <span class="strait-mobile-detail__hero-label">Annual trade value</span>
     </section>
 
-    <!-- Key metrics row -->
+    <!-- Quantitative content: Key metrics row -->
     <section v-if="yearData" class="strait-mobile-detail__metrics" aria-label="Key metrics">
       <div v-if="strait.oilMbpd != null" class="strait-mobile-detail__metric">
         <span class="strait-mobile-detail__metric-value">{{ strait.oilMbpd }}</span>
@@ -79,36 +155,7 @@ const HERO_RADIUS = 144
       </div>
     </section>
 
-    <!-- Description -->
-    <p v-if="strait.description" class="strait-mobile-detail__desc">
-      {{ strait.description }}
-    </p>
-
-    <!-- Top Industries -->
-    <section v-if="strait.topIndustries.length" class="strait-mobile-detail__section" aria-label="Top industries">
-      <h2 class="strait-mobile-detail__section-title">Top Industries</h2>
-      <div class="strait-mobile-detail__tags">
-        <span v-for="ind in strait.topIndustries" :key="ind" class="strait-mobile-detail__tag">{{ ind }}</span>
-      </div>
-    </section>
-
-    <!-- Threats -->
-    <section v-if="strait.threats.length" class="strait-mobile-detail__section" aria-label="Threats">
-      <h2 class="strait-mobile-detail__section-title">Threats</h2>
-      <div class="strait-mobile-detail__tags">
-        <span v-for="threat in strait.threats" :key="threat" class="strait-mobile-detail__tag strait-mobile-detail__tag--threat">{{ threat }}</span>
-      </div>
-    </section>
-
-    <!-- Key Facts -->
-    <section v-if="strait.keyFacts.length" class="strait-mobile-detail__section" aria-label="Key facts">
-      <h2 class="strait-mobile-detail__section-title">Key Facts</h2>
-      <ul class="strait-mobile-detail__facts">
-        <li v-for="fact in strait.keyFacts" :key="fact">{{ fact }}</li>
-      </ul>
-    </section>
-
-    <!-- Vessel breakdown bar -->
+    <!-- Quantitative content: Vessel breakdown bar -->
     <section v-if="vesselSegments.length" class="strait-mobile-detail__section" aria-label="Vessel breakdown">
       <h2 class="strait-mobile-detail__section-title">Vessel Breakdown</h2>
       <div class="stacked-bar">
@@ -131,7 +178,7 @@ const HERO_RADIUS = 144
       </div>
     </section>
 
-    <!-- Historical trend chart -->
+    <!-- Quantitative content: Historical trend chart -->
     <section v-if="Object.keys(historical).length > 1" class="strait-mobile-detail__section" aria-label="Historical trends">
       <StraitHistoryChart :historical="historical" />
     </section>
@@ -189,6 +236,8 @@ const HERO_RADIUS = 144
 }
 
 .strait-mobile-detail__hero-circle {
+  width: clamp(160px, 65vw, 288px);
+  aspect-ratio: 1;
   margin-bottom: 1.25rem;
 }
 
@@ -278,6 +327,14 @@ const HERO_RADIUS = 144
   font-size: 14px;
   line-height: 1.7;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* --- Divider between qual and quant sections --- */
+.strait-mobile-detail__divider {
+  border: none;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 0 0 20px;
 }
 
 /* --- Sections --- */
