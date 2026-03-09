@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { getCurrentScope, onScopeDispose } from 'vue'
+import { onScopeDispose } from 'vue'
 import type { Strait, StraitHistoricalEntry } from '~/types/strait'
 import { fmtUsd, fmtNum, computeVesselSegments } from '~/utils/straitFormatters'
 
@@ -20,10 +20,11 @@ const vesselSegments = computed(() => {
 // --- Responsive hero circle ---
 const heroCircleRef = ref<HTMLElement | null>(null)
 
-/** Synchronous initial calc to avoid flash on first paint (SSR-safe) */
+/** Synchronous initial calc to avoid flash on first paint (SSR-safe).
+ *  Subtracts 2rem (32px) of parent padding to approximate the actual container width. */
 const heroRadius = ref(
   import.meta.client
-    ? Math.round(Math.min(window.innerWidth * 0.65, 288) / 2)
+    ? Math.round(Math.min((window.innerWidth - 32) * 0.65, 288) / 2)
     : 144
 )
 
@@ -31,24 +32,27 @@ let resizeRafId: number | null = null
 
 onMounted(() => {
   if (!heroCircleRef.value) return
+  let latestEntry: ResizeObserverEntry | null = null
   const ro = new ResizeObserver(([entry]) => {
-    if (resizeRafId !== null) return // RAF gate (project pattern)
+    latestEntry = entry
+    if (resizeRafId !== null) return // RAF gate – coalesces to latest
     resizeRafId = requestAnimationFrame(() => {
       resizeRafId = null
-      heroRadius.value = Math.round(entry.contentRect.width / 2)
+      if (latestEntry) {
+        heroRadius.value = Math.round(latestEntry.contentRect.width / 2)
+        latestEntry = null
+      }
     })
   })
   ro.observe(heroCircleRef.value)
 
-  if (getCurrentScope()) {
-    onScopeDispose(() => {
-      ro.disconnect()
-      if (resizeRafId !== null) {
-        cancelAnimationFrame(resizeRafId)
-        resizeRafId = null
-      }
-    })
-  }
+  onScopeDispose(() => {
+    ro.disconnect()
+    if (resizeRafId !== null) {
+      cancelAnimationFrame(resizeRafId)
+      resizeRafId = null
+    }
+  })
 })
 
 // --- Conditional divider ---
@@ -241,6 +245,12 @@ const hasQualContent = computed(() =>
   margin-bottom: 1.25rem;
 }
 
+/* Let StraitCircle fill the parent container instead of using its own --diameter */
+.strait-mobile-detail__hero-circle :deep(.strait-circle) {
+  width: 100%;
+  height: 100%;
+}
+
 .strait-mobile-detail__name {
   font-size: 28px;
   font-weight: 700;
@@ -322,11 +332,9 @@ const hasQualContent = computed(() =>
 /* --- Description --- */
 .strait-mobile-detail__desc {
   margin: 0 0 20px;
-  padding-bottom: 20px;
   color: rgba(255, 255, 255, 0.6);
   font-size: 14px;
   line-height: 1.7;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* --- Divider between qual and quant sections --- */
