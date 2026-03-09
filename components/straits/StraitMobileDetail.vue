@@ -2,6 +2,7 @@
 import { onScopeDispose } from 'vue'
 import type { Strait, StraitHistoricalEntry } from '~/types/strait'
 import { fmtUsd, fmtNum, computeVesselSegments } from '~/utils/straitFormatters'
+import { useStraitTransition } from '~/composables/useStraitTransition'
 
 const props = defineProps<{
   strait: Strait
@@ -16,6 +17,32 @@ const vesselSegments = computed(() => {
   if (!d) return []
   return computeVesselSegments(d.vessels)
 })
+
+// --- Shared element transition ---
+const { playForward, playReverse, transitionState } = useStraitTransition()
+
+// Computed CSS class map for staggered content fade-in (cached per state change)
+const contentClassMap = computed(() => {
+  const isAnimatingForward = transitionState.value === 'animating-forward' || transitionState.value === 'capturing'
+  const isAnimatingBack = transitionState.value === 'animating-back'
+  const delays = [0, 1, 2, 3, 4] as const
+  return Object.fromEntries(
+    delays.map(delay => [
+      delay,
+      [
+        'strait-transition-content',
+        isAnimatingForward ? 'strait-transition-content--hidden' : '',
+        isAnimatingBack ? 'strait-transition-content--exit' : '',
+        `strait-transition-content--delay-${delay}`,
+      ].filter(Boolean),
+    ])
+  ) as Record<number, string[]>
+})
+
+async function handleBack() {
+  await playReverse()
+  navigateTo('/infographics/straits')
+}
 
 // --- Responsive hero circle ---
 const heroCircleRef = ref<HTMLElement | null>(null)
@@ -46,8 +73,25 @@ onMounted(() => {
   })
   ro.observe(heroCircleRef.value)
 
+  // Trigger the FLIP forward animation after hero circle settles
+  if (heroCircleRef.value) {
+    playForward(heroCircleRef.value)
+  }
+
+  // Push dummy history entry for back-button interception
+  history.pushState({ straitTransition: true }, '')
+  const handlePopstate = async (e: PopStateEvent) => {
+    if (e.state?.straitTransition !== undefined) {
+      // Our dummy entry was popped — play reverse then navigate
+      await playReverse()
+      navigateTo('/infographics/straits')
+    }
+  }
+  window.addEventListener('popstate', handlePopstate)
+
   onScopeDispose(() => {
     ro.disconnect()
+    window.removeEventListener('popstate', handlePopstate)
     if (resizeRafId !== null) {
       cancelAnimationFrame(resizeRafId)
       resizeRafId = null
@@ -72,19 +116,22 @@ const hasQualContent = computed(() =>
 </script>
 
 <template>
-  <div class="strait-mobile-detail">
+  <div
+    class="strait-mobile-detail"
+    :aria-busy="transitionState === 'animating-forward' || transitionState === 'animating-back'"
+  >
     <!-- Sticky back bar -->
-    <nav class="strait-mobile-detail__nav" aria-label="Back navigation">
-      <NuxtLink
-        to="/infographics/straits"
+    <nav :class="contentClassMap[0]" class="strait-mobile-detail__nav" aria-label="Back navigation">
+      <button
         class="strait-mobile-detail__back"
         aria-label="Back to strait list"
+        @click="handleBack"
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
           <path d="M12.5 15l-5-5 5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
         All Straits
-      </NuxtLink>
+      </button>
     </nav>
 
     <!-- Hero section -->
@@ -100,17 +147,17 @@ const hasQualContent = computed(() =>
           :selected="true"
         />
       </div>
-      <h1 class="strait-mobile-detail__name">{{ strait.name }}</h1>
-      <p class="strait-mobile-detail__share">{{ strait.globalShareLabel }}</p>
+      <h1 :class="contentClassMap[1]" class="strait-mobile-detail__name">{{ strait.name }}</h1>
+      <p :class="contentClassMap[2]" class="strait-mobile-detail__share">{{ strait.globalShareLabel }}</p>
     </section>
 
     <!-- Qualitative content: Description -->
-    <p v-if="strait.description" class="strait-mobile-detail__desc">
+    <p v-if="strait.description" :class="contentClassMap[3]" class="strait-mobile-detail__desc">
       {{ strait.description }}
     </p>
 
     <!-- Qualitative content: Top Industries -->
-    <section v-if="strait.topIndustries.length" class="strait-mobile-detail__section" aria-label="Top industries">
+    <section v-if="strait.topIndustries.length" :class="contentClassMap[3]" class="strait-mobile-detail__section" aria-label="Top industries">
       <h2 class="strait-mobile-detail__section-title">Top Industries</h2>
       <div class="strait-mobile-detail__tags">
         <span v-for="ind in strait.topIndustries" :key="ind" class="strait-mobile-detail__tag">{{ ind }}</span>
@@ -118,7 +165,7 @@ const hasQualContent = computed(() =>
     </section>
 
     <!-- Qualitative content: Threats -->
-    <section v-if="strait.threats.length" class="strait-mobile-detail__section" aria-label="Threats">
+    <section v-if="strait.threats.length" :class="contentClassMap[3]" class="strait-mobile-detail__section" aria-label="Threats">
       <h2 class="strait-mobile-detail__section-title">Threats</h2>
       <div class="strait-mobile-detail__tags">
         <span v-for="threat in strait.threats" :key="threat" class="strait-mobile-detail__tag strait-mobile-detail__tag--threat">{{ threat }}</span>
@@ -126,7 +173,7 @@ const hasQualContent = computed(() =>
     </section>
 
     <!-- Qualitative content: Key Facts -->
-    <section v-if="strait.keyFacts.length" class="strait-mobile-detail__section" aria-label="Key facts">
+    <section v-if="strait.keyFacts.length" :class="contentClassMap[3]" class="strait-mobile-detail__section" aria-label="Key facts">
       <h2 class="strait-mobile-detail__section-title">Key Facts</h2>
       <ul class="strait-mobile-detail__facts">
         <li v-for="fact in strait.keyFacts" :key="fact">{{ fact }}</li>
@@ -141,13 +188,13 @@ const hasQualContent = computed(() =>
     />
 
     <!-- Quantitative content: Trade value hero stat -->
-    <section class="strait-mobile-detail__hero-stat" aria-label="Trade value">
+    <section :class="contentClassMap[4]" class="strait-mobile-detail__hero-stat" aria-label="Trade value">
       <span class="strait-mobile-detail__hero-value">{{ fmtUsd(strait.valueUSD) }}</span>
       <span class="strait-mobile-detail__hero-label">Annual trade value</span>
     </section>
 
     <!-- Quantitative content: Key metrics row -->
-    <section v-if="yearData" class="strait-mobile-detail__metrics" aria-label="Key metrics">
+    <section v-if="yearData" :class="contentClassMap[4]" class="strait-mobile-detail__metrics" aria-label="Key metrics">
       <div v-if="strait.oilMbpd != null" class="strait-mobile-detail__metric">
         <span class="strait-mobile-detail__metric-value">{{ strait.oilMbpd }}</span>
         <span class="strait-mobile-detail__metric-label">Oil mb/d</span>
@@ -171,7 +218,7 @@ const hasQualContent = computed(() =>
     </section>
 
     <!-- Quantitative content: Vessel breakdown bar -->
-    <section v-if="vesselSegments.length" class="strait-mobile-detail__section" aria-label="Vessel breakdown">
+    <section v-if="vesselSegments.length" :class="contentClassMap[4]" class="strait-mobile-detail__section" aria-label="Vessel breakdown">
       <h2 class="strait-mobile-detail__section-title">Vessel Breakdown</h2>
       <div class="stacked-bar">
         <div class="stacked-bar__track">
@@ -194,7 +241,7 @@ const hasQualContent = computed(() =>
     </section>
 
     <!-- Quantitative content: Historical trend chart -->
-    <section v-if="Object.keys(historical).length > 1" class="strait-mobile-detail__section" aria-label="Historical trends">
+    <section v-if="Object.keys(historical).length > 1" :class="contentClassMap[4]" class="strait-mobile-detail__section" aria-label="Historical trends">
       <StraitHistoryChart :historical="historical" :width="320" :height="180" />
     </section>
   </div>
@@ -225,10 +272,14 @@ const hasQualContent = computed(() =>
   gap: 4px;
   color: rgba(255, 255, 255, 0.6);
   text-decoration: none;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 500;
   padding: 8px 12px 8px 8px;
+  border: none;
   border-radius: 8px;
+  background: none;
+  cursor: pointer;
   transition: color 0.15s ease, background 0.15s ease;
 }
 

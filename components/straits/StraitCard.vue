@@ -2,12 +2,23 @@
 import type { Strait } from '~/types/strait'
 import { fmtUsd } from '~/utils/straitFormatters'
 import { LATEST_YEAR } from '~/utils/straitsData'
+import { useStraitTransition } from '~/composables/useStraitTransition'
 
 const props = defineProps<{
   strait: Strait
 }>()
 
 const CIRCLE_COLOR = { h: 218, s: 60, l: 58 }
+
+const thumbnailRef = ref<HTMLElement | null>(null)
+const { captureCard } = useStraitTransition()
+
+function handleClick() {
+  if (thumbnailRef.value) {
+    captureCard(props.strait.id, thumbnailRef.value)
+  }
+  // NuxtLink handles navigation
+}
 
 const ariaLabel = computed(() =>
   `${props.strait.name}, ${props.strait.globalShareLabel}, ${fmtUsd(props.strait.valueUSD)} annual trade`
@@ -20,8 +31,9 @@ const ariaLabel = computed(() =>
       :to="`/infographics/straits/${strait.id}`"
       class="strait-card__link"
       :aria-label="ariaLabel"
+      @click.capture="handleClick"
     >
-      <div class="strait-card__thumbnail">
+      <div ref="thumbnailRef" class="strait-card__thumbnail">
         <StraitCircle
           :radius="36"
           :color="CIRCLE_COLOR"
