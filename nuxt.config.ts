@@ -5,6 +5,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
 
+  // Exclude test pages from production builds entirely (they use runtime dev-only guards,
+  // but static imports would still be bundled without build-time exclusion)
+  ignore: process.env.NODE_ENV === 'production' ? ['pages/test/**'] : [],
+
   // Force static generation for SSG deployment
   ssr: true,
   nitro: {

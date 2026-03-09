@@ -19,6 +19,7 @@
   },
   "devDependencies": {
     "@nuxt/devtools": "latest",
-    "@types/d3": "^7.4.3"
+    "@types/d3": "^7.4.3",
+    "tweakpane": "^4.0.5"
   }
 }
