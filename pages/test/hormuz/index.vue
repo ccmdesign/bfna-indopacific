@@ -37,7 +37,8 @@ const params = reactive({
   dotOpacity: 0.9,        // Core dot alpha
   respawnThreshold: 15,   // Distance to target edge before recycling (px)
   showDebug: true,        // Show boundary/edge/spine overlays
-  showGlow: true,         // Enable glow pass
+  showGlow: false,        // Enable glow pass
+  showCircleMask: false,  // Show circular clip mask (like production UI)
 })
 
 const polygon = (polygonData ?? { boundary: [], islands: [], entryEdge: [], exitEdge: [] }) as unknown as {
@@ -184,36 +185,26 @@ function randomPointOnEdge(edge: [number, number][]): { x: number; y: number } {
   return { x: edge[0]![0], y: edge[0]![1] }
 }
 
-
-function distToEdge(px: number, py: number, edge: [number, number][]): number {
-  let minD = Infinity
-  for (let i = 0; i < edge.length - 1; i++) {
-    const ax = edge[i]![0], ay = edge[i]![1]
-    const bx = edge[i + 1]![0], by = edge[i + 1]![1]
-    const dx = bx - ax, dy = by - ay
-    const len2 = dx * dx + dy * dy
-    let t = len2 > 0 ? ((px - ax) * dx + (py - ay) * dy) / len2 : 0
-    t = Math.max(0, Math.min(1, t))
-    minD = Math.min(minD, Math.hypot(px - (ax + t * dx), py - (ay + t * dy)))
-  }
-  return minD
-}
-
 function noise(x: number): number {
   return Math.sin(x * 1.7) * 0.5 + Math.sin(x * 3.1 + 1.3) * 0.3 + Math.sin(x * 5.9 + 2.7) * 0.2
 }
 
 // --- Particle ---
 const WAIT_SECONDS = 2 // How long particles sit at the edge before moving
+const GROW_SECONDS = 0.5 // How long the radius grows from 0 → target
+const GROW_FRAMES = Math.round(GROW_SECONDS * 60)
 interface Particle {
   x: number; y: number
   vx: number; vy: number
-  radius: number
+  radius: number        // Current visible radius (animated)
+  targetRadius: number  // Final radius after grow-in
   noiseOffset: number
   speed: number
   color: string
   waitFrames: number // Countdown frames before particle starts moving
   forward: boolean   // true = entry→exit, false = exit→entry
+  exitX: number      // Random target point on destination edge
+  exitY: number
 }
 
 const COLORS = ['hsl(218,60%,58%)', 'hsl(34,60%,50%)', 'hsl(186,60%,50%)']
@@ -392,18 +383,23 @@ onMounted(() => {
   function spawn(): Particle {
     const forward = Math.random() > 0.5
     const spawnEdge = forward ? polygon.entryEdge : polygon.exitEdge
+    const destEdge = forward ? polygon.exitEdge : polygon.entryEdge
     const pos = randomPointOnEdge(spawnEdge)
+    const exit = randomPointOnEdge(destEdge)
     const speed = params.speed * (1 - params.speedVariation + Math.random() * params.speedVariation * 2)
     // Spawn static — particle waits at edge before moving
+    const targetR = params.dotMin + Math.random() * (params.dotMax - params.dotMin)
     return {
       x: pos.x, y: pos.y,
       vx: 0, vy: 0,
-      radius: params.dotMin + Math.random() * (params.dotMax - params.dotMin),
+      radius: 0,
+      targetRadius: targetR,
       noiseOffset: Math.random() * 1000,
       speed,
       color: COLORS[Math.floor(Math.random() * 3)]!,
       waitFrames: Math.round(WAIT_SECONDS * 60), // ~2s at 60fps
       forward,
+      exitX: exit.x, exitY: exit.y,
     }
   }
 
@@ -418,6 +414,9 @@ onMounted(() => {
     const p = spawn()
     // Stagger initial particles: some already waiting, some already in-flight
     p.waitFrames = Math.floor(Math.random() * waitBudget)
+    // Pre-grow radius for particles that have already been "waiting"
+    const elapsed = waitBudget - p.waitFrames
+    p.radius = p.targetRadius * Math.min(elapsed / GROW_FRAMES, 1)
     particles.push(p)
   }
 
@@ -452,6 +451,11 @@ onMounted(() => {
       // Wait phase: particle sits at edge, then launches toward nearest waypoint
       if (p.waitFrames > 0) {
         p.waitFrames -= dt
+        // Grow radius from 0 → targetRadius over GROW_FRAMES
+        const totalWait = Math.round(WAIT_SECONDS * 60)
+        const elapsed = totalWait - p.waitFrames
+        const growT = Math.min(elapsed / GROW_FRAMES, 1)
+        p.radius = p.targetRadius * growT
         if (p.waitFrames <= 0) {
           // Launch: aim toward nearby waypoints based on spawn edge
           // Entry (green) → waypoints 0 or 1, Exit (pink) → waypoints 9 or 10
@@ -517,8 +521,21 @@ onMounted(() => {
         let desiredX = sign * near.tx * (1 - pullStrength) + toCx * pullStrength
         let desiredY = sign * near.ty * (1 - pullStrength) + toCy * pullStrength
 
-        // Wall repulsion (disabled near strait to avoid blocking entrance)
-        if (!nearStrait) {
+        // Near the end of the spine, steer toward personal exit point
+        const lastSeg = spine.length - 2
+        const isNearEnd = forward ? near.segIdx >= lastSeg - 1 : near.segIdx <= 1
+        const distToExit = Math.hypot(p.exitX - p.x, p.exitY - p.y)
+        if (isNearEnd) {
+          const toExitDx = p.exitX - p.x, toExitDy = p.exitY - p.y
+          const toExitLen = distToExit || 1
+          // Blend ramps up: at 200px away → 0.3, at 50px → 0.9+
+          const exitBlend = Math.min(1, 100 / toExitLen) * 0.9
+          desiredX = desiredX * (1 - exitBlend) + (toExitDx / toExitLen) * exitBlend
+          desiredY = desiredY * (1 - exitBlend) + (toExitDy / toExitLen) * exitBlend
+        }
+
+        // Wall repulsion (disabled near strait and near exit point)
+        if (!nearStrait && distToExit > 60) {
           const wall = getWallRepulsion(p.x, p.y, distField)
           if (wall.wallDist < params.wallRepelDist && params.wallRepelForce > 0) {
             const repelT = 1 - wall.wallDist / params.wallRepelDist
@@ -550,8 +567,8 @@ onMounted(() => {
 
         const step = p.speed * dt
 
-        // Near the strait entrance: skip boundary checks, just move
-        if (nearStrait) {
+        // Near the strait entrance or exit point: skip boundary checks, just move
+        if (nearStrait || distToExit < 60) {
           p.x += (p.vx + perpX * lateral) * dt
           p.y += (p.vy + perpY * lateral) * dt
         } else {
@@ -582,9 +599,11 @@ onMounted(() => {
         }
       }
 
-      // Check if reached target edge
-      const targetEdge = forward ? polygon.exitEdge : polygon.entryEdge
-      if (distToEdge(p.x, p.y, targetEdge) < params.respawnThreshold) { respawn(p) }
+      // Check if reached personal exit point (use generous threshold since exit is on boundary)
+      const dExit = Math.hypot(p.x - p.exitX, p.y - p.exitY)
+      if (dExit < params.respawnThreshold * 2) { respawn(p) }
+      // Also respawn if particle leaves the canvas
+      else if (p.x < -10 || p.x > SIZE + 10 || p.y < -10 || p.y > SIZE + 10) { respawn(p) }
     }
 
     // Draw
@@ -680,6 +699,25 @@ onMounted(() => {
     }
     ctx!.globalAlpha = 1
 
+    // Circle mask: cover everything outside a centered circle (like the strait circle UI)
+    if (params.showCircleMask) {
+      const cx = SIZE / 2, cy = SIZE / 2
+      const r = SIZE / 2
+      ctx!.save()
+      ctx!.fillStyle = '#1a1a2e' // dark background matching the infographic
+      ctx!.beginPath()
+      ctx!.rect(0, 0, SIZE, SIZE)
+      ctx!.arc(cx, cy, r, 0, TAU, true) // cut out the circle (counter-clockwise)
+      ctx!.fill()
+      // Circle border
+      ctx!.strokeStyle = 'hsla(218, 60%, 58%, 0.6)'
+      ctx!.lineWidth = 3
+      ctx!.beginPath()
+      ctx!.arc(cx, cy, r, 0, TAU)
+      ctx!.stroke()
+      ctx!.restore()
+    }
+
     animId = requestAnimationFrame(tick)
   }
 
@@ -739,7 +777,8 @@ onMounted(async () => {
 
   // Debug
   const debug = pane.addFolder({ title: 'Debug' })
-  debug.addBinding(params, 'showDebug', { label: 'Boundaries' })
+  debug.addBinding(params, 'showDebug', { label: 'Borders & Waypoints' })
+  debug.addBinding(params, 'showCircleMask', { label: 'Circle Mask' })
   debug.addBinding(params, 'respawnThreshold', { label: 'Respawn px', min: 5, max: 60, step: 5 })
 
   // Copy all tuning state
