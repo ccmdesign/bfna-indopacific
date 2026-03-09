@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "103"
 tags: [code-review, performance, bundle-size, BF-90]

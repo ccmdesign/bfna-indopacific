@@ -1,12 +1,15 @@
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
-import { Pane } from 'tweakpane'
-import polygonData from '~/data/straits/hormuz-polygon.json'
 
 // Dev-only page — redirect to home in production builds
 if (!import.meta.dev) {
   navigateTo('/', { replace: true })
 }
+
+// Dynamic imports — only loaded at runtime in dev mode (never bundled in production)
+const polygonData = import.meta.dev
+  ? (await import('~/data/straits/hormuz-polygon.json')).default
+  : null
 
 const SIZE = 1080
 const GRID_CELL = 4
@@ -37,7 +40,7 @@ const params = reactive({
   showGlow: true,         // Enable glow pass
 })
 
-const polygon = polygonData as unknown as {
+const polygon = (polygonData ?? { boundary: [], islands: [], entryEdge: [], exitEdge: [] }) as unknown as {
   boundary: [number, number][]
   islands: [number, number][][]
   entryEdge: [number, number][]
@@ -331,6 +334,7 @@ const HIT_RADIUS = 14 // px tolerance for grabbing a waypoint
 let animId: number | null = null
 
 onMounted(() => {
+  if (!import.meta.dev) return
   const canvas = canvasRef.value
   if (!canvas) return
   canvas.width = SIZE
@@ -675,8 +679,10 @@ let cleanupListeners: (() => void) | null = null
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 let pane: any = null
 
-// Tweakpane setup — runs after DOM is ready
-onMounted(() => {
+// Tweakpane setup — runs after DOM is ready (dynamic import to avoid production bundling)
+onMounted(async () => {
+  if (!import.meta.dev) return
+  const { Pane } = await import('tweakpane')
   pane = new Pane({ title: 'Particle Controls' }) as any
 
   // Flow & Movement
