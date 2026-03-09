@@ -21,6 +21,8 @@ export default defineNuxtConfig({
   // Exclude /test/* pages and draft infographics from prerendering -- dev/preview only.
   routeRules: {
     '/test/embeds': { prerender: false },
+    '/test/hormuz': { prerender: false },
+    '/test/hormuz/**': { prerender: false },
     ...Object.fromEntries(
       draftInfographics.flatMap((i) => [
         [`/embed/${i.slug}`, { prerender: false }],

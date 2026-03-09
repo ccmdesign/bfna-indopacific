@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Strait } from '~/types/strait'
+import { fmtUsd, fmtNum, computeVesselSegments } from '~/utils/straitFormatters'
 
 const props = defineProps<{
   strait: Strait
@@ -16,24 +17,8 @@ const yearData = computed(() => props.historical[props.year])
 const vesselSegments = computed(() => {
   const d = yearData.value
   if (!d) return []
-  const total = d.vessels.container + d.vessels.dryBulk + d.vessels.tanker
-  if (total === 0) return []
-  return [
-    { key: 'container', label: 'Container', value: d.vessels.container, pct: (d.vessels.container / total) * 100, color: 'var(--color-cargo-container)' },
-    { key: 'dryBulk', label: 'Dry Bulk', value: d.vessels.dryBulk, pct: (d.vessels.dryBulk / total) * 100, color: 'var(--color-cargo-dry-bulk)' },
-    { key: 'tanker', label: 'Tanker', value: d.vessels.tanker, pct: (d.vessels.tanker / total) * 100, color: 'var(--color-cargo-tanker)' },
-  ]
+  return computeVesselSegments(d.vessels)
 })
-
-function fmtUsd(v: number): string {
-  if (v >= 1e12) return `$${(v / 1e12).toFixed(1)}T`
-  if (v >= 1e9) return `$${(v / 1e9).toFixed(0)}B`
-  return `$${(v / 1e6).toFixed(0)}M`
-}
-
-function fmtNum(v: number): string {
-  return v.toLocaleString('en-US')
-}
 </script>
 
 <template>
@@ -300,72 +285,9 @@ function fmtNum(v: number): string {
   margin: 0 0 8px;
 }
 
-/* --- Stacked bar --- */
+/* --- Stacked bar (styles in public/styles.css) --- */
 .strait-panel__bar-section {
   margin-bottom: 16px;
-}
-
-.stacked-bar {
-  width: 100%;
-}
-
-.stacked-bar__track {
-  display: flex;
-  width: 100%;
-  height: 24px;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.stacked-bar__segment {
-  flex: none;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-.stacked-bar__segment + .stacked-bar__segment {
-  border-left: 1px solid rgba(0, 0, 0, 0.3);
-}
-
-.stacked-bar__value {
-  font-size: 10px;
-  font-weight: 600;
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  white-space: nowrap;
-}
-
-.stacked-bar__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.stacked-bar__legend-item {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.stacked-bar__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
-  flex-shrink: 0;
-}
-
-.stacked-bar__legend-count {
-  color: rgba(255, 255, 255, 0.85);
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
 }
 
 /* --- Sections --- */

@@ -2,8 +2,8 @@
 import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { scaleSqrt } from 'd3-scale'
 import { min, max } from 'd3-array'
-import straitsData from '~/data/straits/straits.json'
-import type { Strait, StraitHistoricalEntry } from '~/types/strait'
+import { straits, meta, historical, LATEST_YEAR, historicalByStrait } from '~/utils/straitsData'
+import type { Strait } from '~/types/strait'
 
 // --- Props & Emits (dual-mode: route-driven vs local-state for embeds) ---
 const props = withDefaults(defineProps<{
@@ -16,10 +16,6 @@ const emit = defineEmits<{
   (e: 'select', id: string | null): void
 }>()
 
-const straits = straitsData.straits as Strait[]
-const meta = straitsData.meta
-const historical = straitsData.historical as Record<string, Record<string, StraitHistoricalEntry>>
-
 // --- Animation timing constants (must stay in sync with CSS transition durations) ---
 /** Duration of the zoom-out CSS transition on .map-bg (matches `transition: transform 0.6s`) */
 const ZOOM_OUT_DURATION_MS = 600
@@ -29,16 +25,6 @@ const PANEL_SHOW_DELAY_MS = 650
 // --- Size metric toggle ---
 type SizeMetric = 'tonnage' | 'ships'
 const sizeMetric = ref<SizeMetric>('tonnage')
-
-const LATEST_YEAR = Object.keys(historical).sort().pop() ?? '2025'
-
-function historicalByStrait(straitId: string) {
-  const result: Record<string, (typeof historical)[string][string]> = {}
-  for (const [year, yearData] of Object.entries(historical)) {
-    if (yearData[straitId]) result[year] = yearData[straitId]
-  }
-  return result
-}
 
 function getMetricValue(straitId: string): number {
   const yearData = historical[LATEST_YEAR]?.[straitId]
@@ -263,12 +249,6 @@ function getZoomedRadius(strait: Strait) {
   return radiusScale.value(getMetricValue(strait.id))
 }
 
-/** Clip radius for the particle canvas (matches the selected circle radius). */
-const particleClipRadius = computed(() => {
-  const s = selectedStrait.value
-  if (!s) return 0
-  return getZoomedRadius(s)
-})
 
 const OVERLAP_PAIRS = new Set(['taiwan', 'luzon'])
 
@@ -390,18 +370,9 @@ const legendEntries = computed(() => {
         :selected="effectiveSelectedId === strait.id"
         :disabled="!!effectiveSelectedId && effectiveSelectedId !== strait.id"
         :zooming-out="zoomingOut && strait.id !== zoomOutFromId"
+        :year="LATEST_YEAR"
         @hover="onHover"
         @activate="onActivate"
-      />
-
-      <StraitParticleCanvas
-        v-if="effectiveSelectedId"
-        :strait-id="effectiveSelectedId"
-        :year="LATEST_YEAR"
-        :inner-size="innerSize"
-        :zoom-scale="zoomScale"
-        :selected-strait="selectedStrait"
-        :clip-radius="particleClipRadius"
       />
     </div>
 

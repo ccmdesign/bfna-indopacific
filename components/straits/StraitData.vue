@@ -16,6 +16,7 @@ const props = defineProps<{
   selected: boolean
   zoomingOut: boolean
   disabled?: boolean
+  year?: string
 }>()
 
 const emit = defineEmits<{
@@ -47,7 +48,7 @@ function onFocusOut(event: FocusEvent) {
     @focusin="emit('hover', id)"
     @focusout="onFocusOut($event)"
   >
-    <StraitCircle :radius="radius" :color="color" :active="active" :image-url="selected ? `/assets/images/straits/${id}.jpg` : undefined" />
+    <StraitCircle :radius="radius" :color="color" :active="active" :selected="selected" :strait-id="id" :year="year" :image-url="selected ? `/assets/images/straits/${id}.jpg` : undefined" />
     <StraitLabel :text="name" :anchor="(id === 'taiwan' || id === 'luzon') ? 'right' : 'below'" :radius="radius" />
   </div>
 </template>

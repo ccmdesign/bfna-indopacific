@@ -1,23 +1,26 @@
 /**
- * useParticleSystem — Canvas 2D particle animation composable.
+ * useParticleSystem — Polygon-based particle flow composable.
  *
- * Renders animated dots along Bezier shipping-lane paths inside the
- * zoomed lens view of a selected strait. Particles are distributed
- * proportionally to real vessel counts by type (container / dry-bulk / tanker).
+ * Renders animated dots (representing ships) flowing through a strait's
+ * water polygon. Particles spawn at one edge, flow organically through
+ * the water area, and vanish at the opposite edge.
+ *
+ * The coordinate space is 1080x1080 (matching the strait SVG polygon
+ * viewBox), mapped to the canvas's rendered size inside StraitCircle.
  *
  * Features:
+ * - Polygon containment via rasterized grid (O(1) lookup)
+ * - Organic flow with noise-based lateral drift
+ * - Particles converge in narrow areas, spread in wide areas
  * - Frame-rate-independent animation via delta-time normalization
  * - Batch rendering (one beginPath + fill per particle type)
- * - Cancellation-token pattern to prevent orphaned rAF loops on rapid toggling
- * - DPR-aware canvas sizing via ResizeObserver (mirrors useFisheyeCanvas.ts)
- * - prefers-reduced-motion: renders static dots without animation
- * - Tab visibility pause to save CPU/battery
- * - SSR safe (all browser APIs gated behind onMounted)
+ * - prefers-reduced-motion: static dots without animation
+ * - Tab visibility pause
+ * - SSR safe
  */
 
-import { ref, watch, onMounted, onUnmounted, type Ref } from 'vue'
-import type { Strait, Point, ParticleType, StraitHistoricalEntry } from '~/types/strait'
-import straitPaths from '~/data/straits/strait-paths'
+import { watch, onMounted, onUnmounted, type Ref } from 'vue'
+import type { ParticleType, StraitHistoricalEntry } from '~/types/strait'
 import straitsData from '~/data/straits/straits.json'
 
 // ---------------------------------------------------------------------------
@@ -25,11 +28,19 @@ import straitsData from '~/data/straits/straits.json'
 // ---------------------------------------------------------------------------
 
 const TAU = Math.PI * 2
-const BASE_SPEED = 0.0015 // progress units per frame at 60 fps
+/** SVG viewBox size — all polygon data is in this coordinate space */
+const WORLD_SIZE = 1080
+/** Pixels per grid cell for the containment raster */
+const GRID_CELL = 4
+const GRID_DIM = WORLD_SIZE / GRID_CELL // 270
+/** Base speed in world-units per frame at 60fps */
+const BASE_SPEED = 1.2
 const TOTAL_BUDGET = 240
 const ENABLE_GLOW = true
+/** Set to true to render polygon boundaries, edges, and containment grid */
+const DEBUG_BOUNDARIES = import.meta.dev
 
-/** Particle colors per vessel type (from acceptance criteria). */
+/** Particle colors per vessel type */
 const PARTICLE_COLORS: Record<ParticleType, string> = {
   container: 'hsl(218, 60%, 58%)',
   dryBulk: 'hsl(34, 60%, 50%)',
@@ -39,32 +50,148 @@ const PARTICLE_COLORS: Record<ParticleType, string> = {
 const PARTICLE_TYPES: ParticleType[] = ['container', 'dryBulk', 'tanker']
 
 // ---------------------------------------------------------------------------
-// Particle interface (internal — not exported)
+// Polygon data type (matches hormuz-polygon.json)
 // ---------------------------------------------------------------------------
 
-interface Particle {
-  progress: number
-  speed: number
-  direction: 1 | -1
-  type: ParticleType
-  radius: number
+interface StraitPolygon {
+  viewBox: [number, number, number, number]
+  boundary: [number, number][]
+  islands: [number, number][][]
+  entryEdge: [number, number][]
+  exitEdge: [number, number][]
 }
 
 // ---------------------------------------------------------------------------
-// Bezier evaluation (reusable output object — non-reentrant, hot-path safe)
+// Particle interface
 // ---------------------------------------------------------------------------
 
-const _pt = { x: 0, y: 0 }
+interface Particle {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  type: ParticleType
+  radius: number
+  noiseOffset: number // unique offset for organic drift
+  speed: number
+}
 
-function evalCubicBezier(t: number, p0: Point, p1: Point, p2: Point, p3: Point): Point {
-  const u = 1 - t
-  const u2 = u * u
-  const u3 = u2 * u
-  const t2 = t * t
-  const t3 = t2 * t
-  _pt.x = u3 * p0.x + 3 * u2 * t * p1.x + 3 * u * t2 * p2.x + t3 * p3.x
-  _pt.y = u3 * p0.y + 3 * u2 * t * p1.y + 3 * u * t2 * p2.y + t3 * p3.y
-  return _pt
+// ---------------------------------------------------------------------------
+// Polygon rasterization — creates a Uint8Array grid for O(1) containment
+// ---------------------------------------------------------------------------
+
+function rasterizePolygon(polygon: StraitPolygon): Uint8Array {
+  const grid = new Uint8Array(GRID_DIM * GRID_DIM)
+
+  // Fill boundary using scanline approach
+  for (let gy = 0; gy < GRID_DIM; gy++) {
+    const worldY = gy * GRID_CELL + GRID_CELL / 2
+    for (let gx = 0; gx < GRID_DIM; gx++) {
+      const worldX = gx * GRID_CELL + GRID_CELL / 2
+      if (pointInPolygon(worldX, worldY, polygon.boundary)) {
+        // Check it's not inside an island
+        let inIsland = false
+        for (const island of polygon.islands) {
+          if (pointInPolygon(worldX, worldY, island)) {
+            inIsland = true
+            break
+          }
+        }
+        if (!inIsland) {
+          grid[gy * GRID_DIM + gx] = 1
+        }
+      }
+    }
+  }
+
+  return grid
+}
+
+/** Ray-casting point-in-polygon test */
+function pointInPolygon(px: number, py: number, poly: [number, number][]): boolean {
+  let inside = false
+  const n = poly.length
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const yi = poly[i][1], yj = poly[j][1]
+    const xi = poly[i][0], xj = poly[j][0]
+    if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
+      inside = !inside
+    }
+  }
+  return inside
+}
+
+/** O(1) grid lookup for containment */
+function isInWater(x: number, y: number, grid: Uint8Array): boolean {
+  const gx = Math.floor(x / GRID_CELL)
+  const gy = Math.floor(y / GRID_CELL)
+  if (gx < 0 || gx >= GRID_DIM || gy < 0 || gy >= GRID_DIM) return false
+  return grid[gy * GRID_DIM + gx] === 1
+}
+
+// ---------------------------------------------------------------------------
+// Edge helpers
+// ---------------------------------------------------------------------------
+
+/** Pick a random point along a polyline edge */
+function randomPointOnEdge(edge: [number, number][]): { x: number; y: number } {
+  if (edge.length < 2) return { x: edge[0][0], y: edge[0][1] }
+
+  // Compute cumulative segment lengths
+  const lengths: number[] = [0]
+  for (let i = 1; i < edge.length; i++) {
+    const dx = edge[i][0] - edge[i - 1][0]
+    const dy = edge[i][1] - edge[i - 1][1]
+    lengths.push(lengths[i - 1] + Math.hypot(dx, dy))
+  }
+  const totalLen = lengths[lengths.length - 1]
+  const target = Math.random() * totalLen
+
+  // Find which segment
+  for (let i = 1; i < lengths.length; i++) {
+    if (lengths[i] >= target) {
+      const segLen = lengths[i] - lengths[i - 1]
+      const t = segLen > 0 ? (target - lengths[i - 1]) / segLen : 0
+      return {
+        x: edge[i - 1][0] + t * (edge[i][0] - edge[i - 1][0]),
+        y: edge[i - 1][1] + t * (edge[i][1] - edge[i - 1][1]),
+      }
+    }
+  }
+  return { x: edge[0][0], y: edge[0][1] }
+}
+
+/** Compute centroid of an edge */
+function edgeCentroid(edge: [number, number][]): { x: number; y: number } {
+  let sx = 0, sy = 0
+  for (const p of edge) { sx += p[0]; sy += p[1] }
+  return { x: sx / edge.length, y: sy / edge.length }
+}
+
+/** Distance from point to nearest point on a polyline */
+function distToEdge(px: number, py: number, edge: [number, number][]): number {
+  let minD = Infinity
+  for (let i = 0; i < edge.length - 1; i++) {
+    const ax = edge[i][0], ay = edge[i][1]
+    const bx = edge[i + 1][0], by = edge[i + 1][1]
+    const dx = bx - ax, dy = by - ay
+    const len2 = dx * dx + dy * dy
+    let t = len2 > 0 ? ((px - ax) * dx + (py - ay) * dy) / len2 : 0
+    t = Math.max(0, Math.min(1, t))
+    const cx = ax + t * dx, cy = ay + t * dy
+    const d = Math.hypot(px - cx, py - cy)
+    if (d < minD) minD = d
+  }
+  return minD
+}
+
+// ---------------------------------------------------------------------------
+// Simple noise for organic drift
+// ---------------------------------------------------------------------------
+
+function noise(x: number): number {
+  // Simple sine-based pseudo-noise
+  return Math.sin(x * 1.7) * 0.5 + Math.sin(x * 3.1 + 1.3) * 0.3 + Math.sin(x * 5.9 + 2.7) * 0.2
 }
 
 // ---------------------------------------------------------------------------
@@ -90,7 +217,7 @@ function computeTotalBudget(): number {
 
 function computeParticleCount(straitId: string, year: string): number {
   const vessels = getVesselData(straitId, year)
-  if (!vessels) return 20 // fallback
+  if (!vessels) return 20
   let totalAllStraits = 0
   const yearData = historical[year]
   if (yearData) {
@@ -102,59 +229,21 @@ function computeParticleCount(straitId: string, year: string): number {
   return Math.max(5, Math.round(computeTotalBudget() * (vessels.total / totalAllStraits)))
 }
 
-function buildParticles(straitId: string, year: string): Particle[] {
-  const count = computeParticleCount(straitId, year)
+function distributeByType(straitId: string, year: string, count: number): { type: ParticleType; n: number }[] {
   const vessels = getVesselData(straitId, year)
-  if (!vessels) return createUniformParticles(count)
-
+  if (!vessels) {
+    const per = Math.ceil(count / 3)
+    return PARTICLE_TYPES.map((type, i) => ({ type, n: Math.min(per, count - i * per) }))
+  }
   const total = vessels.total || 1
-  let containerCount = Math.max(vessels.container > 0 ? 1 : 0, Math.round(count * (vessels.container / total)))
-  let dryBulkCount = Math.max(vessels.dryBulk > 0 ? 1 : 0, Math.round(count * (vessels.dryBulk / total)))
-  let tankerCount = Math.max(0, count - containerCount - dryBulkCount)
-
-  // Guard against negative tanker count from rounding
-  if (tankerCount < 0) {
-    tankerCount = 0
-    const excess = containerCount + dryBulkCount - count
-    if (dryBulkCount > containerCount) dryBulkCount -= excess
-    else containerCount -= excess
-  }
-
-  const particles: Particle[] = []
-  const addParticles = (n: number, type: ParticleType) => {
-    for (let i = 0; i < n; i++) {
-      particles.push({
-        progress: Math.random(),
-        speed: BASE_SPEED * (0.7 + Math.random() * 0.6),
-        direction: Math.random() > 0.5 ? 1 : -1,
-        type,
-        radius: 2 + Math.random() * 2,
-      })
-    }
-  }
-
-  addParticles(containerCount, 'container')
-  addParticles(dryBulkCount, 'dryBulk')
-  addParticles(tankerCount, 'tanker')
-  return particles
-}
-
-function createUniformParticles(count: number): Particle[] {
-  const particles: Particle[] = []
-  const perType = Math.ceil(count / 3)
-  for (const type of PARTICLE_TYPES) {
-    const n = Math.min(perType, count - particles.length)
-    for (let i = 0; i < n; i++) {
-      particles.push({
-        progress: Math.random(),
-        speed: BASE_SPEED * (0.7 + Math.random() * 0.6),
-        direction: Math.random() > 0.5 ? 1 : -1,
-        type,
-        radius: 2 + Math.random() * 2,
-      })
-    }
-  }
-  return particles
+  const containerN = Math.max(vessels.container > 0 ? 1 : 0, Math.round(count * (vessels.container / total)))
+  const dryBulkN = Math.max(vessels.dryBulk > 0 ? 1 : 0, Math.round(count * (vessels.dryBulk / total)))
+  const tankerN = Math.max(0, count - containerN - dryBulkN)
+  return [
+    { type: 'container', n: containerN },
+    { type: 'dryBulk', n: dryBulkN },
+    { type: 'tanker', n: tankerN },
+  ]
 }
 
 // ---------------------------------------------------------------------------
@@ -165,35 +254,127 @@ export function useParticleSystem(options: {
   canvasRef: Ref<HTMLCanvasElement | null>
   straitId: Ref<string | null>
   year: Ref<string>
-  innerSize: Ref<{ w: number; h: number }>
-  zoomScale: Ref<number>
-  selectedStrait: Ref<Strait | null>
-  clipRadius: Ref<number>
+  circleSize: Ref<number> // rendered diameter of the circle in CSS pixels
 }) {
-  const { canvasRef, straitId, year, innerSize, zoomScale, selectedStrait, clipRadius } = options
-  const isRunning = ref(false)
+  const { canvasRef, straitId, year, circleSize } = options
 
   // Internal state
   let particles: Particle[] = []
+  let particlesByType: Record<ParticleType, Particle[]> = { container: [], dryBulk: [], tanker: [] }
   let ctx: CanvasRenderingContext2D | null = null
   let animationFrameId: number | null = null
   let cancelled = false
   let lastTimestamp = 0
-  let ro: ResizeObserver | null = null
-  let resizeRafId: number | null = null
+  let grid: Uint8Array | null = null
+  let polygonData: StraitPolygon | null = null
+  let flowDirX = 0
+  let flowDirY = 0
+  let entryCentroid = { x: 0, y: 0 }
+  let exitCentroid = { x: 0, y: 0 }
   let prefersReducedMotion = false
-  let visibilityHandler: (() => void) | null = null
   let motionMql: MediaQueryList | null = null
   let motionHandler: ((e: MediaQueryListEvent) => void) | null = null
+  let visibilityHandler: (() => void) | null = null
+  let ro: ResizeObserver | null = null
+  let resizeRafId: number | null = null
+  let frameCount = 0
 
-  // Pre-grouped particle arrays for batch rendering
-  let particlesByType: Record<ParticleType, Particle[]> = {
-    container: [],
-    dryBulk: [],
-    tanker: [],
+  // -------------------------------------------------------------------------
+  // Polygon loading
+  // -------------------------------------------------------------------------
+
+  async function loadPolygon(id: string): Promise<StraitPolygon | null> {
+    try {
+      // Dynamic import for the polygon JSON
+      const mod = await import(`~/data/straits/${id}-polygon.json`)
+      return mod.default as StraitPolygon
+    } catch {
+      console.warn(`[particles] No polygon data for strait: ${id}`)
+      return null
+    }
   }
 
-  function groupParticlesByType() {
+  // -------------------------------------------------------------------------
+  // Canvas sizing
+  // -------------------------------------------------------------------------
+
+  function syncCanvasSize(canvas: HTMLCanvasElement) {
+    const dpr = window.devicePixelRatio || 1
+    const size = circleSize.value
+    const bufferSize = Math.min(Math.round(size * dpr), 2048)
+    if (canvas.width !== bufferSize || canvas.height !== bufferSize) {
+      canvas.width = bufferSize
+      canvas.height = bufferSize
+    }
+  }
+
+  function setupResizeObserver() {
+    const canvas = canvasRef.value
+    if (!canvas) return
+    ro = new ResizeObserver(() => {
+      if (resizeRafId !== null) return
+      resizeRafId = requestAnimationFrame(() => {
+        resizeRafId = null
+        if (canvas) syncCanvasSize(canvas)
+      })
+    })
+    ro.observe(canvas)
+  }
+
+  // -------------------------------------------------------------------------
+  // Particle creation
+  // -------------------------------------------------------------------------
+
+  function createParticle(type: ParticleType, polygon: StraitPolygon): Particle {
+    // 50/50 entry or exit spawn, flowing toward opposite
+    const goingForward = Math.random() > 0.5
+    const spawnEdge = goingForward ? polygon.entryEdge : polygon.exitEdge
+    const targetCentroid = goingForward ? exitCentroid : entryCentroid
+
+    const pos = randomPointOnEdge(spawnEdge)
+
+    // Direction toward target with some randomness
+    const dx = targetCentroid.x - pos.x
+    const dy = targetCentroid.y - pos.y
+    const dist = Math.hypot(dx, dy) || 1
+    const speed = BASE_SPEED * (0.6 + Math.random() * 0.8)
+
+    return {
+      x: pos.x,
+      y: pos.y,
+      vx: (dx / dist) * speed,
+      vy: (dy / dist) * speed,
+      type,
+      radius: 2 + Math.random() * 2.5,
+      noiseOffset: Math.random() * 1000,
+      speed,
+    }
+  }
+
+  function buildParticles(id: string, yr: string, polygon: StraitPolygon): Particle[] {
+    const count = computeParticleCount(id, yr)
+    const distribution = distributeByType(id, yr, count)
+    const result: Particle[] = []
+
+    for (const { type, n } of distribution) {
+      for (let i = 0; i < n; i++) {
+        const p = createParticle(type, polygon)
+        // Scatter initial particles along their path (not all at spawn edge)
+        const scatter = Math.random()
+        p.x += p.vx * scatter * 300
+        p.y += p.vy * scatter * 300
+        // If scattered position is out of water, reset to spawn
+        if (grid && !isInWater(p.x, p.y, grid)) {
+          p.x -= p.vx * scatter * 300
+          p.y -= p.vy * scatter * 300
+        }
+        result.push(p)
+      }
+    }
+    return result
+  }
+
+  function groupByType() {
     particlesByType = { container: [], dryBulk: [], tanker: [] }
     for (const p of particles) {
       particlesByType[p.type].push(p)
@@ -201,82 +382,88 @@ export function useParticleSystem(options: {
   }
 
   // -------------------------------------------------------------------------
-  // Canvas sizing (DPR-aware, mirrors useFisheyeCanvas.ts)
+  // Particle update
   // -------------------------------------------------------------------------
 
-  function syncCanvasSize(canvas: HTMLCanvasElement, width: number, height: number) {
-    const maxDim = 2048
-    canvas.width = Math.min(Math.round(width), maxDim)
-    canvas.height = Math.min(Math.round(height), maxDim)
-    if (ctx) {
-      const dpr = window.devicePixelRatio || 1
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-    }
-  }
+  function updateParticle(p: Particle, dt: number) {
+    if (!grid || !polygonData) return
 
-  function setupResizeObserver() {
-    const canvas = canvasRef.value
-    if (!canvas) return
+    const time = frameCount * 0.02 + p.noiseOffset
 
-    ro = new ResizeObserver((entries) => {
-      if (resizeRafId !== null) return
-      resizeRafId = requestAnimationFrame(() => {
-        resizeRafId = null
-        for (const entry of entries) {
-          let width: number
-          let height: number
-          if ((entry as any).devicePixelContentBoxSize?.[0]) {
-            width = (entry as any).devicePixelContentBoxSize[0].inlineSize
-            height = (entry as any).devicePixelContentBoxSize[0].blockSize
-          } else if (entry.contentBoxSize?.[0]) {
-            const dpr = window.devicePixelRatio || 1
-            width = Math.round(entry.contentBoxSize[0].inlineSize * dpr)
-            height = Math.round(entry.contentBoxSize[0].blockSize * dpr)
-          } else {
-            const dpr = window.devicePixelRatio || 1
-            width = Math.round(entry.contentRect.width * dpr)
-            height = Math.round(entry.contentRect.height * dpr)
-          }
-          syncCanvasSize(canvas, width, height)
+    // Organic lateral drift using noise
+    const lateral = noise(time) * p.speed * 0.6
+    // Perpendicular to velocity
+    const vLen = Math.hypot(p.vx, p.vy) || 1
+    const perpX = -p.vy / vLen
+    const perpY = p.vx / vLen
+
+    let nx = p.x + (p.vx + perpX * lateral) * dt
+    let ny = p.y + (p.vy + perpY * lateral) * dt
+
+    // Boundary containment: if next position is out of water, steer back
+    if (!isInWater(nx, ny, grid)) {
+      // Try without lateral drift
+      nx = p.x + p.vx * dt
+      ny = p.y + p.vy * dt
+      if (!isInWater(nx, ny, grid)) {
+        // Steer more toward flow direction
+        const fdx = flowDirX * p.speed
+        const fdy = flowDirY * p.speed
+        nx = p.x + fdx * dt
+        ny = p.y + fdy * dt
+        if (!isInWater(nx, ny, grid)) {
+          // Respawn at edge
+          respawnParticle(p)
+          return
         }
-      })
-    })
+        // Gradually adjust velocity toward flow direction
+        p.vx = p.vx * 0.8 + fdx * 0.2
+        p.vy = p.vy * 0.8 + fdy * 0.2
+      }
+    }
 
-    try {
-      ro.observe(canvas, { box: 'device-pixel-content-box' as any })
-    } catch {
-      ro.observe(canvas)
+    p.x = nx
+    p.y = ny
+
+    // Check if particle reached exit/entry edge (within threshold)
+    const targetEdge = p.vx * flowDirX + p.vy * flowDirY > 0
+      ? polygonData.exitEdge
+      : polygonData.entryEdge
+    if (distToEdge(p.x, p.y, targetEdge) < 15) {
+      respawnParticle(p)
     }
   }
 
-  // -------------------------------------------------------------------------
-  // Coordinate transform
-  // -------------------------------------------------------------------------
+  function respawnParticle(p: Particle) {
+    if (!polygonData) return
+    const goingForward = Math.random() > 0.5
+    const spawnEdge = goingForward ? polygonData.entryEdge : polygonData.exitEdge
+    const targetCentroid = goingForward ? exitCentroid : entryCentroid
 
-  function toCanvasCoords(normX: number, normY: number, w: number, h: number, S: number, tx: number, ty: number) {
-    return {
-      cx: normX * w * S + tx,
-      cy: normY * h * S + ty,
-    }
+    const pos = randomPointOnEdge(spawnEdge)
+    p.x = pos.x
+    p.y = pos.y
+
+    const dx = targetCentroid.x - pos.x
+    const dy = targetCentroid.y - pos.y
+    const dist = Math.hypot(dx, dy) || 1
+    p.speed = BASE_SPEED * (0.6 + Math.random() * 0.8)
+    p.vx = (dx / dist) * p.speed
+    p.vy = (dy / dist) * p.speed
+    p.noiseOffset = Math.random() * 1000
   }
 
   // -------------------------------------------------------------------------
   // Drawing
   // -------------------------------------------------------------------------
 
-  function draw(isStatic: boolean = false) {
+  function draw() {
     const canvas = canvasRef.value
     if (!ctx || !canvas) return
 
-    const strait = selectedStrait.value
-    if (!strait) return
-
-    const path = straitPaths[strait.id]
-    if (!path) return
-
     const dpr = window.devicePixelRatio || 1
-    const cssW = canvas.width / dpr
-    const cssH = canvas.height / dpr
+    const cssSize = circleSize.value
+    const scale = cssSize / WORLD_SIZE
 
     // Clear
     ctx.save()
@@ -284,23 +471,80 @@ export function useParticleSystem(options: {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.restore()
 
-    // Compute transform constants (same as mapBgTransform in StraitMap.vue)
-    const { w, h } = innerSize.value
-    const S = zoomScale.value
-    const txMap = w / 2 - (strait.posX / 100) * w * S
-    const tyMap = h / 2 - (strait.posY / 100) * h * S
-
-    // Circular clip
-    const centerX = cssW / 2
-    const centerY = cssH / 2
-    const cr = clipRadius.value
-
+    // Set transform: world coords (1080x1080) → canvas pixels
     ctx.save()
-    ctx.beginPath()
-    ctx.arc(centerX, centerY, cr, 0, TAU)
-    ctx.clip()
+    ctx.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0)
 
-    const [p0, p1, p2, p3] = path.points
+    // Debug: render containment grid, boundary, and edges
+    if (DEBUG_BOUNDARIES && grid && polygonData) {
+      // Draw rasterized water grid cells (semi-transparent blue)
+      ctx.fillStyle = 'rgba(0, 100, 255, 0.15)'
+      for (let gy = 0; gy < GRID_DIM; gy++) {
+        for (let gx = 0; gx < GRID_DIM; gx++) {
+          if (grid[gy * GRID_DIM + gx] === 1) {
+            ctx.fillRect(gx * GRID_CELL, gy * GRID_CELL, GRID_CELL, GRID_CELL)
+          }
+        }
+      }
+
+      // Draw boundary polygon outline (yellow)
+      ctx.strokeStyle = 'rgba(255, 255, 0, 0.8)'
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      const b = polygonData.boundary
+      ctx.moveTo(b[0][0], b[0][1])
+      for (let i = 1; i < b.length; i++) {
+        ctx.lineTo(b[i][0], b[i][1])
+      }
+      ctx.closePath()
+      ctx.stroke()
+
+      // Draw island outlines (red)
+      ctx.strokeStyle = 'rgba(255, 0, 0, 0.8)'
+      ctx.lineWidth = 2
+      for (const island of polygonData.islands) {
+        ctx.beginPath()
+        ctx.moveTo(island[0][0], island[0][1])
+        for (let i = 1; i < island.length; i++) {
+          ctx.lineTo(island[i][0], island[i][1])
+        }
+        ctx.closePath()
+        ctx.stroke()
+      }
+
+      // Draw entry edge (green, thick)
+      ctx.strokeStyle = 'rgba(0, 255, 0, 1)'
+      ctx.lineWidth = 4
+      ctx.beginPath()
+      const e = polygonData.entryEdge
+      ctx.moveTo(e[0][0], e[0][1])
+      for (let i = 1; i < e.length; i++) {
+        ctx.lineTo(e[i][0], e[i][1])
+      }
+      ctx.stroke()
+
+      // Draw exit edge (magenta, thick)
+      ctx.strokeStyle = 'rgba(255, 0, 255, 1)'
+      ctx.lineWidth = 4
+      ctx.beginPath()
+      const ex = polygonData.exitEdge
+      ctx.moveTo(ex[0][0], ex[0][1])
+      for (let i = 1; i < ex.length; i++) {
+        ctx.lineTo(ex[i][0], ex[i][1])
+      }
+      ctx.stroke()
+
+      // Draw centroids
+      ctx.fillStyle = 'rgba(0, 255, 0, 1)'
+      ctx.beginPath()
+      ctx.arc(entryCentroid.x, entryCentroid.y, 8, 0, TAU)
+      ctx.fill()
+
+      ctx.fillStyle = 'rgba(255, 0, 255, 1)'
+      ctx.beginPath()
+      ctx.arc(exitCentroid.x, exitCentroid.y, 8, 0, TAU)
+      ctx.fill()
+    }
 
     // Pass 1: Core dots (batched by type)
     for (const type of PARTICLE_TYPES) {
@@ -312,38 +556,26 @@ export function useParticleSystem(options: {
       ctx.beginPath()
 
       for (const p of group) {
-        const pt = evalCubicBezier(p.progress, p0, p1, p2, p3)
-        const { cx, cy } = toCanvasCoords(pt.x, pt.y, w, h, S, txMap, tyMap)
-
-        // Skip particles outside clip circle + margin
-        const dist = Math.hypot(cx - centerX, cy - centerY)
-        if (dist > cr + 20) continue
-
-        ctx.moveTo(cx + p.radius, cy)
-        ctx.arc(cx, cy, p.radius, 0, TAU)
+        ctx.moveTo(p.x + p.radius, p.y)
+        ctx.arc(p.x, p.y, p.radius, 0, TAU)
       }
       ctx.fill()
     }
 
-    // Pass 2: Glow (optional, batched by type)
+    // Pass 2: Glow
     if (ENABLE_GLOW) {
       for (const type of PARTICLE_TYPES) {
         const group = particlesByType[type]
         if (group.length === 0) continue
 
         ctx.fillStyle = PARTICLE_COLORS[type]
-        ctx.globalAlpha = 0.25
+        ctx.globalAlpha = 0.2
         ctx.beginPath()
 
         for (const p of group) {
-          const pt = evalCubicBezier(p.progress, p0, p1, p2, p3)
-          const { cx, cy } = toCanvasCoords(pt.x, pt.y, w, h, S, txMap, tyMap)
-
-          const dist = Math.hypot(cx - centerX, cy - centerY)
-          if (dist > cr + 20) continue
-
-          ctx.moveTo(cx + p.radius * 2.5, cy)
-          ctx.arc(cx, cy, p.radius * 2.5, 0, TAU)
+          const gr = p.radius * 2.5
+          ctx.moveTo(p.x + gr, p.y)
+          ctx.arc(p.x, p.y, gr, 0, TAU)
         }
         ctx.fill()
       }
@@ -368,11 +600,9 @@ export function useParticleSystem(options: {
     const dt = Math.min((timestamp - lastTimestamp) / 16.667, 3)
     lastTimestamp = timestamp
 
-    // Update particle positions
+    frameCount++
     for (const p of particles) {
-      p.progress += p.speed * p.direction * dt
-      if (p.progress > 1) p.progress -= 1
-      if (p.progress < 0) p.progress += 1
+      updateParticle(p, dt)
     }
 
     draw()
@@ -382,39 +612,40 @@ export function useParticleSystem(options: {
     }
   }
 
-  function drawStaticParticles() {
-    // For reduced motion: place particles at evenly spaced fixed positions
-    const id = straitId.value
-    if (!id) return
-    const count = particles.length
-    for (let i = 0; i < count; i++) {
-      const p = particles[i]
-      if (p) p.progress = i / count
-    }
-    draw(true)
-  }
-
   // -------------------------------------------------------------------------
   // Start / Stop
   // -------------------------------------------------------------------------
 
-  function initParticles() {
-    const id = straitId.value
-    if (!id) return
-    particles = buildParticles(id, year.value)
-    groupParticlesByType()
-  }
-
-  function start() {
+  async function start() {
     stop()
     cancelled = false
     lastTimestamp = 0
-    isRunning.value = true
+    frameCount = 0
 
-    initParticles()
+    const id = straitId.value
+    if (!id) return
+
+    polygonData = await loadPolygon(id)
+    if (!polygonData) return
+
+    // Build containment grid
+    grid = rasterizePolygon(polygonData)
+
+    // Compute flow direction
+    entryCentroid = edgeCentroid(polygonData.entryEdge)
+    exitCentroid = edgeCentroid(polygonData.exitEdge)
+    const dx = exitCentroid.x - entryCentroid.x
+    const dy = exitCentroid.y - entryCentroid.y
+    const dist = Math.hypot(dx, dy) || 1
+    flowDirX = dx / dist
+    flowDirY = dy / dist
+
+    // Build particles
+    particles = buildParticles(id, year.value, polygonData)
+    groupByType()
 
     if (prefersReducedMotion) {
-      drawStaticParticles()
+      draw()
       return
     }
 
@@ -423,7 +654,6 @@ export function useParticleSystem(options: {
 
   function stop() {
     cancelled = true
-    isRunning.value = false
     if (animationFrameId !== null) {
       cancelAnimationFrame(animationFrameId)
       animationFrameId = null
@@ -441,11 +671,7 @@ export function useParticleSystem(options: {
     ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // DPR-aware initial size
-    const dpr = window.devicePixelRatio || 1
-    const rect = canvas.getBoundingClientRect()
-    syncCanvasSize(canvas, Math.round(rect.width * dpr), Math.round(rect.height * dpr))
-
+    syncCanvasSize(canvas)
     setupResizeObserver()
 
     // Reduced motion
@@ -454,12 +680,8 @@ export function useParticleSystem(options: {
     motionHandler = (e: MediaQueryListEvent) => {
       prefersReducedMotion = e.matches
       if (straitId.value) {
-        if (prefersReducedMotion) {
-          stop()
-          drawStaticParticles()
-        } else {
-          start()
-        }
+        if (prefersReducedMotion) { stop(); draw() }
+        else { start() }
       }
     }
     motionMql.addEventListener('change', motionHandler)
@@ -478,19 +700,16 @@ export function useParticleSystem(options: {
     }
     document.addEventListener('visibilitychange', visibilityHandler)
 
-    // Start if a strait is already selected
     if (straitId.value) {
       start()
     }
   })
 
-  // Watch strait changes
   watch(straitId, (newId, _oldId, onCleanup) => {
     if (newId) {
       start()
     } else {
       stop()
-      // Clear canvas
       const canvas = canvasRef.value
       if (ctx && canvas) {
         ctx.save()
@@ -502,36 +721,20 @@ export function useParticleSystem(options: {
     onCleanup(() => stop())
   })
 
-  // Watch year changes — rebuild particles
   watch(year, () => {
-    if (straitId.value) {
-      initParticles()
-    }
+    if (straitId.value) start()
   })
 
   onUnmounted(() => {
     stop()
-
-    if (ro) {
-      ro.disconnect()
-      ro = null
-    }
-    if (resizeRafId !== null) {
-      cancelAnimationFrame(resizeRafId)
-      resizeRafId = null
-    }
-    if (visibilityHandler) {
-      document.removeEventListener('visibilitychange', visibilityHandler)
-      visibilityHandler = null
-    }
-    if (motionMql && motionHandler) {
-      motionMql.removeEventListener('change', motionHandler)
-      motionMql = null
-      motionHandler = null
-    }
-
+    if (ro) { ro.disconnect(); ro = null }
+    if (resizeRafId !== null) { cancelAnimationFrame(resizeRafId); resizeRafId = null }
+    if (visibilityHandler) { document.removeEventListener('visibilitychange', visibilityHandler); visibilityHandler = null }
+    if (motionMql && motionHandler) { motionMql.removeEventListener('change', motionHandler); motionMql = null; motionHandler = null }
     ctx = null
+    grid = null
+    polygonData = null
   })
 
-  return { start, stop, isRunning }
+  return { start, stop }
 }

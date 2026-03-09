@@ -1,10 +1,20 @@
 <script setup lang="ts">
-defineProps<{
+/** Straits that have polygon JSON data for the particle system */
+const POLYGON_READY_STRAITS = new Set(['hormuz'])
+
+const props = defineProps<{
   radius: number
   color: { h: number; s: number; l: number }
   active: boolean
   imageUrl?: string
+  straitId?: string
+  year?: string
+  selected?: boolean
 }>()
+
+const showParticles = computed(() =>
+  props.selected && props.straitId && props.year && POLYGON_READY_STRAITS.has(props.straitId)
+)
 </script>
 
 <template>
@@ -24,6 +34,12 @@ defineProps<{
       :src="imageUrl"
       alt=""
       aria-hidden="true"
+    />
+    <StraitParticleCanvas
+      v-if="showParticles"
+      :strait-id="straitId!"
+      :year="year!"
+      :circle-size="radius * 2"
     />
   </div>
 </template>
