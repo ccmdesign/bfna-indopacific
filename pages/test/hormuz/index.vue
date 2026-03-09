@@ -36,6 +36,10 @@ const params = reactive({
   glowOpacity: 0.2,       // Glow alpha (0=off, 1=solid)
   dotOpacity: 0.9,        // Core dot alpha
   respawnThreshold: 15,   // Distance to target edge before recycling (px)
+  entrySpawnStart: 0.35,  // Fraction along entry edge where spawning begins (0=start)
+  entrySpawnEnd: 1,       // Fraction along entry edge where spawning ends (1=full edge)
+  exitSpawnStart: 0,      // Fraction along exit edge where spawning begins
+  exitSpawnEnd: 1,        // Fraction along exit edge where spawning ends
   showDebug: true,        // Show boundary/edge/spine overlays
   showGlow: false,        // Enable glow pass
   showCircleMask: false,  // Show circular clip mask (like production UI)
@@ -162,16 +166,19 @@ function getWallRepulsion(x: number, y: number, distField: Float32Array): { rx: 
 }
 
 // --- Edge helpers ---
-function randomPointOnEdge(edge: [number, number][]): { x: number; y: number } {
-  if (edge.length < 2) return { x: edge[0]![0], y: edge[0]![1] }
+/** Precompute cumulative lengths for an edge polyline */
+function edgeLengths(edge: [number, number][]): { lengths: number[]; total: number } {
   const lengths: number[] = [0]
   for (let i = 1; i < edge.length; i++) {
     const dx = edge[i]![0] - edge[i - 1]![0]
     const dy = edge[i]![1] - edge[i - 1]![1]
     lengths.push(lengths[i - 1]! + Math.hypot(dx, dy))
   }
-  const total = lengths[lengths.length - 1]!
-  const target = Math.random() * total
+  return { lengths, total: lengths[lengths.length - 1]! }
+}
+
+/** Sample a point at a given distance along the edge */
+function pointAtDistance(edge: [number, number][], lengths: number[], target: number): { x: number; y: number } {
   for (let i = 1; i < lengths.length; i++) {
     if (lengths[i]! >= target) {
       const seg = lengths[i]! - lengths[i - 1]!
@@ -182,7 +189,17 @@ function randomPointOnEdge(edge: [number, number][]): { x: number; y: number } {
       }
     }
   }
-  return { x: edge[0]![0], y: edge[0]![1] }
+  return { x: edge[edge.length - 1]![0], y: edge[edge.length - 1]![1] }
+}
+
+/** Pick a random point on the edge within [rangeStart, rangeEnd] (0–1 fractions) */
+function randomPointOnEdge(edge: [number, number][], rangeStart = 0, rangeEnd = 1): { x: number; y: number } {
+  if (edge.length < 2) return { x: edge[0]![0], y: edge[0]![1] }
+  const { lengths, total } = edgeLengths(edge)
+  const lo = rangeStart * total
+  const hi = rangeEnd * total
+  const target = lo + Math.random() * (hi - lo)
+  return pointAtDistance(edge, lengths, target)
 }
 
 function noise(x: number): number {
@@ -210,26 +227,28 @@ interface Particle {
 const COLORS = ['hsl(218,60%,58%)', 'hsl(34,60%,50%)', 'hsl(186,60%,50%)']
 
 // --- Flow spine: waypoints through the channel ---
-// Each waypoint has [x, y, width] where width = stream width at that point (px).
+// Each waypoint has [x, y, width, speed] where:
+//   width = stream width at that point (px)
+//   speed = speed multiplier (1.0 = normal, 0.5 = half speed, 2.0 = double)
 // Small width (e.g. 8–12) = single-file through the strait narrows.
 // Large width (e.g. 60–100) = particles spread out in open water.
 // Order: entry → exit. Particles going "backward" reverse this.
-const FLOW_SPINE: [number, number, number][] = [
-  [290, 456, 58],    // 0  open water
-  [332, 510, 42],    // 1  funneling in
-  [390, 548, 34],    // 2  funneling in
-  [444, 576, 38],    // 3  approaching strait
-  [498, 558, 16],    // 4  strait — single file
-  [544, 532, 10],    // 5  strait — narrowest
-  [554, 577, 16],    // 6  strait — single file
-  [580, 601, 30],    // 7  leaving strait
-  [657, 631, 46],    // 8  spreading out
-  [773, 705, 110],   // 9  spreading out
-  [856, 1044, 344],  // 10 open water
+const FLOW_SPINE: [number, number, number, number][] = [
+  [290, 456, 58, 0.6],    // 0  open water
+  [332, 510, 42, 0.6],    // 1  funneling in
+  [390, 548, 34, 0.4],    // 2  funneling in
+  [444, 576, 38, 0.4],    // 3  approaching strait
+  [498, 558, 16, 0.4],    // 4  strait — single file
+  [544, 532, 10, 0.6],    // 5  strait — narrowest
+  [554, 577, 16, 0.7],    // 6  strait — single file
+  [580, 601, 30, 0.8],    // 7  leaving strait
+  [657, 631, 46, 1.0],    // 8  spreading out
+  [773, 705, 110, 1.0],   // 9  spreading out
+  [856, 1044, 344, 1.0],  // 10 open water
 ]
 
 // Precompute spine segment tangents and cumulative lengths
-function buildSpine(pts: [number, number, number][]) {
+function buildSpine(pts: [number, number, number, number][]) {
   const tangents: { tx: number; ty: number }[] = []
   const cumLen: number[] = [0]
   for (let i = 0; i < pts.length - 1; i++) {
@@ -244,10 +263,10 @@ function buildSpine(pts: [number, number, number][]) {
   return { tangents, cumLen, totalLen: cumLen[cumLen.length - 1]! }
 }
 
-/** Find the nearest point on the spine and its tangent + interpolated width */
-function spineNearest(px: number, py: number, pts: [number, number, number][], tans: { tx: number; ty: number }[]): { cx: number; cy: number; tx: number; ty: number; dist: number; width: number; segIdx: number; segT: number } {
+/** Find the nearest point on the spine and its tangent + interpolated width & speed */
+function spineNearest(px: number, py: number, pts: [number, number, number, number][], tans: { tx: number; ty: number }[]): { cx: number; cy: number; tx: number; ty: number; dist: number; width: number; speedMult: number; segIdx: number; segT: number } {
   let bestDist = Infinity
-  let bestCx = 0, bestCy = 0, bestTx = 0, bestTy = 0, bestWidth = 80
+  let bestCx = 0, bestCy = 0, bestTx = 0, bestTy = 0, bestWidth = 80, bestSpeedMult = 1
   let bestSegIdx = 0, bestSegT = 0
   for (let i = 0; i < pts.length - 1; i++) {
     const ax = pts[i]![0], ay = pts[i]![1]
@@ -265,16 +284,17 @@ function spineNearest(px: number, py: number, pts: [number, number, number][], t
       const t0 = tans[i]!, t1 = tans[i + 1]!
       bestTx = t0.tx + t * (t1.tx - t0.tx)
       bestTy = t0.ty + t * (t1.ty - t0.ty)
-      // Interpolate width between waypoints
+      // Interpolate width and speed between waypoints
       bestWidth = pts[i]![2] + t * (pts[i + 1]![2] - pts[i]![2])
+      bestSpeedMult = pts[i]![3] + t * (pts[i + 1]![3] - pts[i]![3])
     }
   }
   const len = Math.hypot(bestTx, bestTy) || 1
-  return { cx: bestCx, cy: bestCy, tx: bestTx / len, ty: bestTy / len, dist: bestDist, width: bestWidth, segIdx: bestSegIdx, segT: bestSegT }
+  return { cx: bestCx, cy: bestCy, tx: bestTx / len, ty: bestTy / len, dist: bestDist, width: bestWidth, speedMult: bestSpeedMult, segIdx: bestSegIdx, segT: bestSegT }
 }
 
 // Mutable copy for drag/drop editing (reactive for template bindings)
-const spine = reactive(FLOW_SPINE.map(p => [...p] as [number, number, number]))
+const spine = reactive(FLOW_SPINE.map(p => [...p] as [number, number, number, number]))
 let { tangents: spineTangents, cumLen: spineCumLen, totalLen: spineTotalLen } = buildSpine(spine)
 
 function rebuildSpine() {
@@ -285,7 +305,7 @@ function rebuildSpine() {
 }
 
 /** Convert a 1D distance along the spine to an (x, y) position + tangent */
-function spineAt(d: number, pts: [number, number, number][]): { x: number; y: number; tx: number; ty: number } {
+function spineAt(d: number, pts: [number, number, number, number][]): { x: number; y: number; tx: number; ty: number } {
   d = Math.max(0, Math.min(d, spineTotalLen))
   for (let i = 0; i < pts.length - 1; i++) {
     const segStart = spineCumLen[i]!
@@ -384,8 +404,12 @@ onMounted(() => {
     const forward = Math.random() > 0.5
     const spawnEdge = forward ? polygon.entryEdge : polygon.exitEdge
     const destEdge = forward ? polygon.exitEdge : polygon.entryEdge
-    const pos = randomPointOnEdge(spawnEdge)
-    const exit = randomPointOnEdge(destEdge)
+    const spawnStart = forward ? params.entrySpawnStart : params.exitSpawnStart
+    const spawnEnd = forward ? params.entrySpawnEnd : params.exitSpawnEnd
+    const exitStart = forward ? params.exitSpawnStart : params.entrySpawnStart
+    const exitEnd = forward ? params.exitSpawnEnd : params.entrySpawnEnd
+    const pos = randomPointOnEdge(spawnEdge, spawnStart, spawnEnd)
+    const exit = randomPointOnEdge(destEdge, exitStart, exitEnd)
     const speed = params.speed * (1 - params.speedVariation + Math.random() * params.speedVariation * 2)
     // Spawn static — particle waits at edge before moving
     const targetR = params.dotMin + Math.random() * (params.dotMax - params.dotMin)
@@ -407,18 +431,11 @@ onMounted(() => {
     Object.assign(p, spawn())
   }
 
-  // Build particles, scatter some along their path
+  // Progressive spawn: add 10-15% of target count every ~1.5s instead of all at once
   const particles: Particle[] = []
-  const waitBudget = Math.round(WAIT_SECONDS * 60)
-  for (let i = 0; i < params.particleCount; i++) {
-    const p = spawn()
-    // Stagger initial particles: some already waiting, some already in-flight
-    p.waitFrames = Math.floor(Math.random() * waitBudget)
-    // Pre-grow radius for particles that have already been "waiting"
-    const elapsed = waitBudget - p.waitFrames
-    p.radius = p.targetRadius * Math.min(elapsed / GROW_FRAMES, 1)
-    particles.push(p)
-  }
+  const SPAWN_INTERVAL = 30 // frames between batches (~0.5s at 60fps)
+  const SPAWN_BATCH_FRAC = 0.05 // 5% of target count per batch
+  let spawnAccum = SPAWN_INTERVAL // start ready so first batch spawns immediately
 
   let lastTs = 0
   let frameCount = 0
@@ -438,14 +455,19 @@ onMounted(() => {
     // Cap particle count
     while (particles.length > params.particleCount) particles.pop()
 
-    // Constant influx: spawn new particles at edges every frame (up to budget)
-    const spawnCount = Math.min(params.spawnRate, params.particleCount - particles.length)
-    for (let s = 0; s < spawnCount; s++) particles.push(spawn())
+    // Progressive spawn: add a batch of ~12% of target count every ~1.5s
+    if (particles.length < params.particleCount) {
+      spawnAccum += dt
+      if (spawnAccum >= SPAWN_INTERVAL) {
+        spawnAccum -= SPAWN_INTERVAL
+        const batchSize = Math.ceil(params.particleCount * SPAWN_BATCH_FRAC)
+        const toSpawn = Math.min(batchSize, params.particleCount - particles.length)
+        for (let s = 0; s < toSpawn; s++) particles.push(spawn())
+      }
+    }
 
     // Update particles
     const STRAIT_THRESHOLD = 30 // width below this = "in the strait"
-    const STRAIT_SPEED_MULT = 0.7 // 70% of min speed in strait
-    const minSpeed = params.speed * (1 - params.speedVariation)
 
     for (const p of particles) {
       // Wait phase: particle sits at edge, then launches toward nearest waypoint
@@ -495,7 +517,7 @@ onMounted(() => {
         // --- STRAIT MODE: 1D advancement along spine polyline ---
         // No projection, no tangents blending, no boundary checks.
         // Convert position to distance-along-spine, advance, convert back.
-        const straitSpeed = minSpeed * STRAIT_SPEED_MULT
+        const straitSpeed = p.speed * near.speedMult
 
         // Current distance along spine
         const d = spineDistance(near.segIdx, near.segT)
@@ -549,23 +571,26 @@ onMounted(() => {
         desiredX /= desiredLen
         desiredY /= desiredLen
 
+        // Apply per-waypoint speed multiplier
+        const localSpeed = p.speed * near.speedMult
+
         // Steer current velocity toward desired
         const steer = params.steer
-        p.vx = p.vx * (1 - steer) + desiredX * p.speed * steer
-        p.vy = p.vy * (1 - steer) + desiredY * p.speed * steer
+        p.vx = p.vx * (1 - steer) + desiredX * localSpeed * steer
+        p.vy = p.vy * (1 - steer) + desiredY * localSpeed * steer
 
-        // Renormalize to particle speed
+        // Renormalize to local speed
         const vLen = Math.hypot(p.vx, p.vy) || 1
-        p.vx = (p.vx / vLen) * p.speed
-        p.vy = (p.vy / vLen) * p.speed
+        p.vx = (p.vx / vLen) * localSpeed
+        p.vy = (p.vy / vLen) * localSpeed
 
         // Add lateral noise (scaled by narrowFactor for smooth transition)
         const time = frameCount * params.noiseSpeed + p.noiseOffset
         const distScale = Math.max(0.05, 1 - near.dist / (localWidth * 1.25))
-        const lateral = noise(time) * p.speed * params.noiseAmount * distScale * narrowFactor
-        const perpX = -p.vy / p.speed, perpY = p.vx / p.speed
+        const lateral = noise(time) * localSpeed * params.noiseAmount * distScale * narrowFactor
+        const perpX = -p.vy / localSpeed, perpY = p.vx / localSpeed
 
-        const step = p.speed * dt
+        const step = localSpeed * dt
 
         // Near the strait entrance or exit point: skip boundary checks, just move
         if (nearStrait || distToExit < 60) {
@@ -643,6 +668,37 @@ onMounted(() => {
     ctx!.beginPath()
     drawPolyline(polygon.exitEdge)
     ctx!.stroke()
+
+    // Spawn zone highlights (thick bright overlay on active portion of edges)
+    function drawSpawnZone(edge: [number, number][], start: number, end: number, color: string) {
+      if (start >= end) return
+      const { lengths, total } = edgeLengths(edge)
+      const lo = start * total, hi = end * total
+      // Draw thick line segment for the active spawn zone
+      ctx!.strokeStyle = color
+      ctx!.lineWidth = 8
+      ctx!.lineCap = 'round'
+      ctx!.beginPath()
+      let started = false
+      for (let i = 1; i < lengths.length; i++) {
+        const segStart = lengths[i - 1]!, segEnd = lengths[i]!
+        if (segEnd < lo || segStart > hi) continue
+        // Clip segment to [lo, hi]
+        const t0 = segStart < lo ? (lo - segStart) / (segEnd - segStart) : 0
+        const t1 = segEnd > hi ? (hi - segStart) / (segEnd - segStart) : 1
+        const x0 = edge[i - 1]![0] + t0 * (edge[i]![0] - edge[i - 1]![0])
+        const y0 = edge[i - 1]![1] + t0 * (edge[i]![1] - edge[i - 1]![1])
+        const x1 = edge[i - 1]![0] + t1 * (edge[i]![0] - edge[i - 1]![0])
+        const y1 = edge[i - 1]![1] + t1 * (edge[i]![1] - edge[i - 1]![1])
+        if (!started) { ctx!.moveTo(x0, y0); started = true }
+        else { ctx!.lineTo(x0, y0) }
+        ctx!.lineTo(x1, y1)
+      }
+      ctx!.stroke()
+      ctx!.lineCap = 'butt'
+    }
+    drawSpawnZone(polygon.entryEdge, params.entrySpawnStart, params.entrySpawnEnd, 'rgba(0, 255, 0, 1)')
+    drawSpawnZone(polygon.exitEdge, params.exitSpawnStart, params.exitSpawnEnd, 'rgba(255, 0, 255, 1)')
 
     // Flow spine (cyan dashed line with numbered waypoints)
     ctx!.strokeStyle = 'rgba(0, 255, 255, 0.9)'
@@ -775,6 +831,23 @@ onMounted(async () => {
       .on('change', (ev: { value: number }) => { spine[i][2] = ev.value; rebuildSpine() })
   }
 
+  // Waypoint Speed — per-waypoint speed multiplier
+  const speedFolder = pane.addFolder({ title: 'Waypoint Speed (×)' })
+  const speedParams: Record<string, number> = {}
+  for (let i = 0; i < spine.length; i++) {
+    const key = `sp${i}`
+    speedParams[key] = spine[i]![3]
+    speedFolder.addBinding(speedParams, key, { label: `Pt ${i}`, min: 0.1, max: 2, step: 0.05 })
+      .on('change', (ev: { value: number }) => { spine[i][3] = ev.value })
+  }
+
+  // Spawn Zones — restrict which portion of entry/exit edges are used
+  const zones = pane.addFolder({ title: 'Spawn Zones' })
+  zones.addBinding(params, 'entrySpawnStart', { label: 'Entry start', min: 0, max: 1, step: 0.05 })
+  zones.addBinding(params, 'entrySpawnEnd', { label: 'Entry end', min: 0, max: 1, step: 0.05 })
+  zones.addBinding(params, 'exitSpawnStart', { label: 'Exit start', min: 0, max: 1, step: 0.05 })
+  zones.addBinding(params, 'exitSpawnEnd', { label: 'Exit end', min: 0, max: 1, step: 0.05 })
+
   // Debug
   const debug = pane.addFolder({ title: 'Debug' })
   debug.addBinding(params, 'showDebug', { label: 'Borders & Waypoints' })
@@ -785,7 +858,7 @@ onMounted(async () => {
   pane.addButton({ title: 'Copy All Tuning' }).on('click', () => {
     const state = {
       params: { ...params },
-      spine: spine.map(p => [p[0], p[1], p[2]]),
+      spine: spine.map(p => [p[0], p[1], p[2], p[3]]),
     }
     navigator.clipboard.writeText(JSON.stringify(state, null, 2))
   })
