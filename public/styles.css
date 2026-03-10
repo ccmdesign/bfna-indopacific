@@ -373,6 +373,46 @@ html {
   }
 }
 
+/* --- Swipe navigation slide transitions --- */
+
+/* Slide-left: content exits left, enters from right (swipe left = next) */
+.slide-left-enter-active {
+  animation: slideInRight 250ms ease-out;
+}
+.slide-left-leave-active {
+  animation: slideOutLeft 250ms ease-in;
+}
+
+/* Slide-right: content exits right, enters from left (swipe right = prev) */
+.slide-right-enter-active {
+  animation: slideInLeft 250ms ease-out;
+}
+.slide-right-leave-active {
+  animation: slideOutRight 250ms ease-in;
+}
+
+@keyframes slideOutLeft {
+  to { transform: translateX(-30%); opacity: 0; }
+}
+@keyframes slideInRight {
+  from { transform: translateX(30%); opacity: 0; }
+}
+@keyframes slideOutRight {
+  to { transform: translateX(30%); opacity: 0; }
+}
+@keyframes slideInLeft {
+  from { transform: translateX(-30%); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slide-left-enter-active,
+  .slide-left-leave-active,
+  .slide-right-enter-active,
+  .slide-right-leave-active {
+    animation: none;
+  }
+}
+
 
 .visually-hidden {
   position: absolute;

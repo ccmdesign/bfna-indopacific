@@ -2,7 +2,9 @@
 import { onScopeDispose } from 'vue'
 import type { Strait, StraitHistoricalEntry } from '~/types/strait'
 import { fmtUsd, fmtNum, computeVesselSegments } from '~/utils/straitFormatters'
+import { getAdjacentStrait } from '~/utils/straitsData'
 import { useStraitTransition } from '~/composables/useStraitTransition'
+import { useSwipeNavigation, isSwipeNavigation, setSwipeNavigation } from '~/composables/useSwipeNavigation'
 
 const props = defineProps<{
   strait: Strait
@@ -44,6 +46,24 @@ async function handleBack() {
   navigateTo('/infographics/straits')
 }
 
+// --- Swipe navigation ---
+const detailRef = ref<HTMLElement | null>(null)
+
+useSwipeNavigation(detailRef, {
+  onSwipe(direction) {
+    const target = getAdjacentStrait(
+      props.strait.id,
+      direction === 'left' ? 'next' : 'prev'
+    )
+    if (target) {
+      // Remove the dummy history entry's straitTransition marker before navigating,
+      // but preserve a non-null state to avoid race with popstate handler
+      history.replaceState({ swipeNavigating: true }, '')
+      navigateTo(`/infographics/straits/${target.id}`, { replace: true })
+    }
+  }
+})
+
 // --- Responsive hero circle ---
 const heroCircleRef = ref<HTMLElement | null>(null)
 
@@ -78,8 +98,13 @@ onMounted(() => {
     playForward(heroCircleRef.value)
   }
 
-  // Push dummy history entry for back-button interception
-  history.pushState({ straitTransition: true }, '')
+  // Push dummy history entry for back-button interception.
+  // Skip on swipe re-mounts to avoid stacking phantom entries.
+  if (isSwipeNavigation()) {
+    setSwipeNavigation(false)
+  } else {
+    history.pushState({ straitTransition: true }, '')
+  }
   const handlePopstate = async (e: PopStateEvent) => {
     if (e.state?.straitTransition !== undefined) {
       // Our dummy entry was popped — play reverse then navigate
@@ -117,9 +142,15 @@ const hasQualContent = computed(() =>
 
 <template>
   <div
+    ref="detailRef"
     class="strait-mobile-detail"
     :aria-busy="transitionState === 'animating-forward' || transitionState === 'animating-back'"
   >
+    <!-- Screen reader announcement for swipe navigation -->
+    <div class="visually-hidden" aria-live="polite" aria-atomic="true">
+      Now viewing: {{ strait.name }}
+    </div>
+
     <!-- Sticky back bar -->
     <nav :class="contentClassMap[0]" class="strait-mobile-detail__nav" aria-label="Back navigation">
       <button
