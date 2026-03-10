@@ -6,5 +6,5 @@ if (!import.meta.dev) navigateTo('/', { replace: true })
 </script>
 
 <template>
-  <TestParticleTestPage :config="luzonFlowConfig" />
+  <StraitsParticleDebug :config="luzonFlowConfig" />
 </template>
