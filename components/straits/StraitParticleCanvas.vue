@@ -6,9 +6,10 @@
  * Sits absolutely positioned inside the circle, clipped by border-radius.
  * Uses the unified useParticleFlow composable with per-strait flow configs.
  */
-import { ref, toRef, computed, onMounted } from 'vue'
+import { ref, toRef, computed, onMounted, type Ref } from 'vue'
 import { useParticleFlow } from '~/composables/useParticleFlow'
 import { flowConfigs } from '~/data/straits/flow-configs'
+import type { StraitFlowConfig } from '~/utils/particleEngine'
 
 const props = defineProps<{
   straitId: string
@@ -27,16 +28,15 @@ const config = computed(() => {
   return c ?? null
 })
 
-// Only initialize if we have a config
-if (config.value) {
-  useParticleFlow({
-    canvasRef,
-    config: config as any,
-    circleSize: toRef(props, 'circleSize'),
-    straitId: toRef(props, 'straitId'),
-    year: toRef(props, 'year'),
-  })
-}
+// Always call composable unconditionally (Vue composition API rules).
+// The composable handles null config gracefully via the resolved config check.
+useParticleFlow({
+  canvasRef,
+  config: config as Ref<StraitFlowConfig | null>,
+  circleSize: toRef(props, 'circleSize'),
+  straitId: toRef(props, 'straitId'),
+  year: toRef(props, 'year'),
+})
 
 onMounted(() => {
   requestAnimationFrame(() => {

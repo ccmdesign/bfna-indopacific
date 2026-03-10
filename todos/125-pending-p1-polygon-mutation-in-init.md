@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p1
 issue_id: "BF-104"
 tags: [code-review, architecture, data-integrity]

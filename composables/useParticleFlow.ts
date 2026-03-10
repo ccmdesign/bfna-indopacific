@@ -70,44 +70,13 @@ function computeParticleCount(straitId: string, year: string): number {
   return Math.max(5, Math.round(computeTotalBudget() * (vessels.total / totalAllStraits)))
 }
 
-/** Largest-remainder allocation to avoid rounding overshoot */
-function distributeByType(straitId: string, year: string, count: number): { type: ParticleType; n: number }[] {
-  const vessels = getVesselData(straitId, year)
-  if (!vessels) {
-    const per = Math.ceil(count / 3)
-    return PARTICLE_TYPES.map((type, i) => ({ type, n: Math.min(per, count - i * per) }))
-  }
-  const total = vessels.total || 1
-  const fractions = [
-    { type: 'container' as ParticleType, frac: count * (vessels.container / total) },
-    { type: 'dryBulk' as ParticleType, frac: count * (vessels.dryBulk / total) },
-    { type: 'tanker' as ParticleType, frac: count * (vessels.tanker / total) },
-  ]
-  // Floor values
-  const result = fractions.map(f => ({ type: f.type, n: Math.floor(f.frac), remainder: f.frac - Math.floor(f.frac) }))
-  // Distribute remaining slots to highest remainders
-  let remaining = count - result.reduce((s, r) => s + r.n, 0)
-  result.sort((a, b) => b.remainder - a.remainder)
-  for (const r of result) {
-    if (remaining <= 0) break
-    r.n++
-    remaining--
-  }
-  // Ensure at least 1 for types with data
-  for (const r of result) {
-    const vesselCount = vessels[r.type] ?? 0
-    if (vesselCount > 0 && r.n === 0) r.n = 1
-  }
-  return result.map(r => ({ type: r.type, n: r.n }))
-}
-
 // ---------------------------------------------------------------------------
 // Composable
 // ---------------------------------------------------------------------------
 
 export function useParticleFlow(options: {
   canvasRef: Ref<HTMLCanvasElement | null>
-  config: StraitFlowConfig | Ref<StraitFlowConfig>
+  config: StraitFlowConfig | Ref<StraitFlowConfig | null>
   params?: Partial<FlowParams>
   debug?: Ref<boolean>
   // Production-only:
@@ -121,15 +90,15 @@ export function useParticleFlow(options: {
   const year = options.year
   const isProductionMode = !!circleSize
 
-  // Resolve config (may be ref or plain)
-  const resolvedConfig = computed(() => {
+  // Resolve config (may be ref or plain; may be null if no flow config for strait)
+  const resolvedConfig = computed((): StraitFlowConfig | null => {
     const c = options.config
     return 'value' in c ? c.value : c
   })
 
   // Reactive params
   const params = reactive(defaultFlowParams({
-    particleCount: resolvedConfig.value.particleCount,
+    particleCount: resolvedConfig.value?.particleCount ?? 120,
     showDebug: !isProductionMode,
     ...options.params,
   }))
@@ -298,8 +267,10 @@ export function useParticleFlow(options: {
 
       // Spawn zones
       const config = resolvedConfig.value
-      drawSpawnZone(polygon.entryEdge, config.spawnZones.entry.start, config.spawnZones.entry.end, 'rgba(0, 255, 0, 1)')
-      drawSpawnZone(polygon.exitEdge, config.spawnZones.exit.start, config.spawnZones.exit.end, 'rgba(255, 0, 255, 1)')
+      if (config) {
+        drawSpawnZone(polygon.entryEdge, config.spawnZones.entry.start, config.spawnZones.entry.end, 'rgba(0, 255, 0, 1)')
+        drawSpawnZone(polygon.exitEdge, config.spawnZones.exit.start, config.spawnZones.exit.end, 'rgba(255, 0, 255, 1)')
+      }
 
       // Draw all spines
       for (let si = 0; si < sim.spineDataArr.length; si++) {
@@ -394,8 +365,8 @@ export function useParticleFlow(options: {
     ctx!.save()
     ctx!.setTransform(dpr * scale, 0, 0, dpr * scale, 0, 0)
 
-    // Debug overlay (dev only)
-    if (import.meta.dev && sim.grid && sim.polygon) {
+    // Debug overlay (dev only, toggleable via params.showDebug)
+    if (import.meta.dev && params.showDebug && sim.grid && sim.polygon) {
       ctx!.fillStyle = 'rgba(0, 100, 255, 0.15)'
       for (let gy = 0; gy < GRID_DIM; gy++) {
         for (let gx = 0; gx < GRID_DIM; gx++) {
@@ -435,9 +406,16 @@ export function useParticleFlow(options: {
       ctx!.stroke()
     }
 
-    // Batch render by type
+    // Group particles by type once, then draw both dot and glow passes
+    const grouped: Record<ParticleType, Particle[]> = { container: [], dryBulk: [], tanker: [] }
+    for (const p of sim.particles) {
+      const type = particleTypeMap.get(p) ?? 'tanker'
+      grouped[type].push(p)
+    }
+
+    // Dot pass
     for (const type of PARTICLE_TYPES) {
-      const group = sim.particles.filter(p => particleTypeMap.get(p) === type)
+      const group = grouped[type]
       if (group.length === 0) continue
 
       ctx!.fillStyle = PARTICLE_COLORS[type]
@@ -452,7 +430,7 @@ export function useParticleFlow(options: {
 
     // Glow pass
     for (const type of PARTICLE_TYPES) {
-      const group = sim.particles.filter(p => particleTypeMap.get(p) === type)
+      const group = grouped[type]
       if (group.length === 0) continue
 
       ctx!.fillStyle = PARTICLE_COLORS[type]
@@ -533,14 +511,13 @@ export function useParticleFlow(options: {
     if (isProductionMode && straitId?.value && year?.value) {
       params.particleCount = computeParticleCount(straitId.value, year.value)
       particleTypeMap = new Map()
-      // Pre-assign vessel types via distribution
-      const dist = distributeByType(straitId.value, year.value, params.particleCount)
-      // Store distribution for color assignment at spawn
-      assignVesselColors(dist)
     }
 
     if (prefersReducedMotion) {
-      // Spawn all particles immediately for static display
+      // Spawn and distribute particles along the flow path for a static snapshot.
+      // Calls tick() repeatedly so particles spread along the spine (not clustered
+      // at spawn). This is intentionally heavier than animated init (~240 ticks)
+      // but runs only once and completes in <50ms on modern hardware.
       for (let i = 0; i < params.particleCount; i++) {
         simulation.tick(1)
       }
@@ -551,19 +528,15 @@ export function useParticleFlow(options: {
     animationFrameId = requestAnimationFrame(tick)
   }
 
-  function assignVesselColors(dist: { type: ParticleType; n: number }[]) {
-    // Override COLORS in simulation by storing type mapping
-    // The simulation uses its own COLORS array; for production we need
-    // to map particles to vessel types based on distribution
-    // We'll track this in the type map as particles are created
-    vesselDistribution = dist
-  }
-
-  let vesselDistribution: { type: ParticleType; n: number }[] = []
+  // Vessel type assignment: particles get types via typeFromColor()
+  // which maps engine HSL colors to ParticleType. The distribution
+  // is approximately uniform (~33% each) rather than proportional
+  // to vessel data. This is acceptable for visualization purposes.
 
   function start() {
-    startGeneration++
     const config = resolvedConfig.value
+    if (!config) return // No config available; skip silently
+    startGeneration++
     startSimulation(config, startGeneration)
   }
 

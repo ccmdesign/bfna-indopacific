@@ -1,5 +1,5 @@
 ---
-status: pending
+status: wont_fix
 priority: p3
 issue_id: "BF-104"
 tags: [code-review, performance, bundle-size]

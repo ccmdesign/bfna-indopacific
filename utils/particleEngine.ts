@@ -132,7 +132,7 @@ export function defaultFlowParams(overrides?: Partial<FlowParams>): FlowParams {
     dotOpacity: 0.9,
     respawnThreshold: 15,
     branchBRatio: 0.3,
-    showDebug: true,
+    showDebug: false,
     showGlow: false,
     showCircleMask: false,
     ...overrides,
@@ -209,7 +209,9 @@ export function buildDistanceField(grid: Uint8Array): Float32Array {
     }
   }
 
-  // BFS outward into water
+  // BFS outward into water.
+  // Note: Uses push/head++ pattern — processed entries remain in the array.
+  // Acceptable trade-off: runs once at init on a 270x270 grid (~150KB peak).
   let head = 0
   while (head < queue.length) {
     const idx = queue[head++]!
@@ -439,17 +441,22 @@ export class ParticleSimulation {
 
   /** Initialize grid, distance field, and spines from a loaded polygon */
   init(polygon: StraitPolygon, spinePtsArrays: [number, number, number, number][][]) {
-    // Apply exit edge extensions if configured
+    // Clone polygon to avoid mutating the module-cached import data.
+    // Without this, exitEdgeExtensions would be prepended repeatedly
+    // on each init() call since dynamic import() caches the module.
+    let poly = polygon
     if (this.config.exitEdgeExtensions?.length) {
-      const origExit = polygon.exitEdge
-      polygon.exitEdge = [
-        ...this.config.exitEdgeExtensions.map(p => p as [number, number]),
-        ...origExit,
-      ]
+      poly = {
+        ...polygon,
+        exitEdge: [
+          ...this.config.exitEdgeExtensions.map(p => p as [number, number]),
+          ...polygon.exitEdge,
+        ],
+      }
     }
 
-    this.polygon = polygon
-    this.grid = rasterizePolygon(polygon)
+    this.polygon = poly
+    this.grid = rasterizePolygon(poly)
     this.distField = buildDistanceField(this.grid)
     this.spineDataArr = spinePtsArrays.map(pts => buildSpine(pts))
     this.particles = []
