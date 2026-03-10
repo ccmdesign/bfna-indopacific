@@ -18,6 +18,8 @@ const flowConfig = computed(() =>
 const showParticles = computed(() =>
   props.selected && flowConfig.value
 )
+
+const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
 </script>
 
 <template>
@@ -31,6 +33,16 @@ const showParticles = computed(() =>
     }"
     :class="{ 'strait-circle--active': active, 'strait-circle--selected': selected }"
   >
+    <img
+      v-if="bgImageSrc"
+      :src="bgImageSrc"
+      width="1080"
+      height="1080"
+      alt=""
+      aria-hidden="true"
+      class="strait-bg-image"
+      :class="{ 'strait-bg-image--visible': selected }"
+    />
     <StraitParticles
       v-if="showParticles"
       :config="flowConfig as any"
@@ -44,11 +56,9 @@ const showParticles = computed(() =>
   height: var(--diameter);
   border-radius: 50%;
   background: hsla(var(--h), var(--s), var(--l), 0.12);
-  border: 1.5px solid hsla(var(--h), var(--s), var(--l), 0.7);
-  box-shadow:
-    0 0 16px 4px hsla(var(--h), var(--s), var(--l), 0.25),
-    inset 0 0 8px hsla(var(--h), var(--s), 70%, 0.08);
-  transition: background 0.2s ease, border-color 0.2s ease;
+  border: none;
+  box-shadow: none;
+  transition: background 0.2s ease;
 }
 
 .strait-circle--selected {
@@ -56,13 +66,30 @@ const showParticles = computed(() =>
   overflow: hidden;
 }
 
+.strait-bg-image {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  scale: 1.5;
+  transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), scale 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+.strait-bg-image--visible {
+  opacity: 1;
+  scale: 1;
+}
+
 .strait-circle--active {
   background: hsla(var(--h), var(--s), var(--l), 0.25);
-  border-color: hsla(var(--h), var(--s), var(--l), 1);
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .strait-circle {
+  .strait-circle,
+  .strait-bg-image {
     transition: none;
   }
 }

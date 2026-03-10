@@ -3,7 +3,16 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { scaleSqrt } from 'd3-scale'
 import { min, max } from 'd3-array'
 import { straits, meta, historical, LATEST_YEAR, historicalByStrait } from '~/utils/straitsData'
+import { flowConfigs } from '~/data/straits/flow-configs'
 import type { Strait } from '~/types/strait'
+
+// Preload strait background images so they're cached before click
+useHead({
+  link: Object.values(flowConfigs)
+    .map((c) => c.backgroundImage)
+    .filter((v, i, a) => a.indexOf(v) === i) // dedupe
+    .map((href) => ({ rel: 'preload', as: 'image', href })),
+})
 
 // --- Props & Emits (dual-mode: route-driven vs local-state for embeds) ---
 const props = withDefaults(defineProps<{

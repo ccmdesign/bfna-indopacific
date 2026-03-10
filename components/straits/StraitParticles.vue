@@ -90,16 +90,8 @@ const straits = [
     <div ref="tweakpaneRef" class="debug-controls" />
   </div>
 
-  <!-- Production mode: just the canvas wrap, circle-masked -->
+  <!-- Production mode: just the canvas, circle-masked (bg-image is in StraitCircle) -->
   <div v-else class="canvas-wrap">
-    <img
-      :src="config.backgroundImage"
-      width="1080"
-      height="1080"
-      alt=""
-      aria-hidden="true"
-      class="bg-image"
-    />
     <canvas ref="canvasRef" class="overlay" />
   </div>
 </template>
@@ -112,14 +104,6 @@ const straits = [
   aspect-ratio: 1;
   border-radius: 50%;
   overflow: hidden;
-}
-
-.bg-image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
 }
 
 .overlay {
@@ -216,4 +200,5 @@ const straits = [
 .swatch.cyan { background: rgba(0, 255, 255, 0.9); }
 .swatch.orange { background: rgba(255, 165, 0, 0.9); }
 .swatch.blue { background: hsl(218, 60%, 58%); }
+
 </style>
