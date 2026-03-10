@@ -4,11 +4,12 @@ import bfnaLogo from '~/assets/images/bfna.svg'
 
 type SizeMetric = 'tonnage' | 'ships' | 'value'
 
-defineProps<{
+const props = defineProps<{
   sizeMetric: SizeMetric
   cycling?: boolean
   cycleDuration?: number
   cycleKey?: number
+  isHidden?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -17,7 +18,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <header class="strait-header">
+  <header class="strait-header" :class="{ 'strait-header--hidden': isHidden }">
     <img :src="bfnaLogo" alt="BFNA" class="strait-header__logo" />
     <h2 class="strait-header__title">{{ meta.title }}</h2>
     <p class="strait-header__description">
@@ -50,7 +51,9 @@ const emit = defineEmits<{
   flex-direction: column;
   justify-content: flex-end;
   padding: 0 0 2rem;
-  z-index: 1;
+  position: relative;
+  z-index: 10;
+  transition: opacity 0.3s ease;
 }
 
 .strait-header__logo {
@@ -130,6 +133,11 @@ const emit = defineEmits<{
 @keyframes progress-grow {
   from { width: 0; }
   to { width: 100%; }
+}
+
+.strait-header--hidden {
+  opacity: 0;
+  pointer-events: none;
 }
 
 @media (prefers-reduced-motion: reduce) {

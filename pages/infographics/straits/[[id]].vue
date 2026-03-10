@@ -78,6 +78,7 @@ const METRICS: SizeMetric[] = ['tonnage', 'ships', 'value']
 const IDLE_TIMEOUT = 7000
 const CYCLE_INTERVAL = 7000
 
+const isStraitActive = ref(false)
 const sizeMetric = ref<SizeMetric>('tonnage')
 const cycling = ref(false)
 // Bump to restart the CSS progress animation on each cycle tick
@@ -104,7 +105,7 @@ function stopCycling() {
 function resetIdleTimer() {
   stopCycling()
   if (idleTimer) clearTimeout(idleTimer)
-  if (!straitId.value) {
+  if (!straitId.value && !isStraitActive.value) {
     idleTimer = setTimeout(startCycling, IDLE_TIMEOUT)
   }
 }
@@ -132,9 +133,12 @@ onBeforeUnmount(() => {
 })
 
 function onSelect(id: string | null) {
+  isStraitActive.value = !!id
   if (id) {
+    document.body.dataset.strait = id
     navigateTo({ path: `/infographics/straits/${id}` })
   } else {
+    delete document.body.dataset.strait
     navigateTo({ path: '/infographics/straits' })
   }
 }
@@ -150,7 +154,8 @@ function onSelect(id: string | null) {
     @select="onSelect"
   />
   <StraitHeader
-    v-if="!isMobile && !straitId"
+    v-if="!isMobile"
+    :is-hidden="isStraitActive"
     :size-metric="sizeMetric"
     :cycling="cycling"
     :cycle-duration="CYCLE_INTERVAL"
@@ -158,7 +163,7 @@ function onSelect(id: string | null) {
     @update:size-metric="sizeMetric = $event"
   />
   <!-- Mobile: client-only (depends on viewport detection) -->
-  <ClientOnly v-else>
+  <ClientOnly v-if="isMobile">
     <!-- Mobile: card list (no strait selected) -->
     <StraitCardList
       v-if="!straitId"
@@ -211,4 +216,5 @@ function onSelect(id: string | null) {
   color: var(--color-accent);
   text-decoration: underline;
 }
+
 </style>

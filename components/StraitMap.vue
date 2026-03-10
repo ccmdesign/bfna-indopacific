@@ -26,6 +26,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
   (e: 'select', id: string | null): void
+  (e: 'hover', id: string | null): void
 }>()
 
 // --- Animation timing constants (must stay in sync with CSS transition durations) ---
@@ -94,6 +95,7 @@ let panelTimer: ReturnType<typeof setTimeout> | null = null
 
 function onHover(id: string | null) {
   hoveredStraitId.value = id
+  emit('hover', id)
 }
 
 function onActivate(id: string) {
@@ -102,6 +104,15 @@ function onActivate(id: string) {
 
   const wasSelected = effectiveSelectedId.value
   const next = wasSelected === id ? null : id
+
+  // Set data-strait on map element and body for CSS targeting
+  if (next) {
+    mapRef.value?.setAttribute('data-strait', next)
+    document.body.dataset.strait = next
+  } else {
+    mapRef.value?.removeAttribute('data-strait')
+    delete document.body.dataset.strait
+  }
 
   if (isRouteControlled.value) {
     // Route-driven mode: emit event, let parent handle navigation
@@ -133,6 +144,15 @@ function onActivate(id: string) {
 // --- Route-driven animation watcher (only in route-controlled mode) ---
 watch(() => props.selectedStraitId, (newId, oldId) => {
   if (!isRouteControlled.value) return
+
+  // Sync data-strait attribute
+  if (newId) {
+    mapRef.value?.setAttribute('data-strait', newId)
+    document.body.dataset.strait = newId
+  } else {
+    mapRef.value?.removeAttribute('data-strait')
+    delete document.body.dataset.strait
+  }
 
   // Clear ALL pending timers on ANY param change (prevents race conditions on rapid nav)
   if (zoomOutTimer) { clearTimeout(zoomOutTimer); zoomOutTimer = null }
@@ -304,6 +324,10 @@ function isHidden(strait: Strait) {
 
 function deselect() {
   if (!effectiveSelectedId.value) return
+
+  // Clear data-strait immediately so CSS reacts without waiting for route
+  mapRef.value?.removeAttribute('data-strait')
+  delete document.body.dataset.strait
 
   if (isRouteControlled.value) {
     // Route-driven mode: emit event, let parent handle navigation

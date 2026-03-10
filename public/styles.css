@@ -172,9 +172,16 @@ html {
   }
 }
 
-/* Hide footer on layout-2 — source & logo are in StraitHeader instead */
-.layout-2 footer {
+/* Hide footer and back-link on layout-2 — source & logo are in StraitHeader instead */
+.layout-2 footer,
+.layout-2 .back-link-nav {
   display: none !important;
+}
+
+/* Fade out header when a strait is active */
+[data-strait] .strait-header {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .layout-1 {
