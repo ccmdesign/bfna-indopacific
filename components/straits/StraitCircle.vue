@@ -9,6 +9,11 @@ const props = defineProps<{
   straitId?: string
   year?: string
   selected?: boolean
+  valueUSD?: number
+  capacityMt?: number
+  vessels?: number
+  anySelected?: boolean
+  sizeMetric?: 'tonnage' | 'ships' | 'value'
 }>()
 
 const flowConfig = computed(() =>
@@ -47,6 +52,13 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
     <StraitParticles
       v-if="showParticles"
       :config="flowConfig as any"
+    />
+    <StraitSnapshot
+      v-if="valueUSD != null && !anySelected"
+      :value-u-s-d="valueUSD"
+      :capacity-mt="capacityMt ?? 0"
+      :vessels="vessels ?? 0"
+      :size-metric="sizeMetric ?? 'tonnage'"
     />
   </div>
 </template>

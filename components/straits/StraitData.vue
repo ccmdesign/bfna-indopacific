@@ -5,6 +5,9 @@ const props = defineProps<{
   id: string
   name: string
   globalShareLabel: string
+  valueUSD: number
+  capacityMt: number
+  vessels: number
   posX: number
   posY: number
   labelAnchor: LabelAnchor
@@ -15,6 +18,8 @@ const props = defineProps<{
   active: boolean
   selected: boolean
   zoomingOut: boolean
+  anySelected: boolean
+  sizeMetric: 'tonnage' | 'ships' | 'value'
   disabled?: boolean
   year?: string
 }>()
@@ -48,7 +53,19 @@ function onFocusOut(event: FocusEvent) {
     @focusin="emit('hover', id)"
     @focusout="onFocusOut($event)"
   >
-    <StraitCircle :radius="radius" :color="color" :active="active" :selected="selected" :strait-id="id" :year="year" />
+    <StraitCircle
+      :radius="radius"
+      :color="color"
+      :active="active"
+      :selected="selected"
+      :strait-id="id"
+      :year="year"
+      :value-u-s-d="valueUSD"
+      :capacity-mt="capacityMt"
+      :vessels="vessels"
+      :any-selected="anySelected"
+      :size-metric="sizeMetric"
+    />
     <StraitLabel :text="name" :anchor="(id === 'taiwan' || id === 'luzon') ? 'right' : 'below'" :radius="radius" />
   </div>
 </template>

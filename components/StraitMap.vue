@@ -33,10 +33,14 @@ const ZOOM_OUT_DURATION_MS = 600
 const PANEL_SHOW_DELAY_MS = 650
 
 // --- Size metric toggle ---
-type SizeMetric = 'tonnage' | 'ships'
+type SizeMetric = 'tonnage' | 'ships' | 'value'
 const sizeMetric = ref<SizeMetric>('tonnage')
 
 function getMetricValue(straitId: string): number {
+  if (sizeMetric.value === 'value') {
+    const strait = straits.find((s) => s.id === straitId)
+    return strait?.valueUSD ?? 0
+  }
   const yearData = historical[LATEST_YEAR]?.[straitId]
   if (!yearData) return 0
   return sizeMetric.value === 'tonnage' ? yearData.capacityMt : yearData.vessels.total
@@ -360,9 +364,11 @@ const panelFallbackRight = computed(() => {
 })
 
 // --- Scale legend ---
-const metricLabel = computed(() =>
-  sizeMetric.value === 'tonnage' ? 'Cargo (Mt)' : 'Vessels'
-)
+const metricLabel = computed(() => {
+  if (sizeMetric.value === 'tonnage') return 'Cargo (Mt)'
+  if (sizeMetric.value === 'ships') return 'Vessels'
+  return 'Trade Value (USD)'
+})
 
 const legendEntries = computed(() => {
   const scale = radiusScale.value
@@ -404,6 +410,9 @@ const legendEntries = computed(() => {
         :id="strait.id"
         :name="strait.name"
         :global-share-label="strait.globalShareLabel"
+        :value-u-s-d="strait.valueUSD"
+        :capacity-mt="historical[LATEST_YEAR]?.[strait.id]?.capacityMt ?? 0"
+        :vessels="historical[LATEST_YEAR]?.[strait.id]?.vessels.total ?? 0"
         :pos-x="strait.posX"
         :pos-y="strait.posY"
         :label-anchor="strait.labelAnchor"
@@ -413,6 +422,8 @@ const legendEntries = computed(() => {
         :dimmed="!!hoveredStraitId && hoveredStraitId !== strait.id"
         :active="hoveredStraitId === strait.id"
         :selected="effectiveSelectedId === strait.id"
+        :any-selected="!!effectiveSelectedId"
+        :size-metric="sizeMetric"
         :disabled="!!effectiveSelectedId && effectiveSelectedId !== strait.id"
         :zooming-out="zoomingOut && strait.id !== zoomOutFromId"
         :year="LATEST_YEAR"
@@ -456,13 +467,19 @@ const legendEntries = computed(() => {
         :class="{ active: sizeMetric === 'tonnage' }"
         @click="sizeMetric = 'tonnage'"
       >
-        Metric Tonnage
+        Trade Volume
       </button>
       <button
         :class="{ active: sizeMetric === 'ships' }"
         @click="sizeMetric = 'ships'"
       >
         N. of Ships
+      </button>
+      <button
+        :class="{ active: sizeMetric === 'value' }"
+        @click="sizeMetric = 'value'"
+      >
+        Trade Value
       </button>
     </div>
   </div>
@@ -597,9 +614,12 @@ const legendEntries = computed(() => {
   border-radius: 4px 0 0 4px;
 }
 
+.metric-toggle button + button {
+  border-left: none;
+}
+
 .metric-toggle button:last-child {
   border-radius: 0 4px 4px 0;
-  border-left: none;
 }
 
 .metric-toggle button.active {
