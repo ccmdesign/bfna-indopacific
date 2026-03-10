@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { hormuzFlowConfig } from '~/data/straits/hormuz-flow'
+import { malaccaFlowConfig } from '~/data/straits/malacca-flow'
 
 definePageMeta({ hideFooter: true, suppressRotateOverlay: true })
 if (!import.meta.dev) navigateTo('/', { replace: true })
 </script>
 
 <template>
-  <ParticleTestPage :config="hormuzFlowConfig" />
+  <ParticleTestPage :config="malaccaFlowConfig" />
 </template>
