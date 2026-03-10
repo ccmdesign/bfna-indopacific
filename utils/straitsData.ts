@@ -4,6 +4,24 @@ import type { Strait, StraitHistoricalEntry } from '~/types/strait'
 /** All strait entries, typed. */
 export const straits = straitsData.straits as Strait[]
 
+/** Straits sorted alphabetically by name (stable, computed once at module load). */
+export const sortedStraits = [...straits].sort((a, b) => a.name.localeCompare(b.name, 'en'))
+
+/**
+ * Returns the adjacent strait in alphabetical order.
+ * Wraps around: last→first for 'next', first→last for 'prev'.
+ * Returns null if currentId is not found or data is empty.
+ */
+export function getAdjacentStrait(currentId: string, direction: 'next' | 'prev'): Strait | null {
+  const idx = sortedStraits.findIndex(s => s.id === currentId)
+  if (idx === -1) return null
+  const len = sortedStraits.length
+  const newIdx = direction === 'next'
+    ? (idx + 1) % len
+    : (idx - 1 + len) % len
+  return sortedStraits[newIdx]
+}
+
 /** Metadata from the straits JSON. */
 export const meta = straitsData.meta
 

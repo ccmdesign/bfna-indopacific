@@ -1,13 +1,5 @@
 <script setup lang="ts">
-import type { Strait } from '~/types/strait'
-
-const props = defineProps<{
-  straits: Strait[]
-}>()
-
-const sortedStraits = computed(() =>
-  [...props.straits].sort((a, b) => a.name.localeCompare(b.name))
-)
+import { sortedStraits } from '~/utils/straitsData'
 </script>
 
 <template>

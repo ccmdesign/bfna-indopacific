@@ -2,6 +2,7 @@
 import { useViewport } from '~/composables/useViewport'
 import { useStraitTransition } from '~/composables/useStraitTransition'
 import { straits, LATEST_YEAR, historicalByStrait } from '~/utils/straitsData'
+import { slideDirection, clearSlideDirection } from '~/composables/useSwipeNavigation'
 import type { Strait } from '~/types/strait'
 
 definePageMeta({
@@ -60,6 +61,17 @@ const selectedStraitHistorical = computed(() => {
   return historicalByStrait(straitId.value)
 })
 
+// Slide transition name for swipe navigation (reactive via module-level ref)
+const slideTransitionName = computed(() => {
+  const dir = slideDirection.value
+  if (!dir) return undefined
+  return dir === 'left' ? 'slide-left' : 'slide-right'
+})
+
+function onTransitionAfterEnter() {
+  clearSlideDirection()
+}
+
 function onSelect(id: string | null) {
   if (id) {
     navigateTo({ path: `/infographics/straits/${id}` })
@@ -82,15 +94,21 @@ function onSelect(id: string | null) {
     <!-- Mobile: card list (no strait selected) -->
     <StraitCardList
       v-if="!straitId"
-      :straits="straits"
     />
-    <!-- Mobile: detail page (strait selected) -->
-    <StraitMobileDetail
+    <!-- Mobile: detail page (strait selected) with swipe slide transition -->
+    <Transition
       v-else-if="selectedStrait"
-      :strait="selectedStrait"
-      :historical="selectedStraitHistorical"
-      :year="LATEST_YEAR"
-    />
+      :name="slideTransitionName"
+      mode="out-in"
+      @after-enter="onTransitionAfterEnter"
+    >
+      <StraitMobileDetail
+        :key="selectedStrait.id"
+        :strait="selectedStrait"
+        :historical="selectedStraitHistorical"
+        :year="LATEST_YEAR"
+      />
+    </Transition>
     <!-- Fallback: strait not found or data loading -->
     <div v-else class="strait-not-found">
       <p>Strait not found.</p>

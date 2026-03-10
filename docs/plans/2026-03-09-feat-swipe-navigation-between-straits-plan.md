@@ -1,7 +1,7 @@
 ---
 title: "feat: Swipe navigation between straits"
 type: feat
-status: active
+status: completed
 date: 2026-03-09
 origin: docs/brainstorms/2026-03-07-mobile-strait-cards-brainstorm.md
 ---
@@ -346,20 +346,20 @@ This can be a minimal text hint that appears on first visit and fades after the 
 
 ## Acceptance Criteria
 
-- [ ] Horizontal swipe left on the detail page navigates to the next strait (alphabetical)
-- [ ] Horizontal swipe right navigates to the previous strait
-- [ ] Navigation wraps around (last → first, first → last)
-- [ ] Route URL updates to reflect the new strait (`/infographics/straits/[id]`)
-- [ ] Vertical scrolling is not impaired by the swipe listener
-- [ ] Transition animates in the direction of the swipe (left swipe = content slides left)
-- [ ] Back button from a swiped-to strait returns to the card list (not the previous strait)
-- [ ] Works correctly on iOS Safari and Chrome Android
-- [ ] Respects `prefers-reduced-motion` — skip animation, still navigate
-- [ ] No new dependencies added (pure touch event handling)
-- [ ] Swipe gestures starting within 25px of screen edges are ignored (iOS Safari conflict zone)
-- [ ] Multi-touch gestures (pinch-zoom) do not trigger swipe navigation
-- [ ] Rapid successive swipes do not trigger multiple concurrent navigations
-- [ ] `touchcancel` events properly reset swipe tracking state
+- [x] Horizontal swipe left on the detail page navigates to the next strait (alphabetical)
+- [x] Horizontal swipe right navigates to the previous strait
+- [x] Navigation wraps around (last → first, first → last)
+- [x] Route URL updates to reflect the new strait (`/infographics/straits/[id]`)
+- [x] Vertical scrolling is not impaired by the swipe listener
+- [x] Transition animates in the direction of the swipe (left swipe = content slides left)
+- [x] Back button from a swiped-to strait returns to the card list (not the previous strait)
+- [x] Works correctly on iOS Safari and Chrome Android
+- [x] Respects `prefers-reduced-motion` — skip animation, still navigate
+- [x] No new dependencies added (pure touch event handling)
+- [x] Swipe gestures starting within 25px of screen edges are ignored (iOS Safari conflict zone)
+- [x] Multi-touch gestures (pinch-zoom) do not trigger swipe navigation
+- [x] Rapid successive swipes do not trigger multiple concurrent navigations
+- [x] `touchcancel` events properly reset swipe tracking state
 
 ## Files to Create/Modify
 
