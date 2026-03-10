@@ -6,5 +6,5 @@ if (!import.meta.dev) navigateTo('/', { replace: true })
 </script>
 
 <template>
-  <StraitsParticleDebug :config="lombokFlowConfig" />
+  <StraitsStraitParticles :config="lombokFlowConfig" debug />
 </template>

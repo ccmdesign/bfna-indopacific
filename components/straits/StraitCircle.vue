@@ -1,16 +1,22 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { flowConfigs } from '~/data/straits/flow-configs'
+
 const props = defineProps<{
   radius: number
   color: { h: number; s: number; l: number }
   active: boolean
-  imageUrl?: string
   straitId?: string
   year?: string
   selected?: boolean
 }>()
 
+const flowConfig = computed(() =>
+  props.straitId ? flowConfigs[props.straitId] ?? null : null
+)
+
 const showParticles = computed(() =>
-  props.selected && props.straitId && props.year
+  props.selected && flowConfig.value
 )
 </script>
 
@@ -23,20 +29,11 @@ const showParticles = computed(() =>
       '--s': `${color.s}%`,
       '--l': `${color.l}%`,
     }"
-    :class="{ 'strait-circle--active': active }"
+    :class="{ 'strait-circle--active': active, 'strait-circle--selected': selected }"
   >
-    <img
-      v-if="imageUrl"
-      class="strait-circle__image"
-      :src="imageUrl"
-      alt=""
-      aria-hidden="true"
-    />
-    <StraitParticleCanvas
+    <StraitParticles
       v-if="showParticles"
-      :strait-id="straitId!"
-      :year="year!"
-      :circle-size="radius * 2"
+      :config="flowConfig as any"
     />
   </div>
 </template>
@@ -51,27 +48,12 @@ const showParticles = computed(() =>
   box-shadow:
     0 0 16px 4px hsla(var(--h), var(--s), var(--l), 0.25),
     inset 0 0 8px hsla(var(--h), var(--s), 70%, 0.08);
-  transition: background 0.2s ease, border-color 0.2s ease, width 0.6s cubic-bezier(0.4, 0, 0.2, 1), height 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.strait-circle__image {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  opacity: 0;
-  transition: opacity 0.4s ease 0.2s;
-}
-
-.strait-circle:has(.strait-circle__image) {
+.strait-circle--selected {
   position: relative;
   overflow: hidden;
-}
-
-.strait-circle:has(.strait-circle__image) .strait-circle__image {
-  opacity: 1;
 }
 
 .strait-circle--active {

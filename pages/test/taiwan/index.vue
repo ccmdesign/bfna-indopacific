@@ -6,5 +6,5 @@ if (!import.meta.dev) navigateTo('/', { replace: true })
 </script>
 
 <template>
-  <StraitsParticleDebug :config="taiwanFlowConfig" />
+  <StraitsStraitParticles :config="taiwanFlowConfig" debug />
 </template>
