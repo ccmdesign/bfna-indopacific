@@ -4,10 +4,11 @@
  *
  * Renders animated particle dots flowing through the strait's water polygon.
  * Sits absolutely positioned inside the circle, clipped by border-radius.
- * Coordinate space is 1080x1080 (matching strait polygon SVG viewBox).
+ * Uses the unified useParticleFlow composable with per-strait flow configs.
  */
-import { ref, toRef, onMounted } from 'vue'
-import { useParticleSystem } from '~/composables/useParticleSystem'
+import { ref, toRef, computed, onMounted } from 'vue'
+import { useParticleFlow } from '~/composables/useParticleFlow'
+import { flowConfigs } from '~/data/straits/flow-configs'
 
 const props = defineProps<{
   straitId: string
@@ -18,12 +19,24 @@ const props = defineProps<{
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const visible = ref(false)
 
-useParticleSystem({
-  canvasRef,
-  straitId: toRef(props, 'straitId'),
-  year: toRef(props, 'year'),
-  circleSize: toRef(props, 'circleSize'),
+const config = computed(() => {
+  const c = flowConfigs[props.straitId]
+  if (!c && import.meta.dev) {
+    console.warn(`[StraitParticleCanvas] No flow config for: ${props.straitId}`)
+  }
+  return c ?? null
 })
+
+// Only initialize if we have a config
+if (config.value) {
+  useParticleFlow({
+    canvasRef,
+    config: config as any,
+    circleSize: toRef(props, 'circleSize'),
+    straitId: toRef(props, 'straitId'),
+    year: toRef(props, 'year'),
+  })
+}
 
 onMounted(() => {
   requestAnimationFrame(() => {

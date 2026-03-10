@@ -1,7 +1,4 @@
 <script setup lang="ts">
-/** Straits that have polygon JSON data for the particle system */
-const POLYGON_READY_STRAITS = new Set(['hormuz'])
-
 const props = defineProps<{
   radius: number
   color: { h: number; s: number; l: number }
@@ -13,7 +10,7 @@ const props = defineProps<{
 }>()
 
 const showParticles = computed(() =>
-  props.selected && props.straitId && props.year && POLYGON_READY_STRAITS.has(props.straitId)
+  props.selected && props.straitId && props.year
 )
 </script>
 
