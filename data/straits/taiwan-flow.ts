@@ -3,7 +3,7 @@ import type { StraitFlowConfig } from '~/utils/particleEngine'
 export const taiwanFlowConfig: StraitFlowConfig = {
   id: 'taiwan',
   polygonPath: '~/data/straits/taiwan-polygon.json',
-  backgroundImage: '/assets/images/straits/taiwan.jpg',
+  backgroundImage: '/assets/images/straits/luzon.jpg',
   particleCount: 100,
   spines: [{
     waypoints: [

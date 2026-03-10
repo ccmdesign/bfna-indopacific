@@ -6,5 +6,5 @@ if (!import.meta.dev) navigateTo('/', { replace: true })
 </script>
 
 <template>
-  <ParticleTestPage :config="malaccaFlowConfig" />
+  <TestParticleTestPage :config="malaccaFlowConfig" />
 </template>

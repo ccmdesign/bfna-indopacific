@@ -6,5 +6,5 @@ if (!import.meta.dev) navigateTo('/', { replace: true })
 </script>
 
 <template>
-  <ParticleTestPage :config="hormuzFlowConfig" />
+  <TestParticleTestPage :config="hormuzFlowConfig" />
 </template>

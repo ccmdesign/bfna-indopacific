@@ -6,5 +6,5 @@ if (!import.meta.dev) navigateTo('/', { replace: true })
 </script>
 
 <template>
-  <ParticleTestPage :config="lombokFlowConfig" />
+  <TestParticleTestPage :config="lombokFlowConfig" />
 </template>
