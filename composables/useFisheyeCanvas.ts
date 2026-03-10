@@ -67,10 +67,15 @@ void main() {
   vec2 abR = clamp(distortedUV + abDir, 0.0, 1.0);
   vec2 abB = clamp(distortedUV - abDir, 0.0, 1.0);
 
+  // Flip texture vertically to match image orientation
+  vec2 fDistorted = vec2(distortedUV.x, 1.0 - distortedUV.y);
+  vec2 fAbR = vec2(abR.x, 1.0 - abR.y);
+  vec2 fAbB = vec2(abB.x, 1.0 - abB.y);
+
   vec4 color;
-  color.r = textureLod(uMap, abR, 0.0).r;
-  color.g = textureLod(uMap, distortedUV, 0.0).g;
-  color.b = textureLod(uMap, abB, 0.0).b;
+  color.r = textureLod(uMap, fAbR, 0.0).r;
+  color.g = textureLod(uMap, fDistorted, 0.0).g;
+  color.b = textureLod(uMap, fAbB, 0.0).b;
 
   // Vignette — edge darkening (replaces static rim darkening)
   float vignette = 1.0 - uVignette * uStrength * r * r;
@@ -134,10 +139,15 @@ void main() {
   vec2 abR = clamp(distortedUV + abDir, 0.0, 1.0);
   vec2 abB = clamp(distortedUV - abDir, 0.0, 1.0);
 
+  // Flip texture vertically to match image orientation
+  vec2 fDistorted = vec2(distortedUV.x, 1.0 - distortedUV.y);
+  vec2 fAbR = vec2(abR.x, 1.0 - abR.y);
+  vec2 fAbB = vec2(abB.x, 1.0 - abB.y);
+
   vec4 color;
-  color.r = texture2D(uMap, abR).r;
-  color.g = texture2D(uMap, distortedUV).g;
-  color.b = texture2D(uMap, abB).b;
+  color.r = texture2D(uMap, fAbR).r;
+  color.g = texture2D(uMap, fDistorted).g;
+  color.b = texture2D(uMap, fAbB).b;
 
   float vignette = 1.0 - uVignette * uStrength * r * r;
   color.rgb *= max(vignette, 0.0);
