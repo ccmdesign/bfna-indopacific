@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { flowConfigs } from '~/data/straits/flow-configs'
 
 const props = defineProps<{
@@ -20,6 +20,33 @@ const showParticles = computed(() =>
 )
 
 const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
+
+// ---------------------------------------------------------------------------
+// Reduced motion detection (reactive, SSR-safe)
+// ---------------------------------------------------------------------------
+const prefersReducedMotion = ref(false)
+let mqlCleanup: (() => void) | null = null
+
+onMounted(() => {
+  const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
+  prefersReducedMotion.value = mql.matches
+  const handler = (e: MediaQueryListEvent) => { prefersReducedMotion.value = e.matches }
+  mql.addEventListener('change', handler)
+  mqlCleanup = () => mql.removeEventListener('change', handler)
+})
+
+onUnmounted(() => {
+  mqlCleanup?.()
+})
+
+// ---------------------------------------------------------------------------
+// WebGL availability for fallback
+// ---------------------------------------------------------------------------
+const webglReady = ref(false)
+
+function onWebGLStatus(available: boolean) {
+  webglReady.value = available
+}
 </script>
 
 <template>
@@ -33,6 +60,12 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
     }"
     :class="{ 'strait-circle--active': active, 'strait-circle--selected': selected }"
   >
+    <FisheyeLens
+      v-if="selected && bgImageSrc && !prefersReducedMotion"
+      :image-url="bgImageSrc"
+      :active="selected"
+      @webgl-status="onWebGLStatus"
+    />
     <img
       v-if="bgImageSrc"
       :src="bgImageSrc"
@@ -41,7 +74,10 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
       alt=""
       aria-hidden="true"
       class="strait-bg-image"
-      :class="{ 'strait-bg-image--visible': selected }"
+      :class="{
+        'strait-bg-image--visible': selected && (!webglReady || prefersReducedMotion),
+        'strait-bg-image--hidden': selected && webglReady && !prefersReducedMotion,
+      }"
     />
     <StraitParticles
       v-if="showParticles"
@@ -80,6 +116,11 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
 
 .strait-bg-image--visible {
   opacity: 1;
+  scale: 1;
+}
+
+.strait-bg-image--hidden {
+  opacity: 0;
   scale: 1;
 }
 
