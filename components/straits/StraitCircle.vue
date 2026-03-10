@@ -68,7 +68,9 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
   width: var(--diameter);
   height: var(--diameter);
   border-radius: 50%;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.25);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   box-shadow: none;
   position: relative;
   border: calc(2px / var(--zoom-scale, 1)) solid white;
