@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "133"
 tags: [code-review, performance, memory-leak, webgl]

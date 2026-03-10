@@ -77,6 +77,10 @@ void main() {
   color.rgb *= max(vignette, 0.0);
 
   // Specular highlight — arc in upper-right quadrant simulating light on glass
+  // vec2(0.15, 0.2) — offset of specular center from circle center (upper-right bias)
+  // 0.2 — radius of the specular arc ring
+  // 80.0 — sharpness of the arc (higher = thinner ring)
+  // smoothstep(1.0, 0.7, r) — fade specular toward the edge (starts fading at r=0.7)
   vec2 specPos = fromCenter - vec2(0.15, 0.2);
   float specDist = length(specPos);
   float arcShape = exp(-pow(specDist - 0.2, 2.0) * 80.0);
@@ -138,6 +142,7 @@ void main() {
   float vignette = 1.0 - uVignette * uStrength * r * r;
   color.rgb *= max(vignette, 0.0);
 
+  // Specular highlight — see FRAG_SOURCE_V2 for constant documentation
   vec2 specPos = fromCenter - vec2(0.15, 0.2);
   float specDist = length(specPos);
   float arcShape = exp(-pow(specDist - 0.2, 2.0) * 80.0);
@@ -209,17 +214,27 @@ function linkProgram(
 // Composable
 // ---------------------------------------------------------------------------
 
-export function useFisheyeCanvas(
-  canvasRef: Ref<HTMLCanvasElement | null>,
-  imageUrl: Ref<string | undefined>,
-  distortion: Ref<number>,
-  aberration: Ref<number>,
-  strength: Ref<number>,
-  specular?: Ref<number>,
-  vignette?: Ref<number>,
-  // TODO: Refactor to options object when touching existing call sites
-) {
+/**
+ * WebGL context note: Each FisheyeLens instance creates its own WebGL context.
+ * This is safe because StraitMap enforces single-strait selection, so at most
+ * 1 FisheyeLens + 1 StraitParticles (2D) context exist simultaneously.
+ * If the selection model ever allows multiple simultaneous selections,
+ * this should be refactored to share a single WebGL context. (See todo #134)
+ */
+export interface FisheyeOptions {
+  canvasRef: Ref<HTMLCanvasElement | null>
+  imageUrl: Ref<string | undefined>
+  distortion: Ref<number>
+  aberration: Ref<number>
+  strength: Ref<number>
+  specular?: Ref<number>
+  vignette?: Ref<number>
+}
+
+export function useFisheyeCanvas(options: FisheyeOptions) {
+  const { canvasRef, imageUrl, distortion, aberration, strength, specular, vignette } = options
   const webglAvailable = ref(false)
+  const textureLoaded = ref(false)
 
   // Internal state — only populated client-side inside onMounted
   let gl: WebGL2RenderingContext | WebGLRenderingContext | null = null
@@ -354,10 +369,12 @@ export function useFisheyeCanvas(
           gl.bindTexture(gl.TEXTURE_2D, texture)
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bitmap)
           bitmap.close()
+          textureLoaded.value = true
           render()
         })
         .catch(() => {
-          // Silently fail — the CSS circle is still visible underneath
+          // Texture load failed (network error, 404, CORS) — signal parent to show fallback
+          textureLoaded.value = false
         })
     } else {
       // Fallback: Image element
@@ -367,7 +384,12 @@ export function useFisheyeCanvas(
         if (loadId !== currentLoadId || !gl || contextLost) return
         gl.bindTexture(gl.TEXTURE_2D, texture)
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
+        textureLoaded.value = true
         render()
+      }
+      img.onerror = () => {
+        // Texture load failed — signal parent to show fallback
+        textureLoaded.value = false
       }
       img.src = url
     }
@@ -532,6 +554,7 @@ export function useFisheyeCanvas(
 
   return {
     webglAvailable,
+    textureLoaded,
     render,
   }
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref } from 'vue'
 import { flowConfigs } from '~/data/straits/flow-configs'
+import { useReducedMotion } from '~/composables/useReducedMotion'
 
 const props = defineProps<{
   radius: number
@@ -21,32 +22,32 @@ const showParticles = computed(() =>
 
 const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
 
-// ---------------------------------------------------------------------------
-// Reduced motion detection (reactive, SSR-safe)
-// ---------------------------------------------------------------------------
-const prefersReducedMotion = ref(false)
-let mqlCleanup: (() => void) | null = null
-
-onMounted(() => {
-  const mql = window.matchMedia('(prefers-reduced-motion: reduce)')
-  prefersReducedMotion.value = mql.matches
-  const handler = (e: MediaQueryListEvent) => { prefersReducedMotion.value = e.matches }
-  mql.addEventListener('change', handler)
-  mqlCleanup = () => mql.removeEventListener('change', handler)
-})
-
-onUnmounted(() => {
-  mqlCleanup?.()
-})
+// Shared composable for prefers-reduced-motion detection (see todo #138)
+const prefersReducedMotion = useReducedMotion()
 
 // ---------------------------------------------------------------------------
-// WebGL availability for fallback
+// WebGL + texture availability for fallback
 // ---------------------------------------------------------------------------
 const webglReady = ref(false)
+const textureReady = ref(false)
 
 function onWebGLStatus(available: boolean) {
   webglReady.value = available
 }
+
+function onTextureStatus(loaded: boolean) {
+  textureReady.value = loaded
+}
+
+// Show fallback image when: no WebGL, reduced motion preferred,
+// or texture failed to load (see todo #140)
+const showFallbackImage = computed(() =>
+  props.selected && (!webglReady.value || prefersReducedMotion.value || !textureReady.value)
+)
+
+const hideFallbackImage = computed(() =>
+  props.selected && webglReady.value && !prefersReducedMotion.value && textureReady.value
+)
 </script>
 
 <template>
@@ -65,6 +66,7 @@ function onWebGLStatus(available: boolean) {
       :image-url="bgImageSrc"
       :active="selected"
       @webgl-status="onWebGLStatus"
+      @texture-status="onTextureStatus"
     />
     <img
       v-if="bgImageSrc"
@@ -75,8 +77,8 @@ function onWebGLStatus(available: boolean) {
       aria-hidden="true"
       class="strait-bg-image"
       :class="{
-        'strait-bg-image--visible': selected && (!webglReady || prefersReducedMotion),
-        'strait-bg-image--hidden': selected && webglReady && !prefersReducedMotion,
+        'strait-bg-image--visible': showFallbackImage,
+        'strait-bg-image--hidden': hideFallbackImage,
       }"
     />
     <StraitParticles
@@ -97,6 +99,13 @@ function onWebGLStatus(available: boolean) {
   transition: background 0.2s ease;
 }
 
+/*
+ * position:relative is required here so FisheyeLens (position:absolute; inset:0)
+ * is positioned within the circle. This class is only applied when `selected`
+ * is true, which aligns with FisheyeLens being rendered via v-if="selected".
+ * If the v-if condition ever diverges from the --selected class, FisheyeLens
+ * will not be positioned correctly. (See todo #141)
+ */
 .strait-circle--selected {
   position: relative;
   overflow: hidden;

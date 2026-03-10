@@ -4,6 +4,7 @@ import { scaleSqrt } from 'd3-scale'
 import { min, max } from 'd3-array'
 import { straits, meta, historical, LATEST_YEAR, historicalByStrait } from '~/utils/straitsData'
 import { flowConfigs } from '~/data/straits/flow-configs'
+import { useReducedMotion } from '~/composables/useReducedMotion'
 import type { Strait } from '~/types/strait'
 
 // Preload strait background images so they're cached before click
@@ -77,11 +78,8 @@ const effectiveSelectedId = computed(() =>
 const zoomingOut = ref(false)
 const zoomOutFromId = ref<string | null>(null)
 
-// Detect prefers-reduced-motion for timer delays
-const prefersReducedMotion = ref(false)
-onMounted(() => {
-  prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-})
+// Shared composable for prefers-reduced-motion detection (see todo #138)
+const prefersReducedMotion = useReducedMotion()
 
 // Initialize panelsVisible based on whether we have a deep-link selection
 const panelsVisible = ref(!!props.selectedStraitId)
