@@ -13,7 +13,6 @@ declare module '#app' {
     embedSlug?: string
     embedTitle?: string
     suppressRotateOverlay?: boolean
-    hideFooter?: boolean
   }
 }
 
@@ -25,7 +24,6 @@ const backLinkTarget = computed(() => (route.meta.backLinkTarget as string) || '
 const embedSlug = computed(() => route.meta.embedSlug as string | undefined)
 const embedTitle = computed(() => route.meta.embedTitle as string | undefined)
 const suppressRotateOverlay = computed(() => route.meta.suppressRotateOverlay === true)
-const hideFooter = computed(() => route.meta.hideFooter === true)
 </script>
 
 <template>
@@ -39,7 +37,7 @@ const hideFooter = computed(() => route.meta.hideFooter === true)
 
     <slot />
 
-    <footer v-if="!hideFooter">
+    <footer>
       <a v-if="footerSource"
          :href="footerSource.url"
          target="_blank"

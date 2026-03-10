@@ -33,12 +33,19 @@ void main() {
 `
 
 const FRAG_SOURCE_V2 = `#version 300 es
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
 precision mediump float;
+#endif
 in vec2 vUv;
 out vec4 fragColor;
 uniform sampler2D uMap;
 uniform float uDistortion;
 uniform float uAberration;
+uniform float uStrength;
+uniform float uSpecular;
+uniform float uVignette;
 void main() {
   vec2 fromCenter = vUv - 0.5;
   float r = length(fromCenter) * 2.0;
@@ -50,12 +57,12 @@ void main() {
     return;
   }
 
-  // Cubic barrel distortion
-  float distortionAmount = 1.0 + uDistortion * r * r * r;
+  // Cubic barrel distortion — modulated by uStrength
+  float distortionAmount = 1.0 + (uDistortion * uStrength) * r * r * r;
   vec2 distortedUV = clamp(fromCenter * distortionAmount + 0.5, 0.0, 1.0);
 
-  // Chromatic aberration — radial RGB split
-  float aberration = uAberration * r * r;
+  // Chromatic aberration — radial RGB split, modulated by uStrength
+  float aberration = (uAberration * uStrength) * r * r;
   vec2 abDir = length(fromCenter) > 0.001 ? normalize(fromCenter) * aberration : vec2(0.0);
   vec2 abR = clamp(distortedUV + abDir, 0.0, 1.0);
   vec2 abB = clamp(distortedUV - abDir, 0.0, 1.0);
@@ -65,8 +72,20 @@ void main() {
   color.g = textureLod(uMap, distortedUV, 0.0).g;
   color.b = textureLod(uMap, abB, 0.0).b;
 
-  // Rim darkening — natural light falloff
-  color.rgb *= smoothstep(1.0, 0.75, r);
+  // Vignette — edge darkening (replaces static rim darkening)
+  float vignette = 1.0 - uVignette * uStrength * r * r;
+  color.rgb *= max(vignette, 0.0);
+
+  // Specular highlight — arc in upper-right quadrant simulating light on glass
+  // vec2(0.15, 0.2) — offset of specular center from circle center (upper-right bias)
+  // 0.2 — radius of the specular arc ring
+  // 80.0 — sharpness of the arc (higher = thinner ring)
+  // smoothstep(1.0, 0.7, r) — fade specular toward the edge (starts fading at r=0.7)
+  vec2 specPos = fromCenter - vec2(0.15, 0.2);
+  float specDist = length(specPos);
+  float arcShape = exp(-pow(specDist - 0.2, 2.0) * 80.0);
+  float specular = uSpecular * uStrength * arcShape * smoothstep(1.0, 0.7, r);
+  color.rgb += vec3(specular);
 
   // Apply circular mask via alpha
   color.a = circleMask;
@@ -85,11 +104,18 @@ void main() {
 `
 
 const FRAG_SOURCE_V1 = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
 precision mediump float;
+#endif
 varying vec2 vUv;
 uniform sampler2D uMap;
 uniform float uDistortion;
 uniform float uAberration;
+uniform float uStrength;
+uniform float uSpecular;
+uniform float uVignette;
 void main() {
   vec2 fromCenter = vUv - 0.5;
   float r = length(fromCenter) * 2.0;
@@ -100,10 +126,10 @@ void main() {
     return;
   }
 
-  float distortionAmount = 1.0 + uDistortion * r * r * r;
+  float distortionAmount = 1.0 + (uDistortion * uStrength) * r * r * r;
   vec2 distortedUV = clamp(fromCenter * distortionAmount + 0.5, 0.0, 1.0);
 
-  float aberration = uAberration * r * r;
+  float aberration = (uAberration * uStrength) * r * r;
   vec2 abDir = length(fromCenter) > 0.001 ? normalize(fromCenter) * aberration : vec2(0.0);
   vec2 abR = clamp(distortedUV + abDir, 0.0, 1.0);
   vec2 abB = clamp(distortedUV - abDir, 0.0, 1.0);
@@ -113,7 +139,16 @@ void main() {
   color.g = texture2D(uMap, distortedUV).g;
   color.b = texture2D(uMap, abB).b;
 
-  color.rgb *= smoothstep(1.0, 0.75, r);
+  float vignette = 1.0 - uVignette * uStrength * r * r;
+  color.rgb *= max(vignette, 0.0);
+
+  // Specular highlight — see FRAG_SOURCE_V2 for constant documentation
+  vec2 specPos = fromCenter - vec2(0.15, 0.2);
+  float specDist = length(specPos);
+  float arcShape = exp(-pow(specDist - 0.2, 2.0) * 80.0);
+  float specular = uSpecular * uStrength * arcShape * smoothstep(1.0, 0.7, r);
+  color.rgb += vec3(specular);
+
   color.a = circleMask;
   gl_FragColor = color;
 }
@@ -179,13 +214,27 @@ function linkProgram(
 // Composable
 // ---------------------------------------------------------------------------
 
-export function useFisheyeCanvas(
-  canvasRef: Ref<HTMLCanvasElement | null>,
-  imageUrl: Ref<string | undefined>,
-  distortion: Ref<number>,
-  aberration: Ref<number>,
-) {
+/**
+ * WebGL context note: Each FisheyeLens instance creates its own WebGL context.
+ * This is safe because StraitMap enforces single-strait selection, so at most
+ * 1 FisheyeLens + 1 StraitParticles (2D) context exist simultaneously.
+ * If the selection model ever allows multiple simultaneous selections,
+ * this should be refactored to share a single WebGL context. (See todo #134)
+ */
+export interface FisheyeOptions {
+  canvasRef: Ref<HTMLCanvasElement | null>
+  imageUrl: Ref<string | undefined>
+  distortion: Ref<number>
+  aberration: Ref<number>
+  strength: Ref<number>
+  specular?: Ref<number>
+  vignette?: Ref<number>
+}
+
+export function useFisheyeCanvas(options: FisheyeOptions) {
+  const { canvasRef, imageUrl, distortion, aberration, strength, specular, vignette } = options
   const webglAvailable = ref(false)
+  const textureLoaded = ref(false)
 
   // Internal state — only populated client-side inside onMounted
   let gl: WebGL2RenderingContext | WebGLRenderingContext | null = null
@@ -196,6 +245,9 @@ export function useFisheyeCanvas(
   let uMapLoc: WebGLUniformLocation | null = null
   let uDistortionLoc: WebGLUniformLocation | null = null
   let uAberrationLoc: WebGLUniformLocation | null = null
+  let uStrengthLoc: WebGLUniformLocation | null = null
+  let uSpecularLoc: WebGLUniformLocation | null = null
+  let uVignetteLoc: WebGLUniformLocation | null = null
   let aPositionLoc = -1
   let ro: ResizeObserver | null = null
   let resizeRafId: number | null = null
@@ -245,6 +297,9 @@ export function useFisheyeCanvas(
     uMapLoc = gl.getUniformLocation(program, 'uMap')
     uDistortionLoc = gl.getUniformLocation(program, 'uDistortion')
     uAberrationLoc = gl.getUniformLocation(program, 'uAberration')
+    uStrengthLoc = gl.getUniformLocation(program, 'uStrength')
+    uSpecularLoc = gl.getUniformLocation(program, 'uSpecular')
+    uVignetteLoc = gl.getUniformLocation(program, 'uVignette')
 
     // Create VBO for fullscreen quad
     vbo = gl.createBuffer()
@@ -283,6 +338,9 @@ export function useFisheyeCanvas(
     // Set uniforms
     gl.uniform1f(uDistortionLoc, distortion.value)
     gl.uniform1f(uAberrationLoc, aberration.value)
+    gl.uniform1f(uStrengthLoc, strength.value)
+    gl.uniform1f(uSpecularLoc, specular?.value ?? 0.6)
+    gl.uniform1f(uVignetteLoc, vignette?.value ?? 0.8)
 
     // Bind VBO and set attribute
     gl.bindBuffer(gl.ARRAY_BUFFER, vbo)
@@ -311,10 +369,12 @@ export function useFisheyeCanvas(
           gl.bindTexture(gl.TEXTURE_2D, texture)
           gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, bitmap)
           bitmap.close()
+          textureLoaded.value = true
           render()
         })
         .catch(() => {
-          // Silently fail — the CSS circle is still visible underneath
+          // Texture load failed (network error, 404, CORS) — signal parent to show fallback
+          textureLoaded.value = false
         })
     } else {
       // Fallback: Image element
@@ -324,7 +384,12 @@ export function useFisheyeCanvas(
         if (loadId !== currentLoadId || !gl || contextLost) return
         gl.bindTexture(gl.TEXTURE_2D, texture)
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img)
+        textureLoaded.value = true
         render()
+      }
+      img.onerror = () => {
+        // Texture load failed — signal parent to show fallback
+        textureLoaded.value = false
       }
       img.src = url
     }
@@ -332,8 +397,8 @@ export function useFisheyeCanvas(
 
   function syncCanvasSize(canvas: HTMLCanvasElement, width: number, height: number) {
     const maxDim = 2048
-    canvas.width = Math.min(width, maxDim)
-    canvas.height = Math.min(height, maxDim)
+    canvas.width = Math.min(Math.round(width), maxDim)
+    canvas.height = Math.min(Math.round(height), maxDim)
     if (gl && !contextLost) {
       gl.viewport(0, 0, canvas.width, canvas.height)
       render()
@@ -475,8 +540,11 @@ export function useFisheyeCanvas(
     loadTexture(newUrl)
   })
 
-  // Watch for distortion/aberration changes to re-render
-  watch([distortion, aberration], () => {
+  // Watch for uniform changes to re-render
+  const watchSources: Ref<number>[] = [distortion, aberration, strength]
+  if (specular) watchSources.push(specular)
+  if (vignette) watchSources.push(vignette)
+  watch(watchSources, () => {
     render()
   })
 
@@ -486,5 +554,7 @@ export function useFisheyeCanvas(
 
   return {
     webglAvailable,
+    textureLoaded,
+    render,
   }
 }

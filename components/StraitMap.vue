@@ -3,7 +3,17 @@ import { ref, computed, watch, onMounted, onBeforeUnmount } from 'vue'
 import { scaleSqrt } from 'd3-scale'
 import { min, max } from 'd3-array'
 import { straits, meta, historical, LATEST_YEAR, historicalByStrait } from '~/utils/straitsData'
+import { flowConfigs } from '~/data/straits/flow-configs'
+import { useReducedMotion } from '~/composables/useReducedMotion'
 import type { Strait } from '~/types/strait'
+
+// Preload strait background images so they're cached before click
+useHead({
+  link: Object.values(flowConfigs)
+    .map((c) => c.backgroundImage)
+    .filter((v, i, a) => a.indexOf(v) === i) // dedupe
+    .map((href) => ({ rel: 'preload', as: 'image', href })),
+})
 
 // --- Props & Emits (dual-mode: route-driven vs local-state for embeds) ---
 const props = withDefaults(defineProps<{
@@ -68,11 +78,8 @@ const effectiveSelectedId = computed(() =>
 const zoomingOut = ref(false)
 const zoomOutFromId = ref<string | null>(null)
 
-// Detect prefers-reduced-motion for timer delays
-const prefersReducedMotion = ref(false)
-onMounted(() => {
-  prefersReducedMotion.value = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-})
+// Shared composable for prefers-reduced-motion detection (see todo #138)
+const prefersReducedMotion = useReducedMotion()
 
 // Initialize panelsVisible based on whether we have a deep-link selection
 const panelsVisible = ref(!!props.selectedStraitId)
@@ -242,13 +249,22 @@ function getZoomedPosY(strait: Strait) {
   return (strait.posY - s.posY) * zoomScale.value + 50
 }
 
-function getZoomedRadius(strait: Strait) {
-  if (strait.id === effectiveSelectedId.value) {
-    return innerSize.value.h * 0.45
-  }
+function getBaseRadius(strait: Strait) {
   return radiusScale.value(getMetricValue(strait.id))
 }
 
+function straitZoomStyle(strait: Strait) {
+  const dx = ((getZoomedPosX(strait) - strait.posX) / 100) * innerSize.value.w
+  const dy = ((getZoomedPosY(strait) - strait.posY) / 100) * innerSize.value.h
+  const style: Record<string, string | number> = { translate: `${dx}px ${dy}px` }
+
+  if (strait.id === effectiveSelectedId.value) {
+    const baseR = getBaseRadius(strait)
+    style.scale = (innerSize.value.h * 0.45) / baseR
+  }
+
+  return style
+}
 
 const OVERLAP_PAIRS = new Set(['taiwan', 'luzon'])
 
@@ -294,8 +310,8 @@ const panelFallbackLeft = computed(() => {
   const s = selectedStrait.value
   const x = getZoomedPosX(s)
   const y = getZoomedPosY(s)
-  const r = getZoomedRadius(s)
-  const rPct = (r / innerSize.value.w) * 100
+  const visualR = innerSize.value.h * 0.45
+  const rPct = (visualR / innerSize.value.w) * 100
   return {
     top: `${y}%`,
     right: `${100 - x + rPct}%`,
@@ -308,8 +324,8 @@ const panelFallbackRight = computed(() => {
   const s = selectedStrait.value
   const x = getZoomedPosX(s)
   const y = getZoomedPosY(s)
-  const r = getZoomedRadius(s)
-  const rPct = (r / innerSize.value.w) * 100
+  const visualR = innerSize.value.h * 0.45
+  const rPct = (visualR / innerSize.value.w) * 100
   return {
     top: `${y}%`,
     left: `${x + rPct}%`,
@@ -359,10 +375,10 @@ const legendEntries = computed(() => {
         :id="strait.id"
         :name="strait.name"
         :global-share-label="strait.globalShareLabel"
-        :pos-x="getZoomedPosX(strait)"
-        :pos-y="getZoomedPosY(strait)"
+        :pos-x="strait.posX"
+        :pos-y="strait.posY"
         :label-anchor="strait.labelAnchor"
-        :radius="getZoomedRadius(strait)"
+        :radius="getBaseRadius(strait)"
         :color="getColor(strait.id)"
         :hidden="isHidden(strait)"
         :dimmed="!!hoveredStraitId && hoveredStraitId !== strait.id"
@@ -371,6 +387,7 @@ const legendEntries = computed(() => {
         :disabled="!!effectiveSelectedId && effectiveSelectedId !== strait.id"
         :zooming-out="zoomingOut && strait.id !== zoomOutFromId"
         :year="LATEST_YEAR"
+        :style="straitZoomStyle(strait)"
         @hover="onHover"
         @activate="onActivate"
       />

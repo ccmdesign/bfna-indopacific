@@ -99,7 +99,7 @@ export function useParticleFlow(options: {
   // Reactive params
   const params = reactive(defaultFlowParams({
     particleCount: resolvedConfig.value?.particleCount ?? 120,
-    showDebug: !isProductionMode,
+    showDebug: debug?.value ?? !isProductionMode,
     ...options.params,
   }))
 

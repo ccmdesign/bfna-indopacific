@@ -48,7 +48,7 @@ function onFocusOut(event: FocusEvent) {
     @focusin="emit('hover', id)"
     @focusout="onFocusOut($event)"
   >
-    <StraitCircle :radius="radius" :color="color" :active="active" :selected="selected" :strait-id="id" :year="year" :image-url="selected ? `/assets/images/straits/${id}.jpg` : undefined" />
+    <StraitCircle :radius="radius" :color="color" :active="active" :selected="selected" :strait-id="id" :year="year" />
     <StraitLabel :text="name" :anchor="(id === 'taiwan' || id === 'luzon') ? 'right' : 'below'" :radius="radius" />
   </div>
 </template>
@@ -59,7 +59,7 @@ function onFocusOut(event: FocusEvent) {
   transform: translate(-50%, -50%);
   transform-origin: 0 0;
   cursor: pointer;
-  transition: opacity 0.4s ease, scale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.6s cubic-bezier(0.4, 0, 0.2, 1), top 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: opacity 0.4s ease, scale 0.6s cubic-bezier(0.4, 0, 0.2, 1), translate 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .strait-data--dimmed {

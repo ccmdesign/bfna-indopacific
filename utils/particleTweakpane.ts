@@ -11,13 +11,14 @@ export async function setupTweakpane(
   options: {
     enableDrag?: boolean
     canvas?: HTMLCanvasElement
+    container?: HTMLElement
     spineArrays?: [number, number, number, number][][]
     onSpineChange?: () => void
     spawnZones?: { entry: { start: number; end: number }; exit: { start: number; end: number } }
   } = {},
 ): Promise<{ pane: any; dispose: () => void }> {
   const { Pane } = await import('tweakpane')
-  const pane = new Pane({ title: 'Particle Controls' }) as any
+  const pane = new Pane({ title: 'Particle Controls', container: options.container }) as any
 
   // Flow & Movement
   const flow = pane.addFolder({ title: 'Flow & Movement' })
