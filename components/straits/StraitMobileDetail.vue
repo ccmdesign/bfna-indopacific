@@ -56,8 +56,9 @@ useSwipeNavigation(detailRef, {
       direction === 'left' ? 'next' : 'prev'
     )
     if (target) {
-      // Remove the dummy history entry before navigating so replace targets the route entry
-      history.replaceState(null, '')
+      // Remove the dummy history entry's straitTransition marker before navigating,
+      // but preserve a non-null state to avoid race with popstate handler
+      history.replaceState({ swipeNavigating: true }, '')
       navigateTo(`/infographics/straits/${target.id}`, { replace: true })
     }
   }
@@ -145,6 +146,11 @@ const hasQualContent = computed(() =>
     class="strait-mobile-detail"
     :aria-busy="transitionState === 'animating-forward' || transitionState === 'animating-back'"
   >
+    <!-- Screen reader announcement for swipe navigation -->
+    <div class="visually-hidden" aria-live="polite" aria-atomic="true">
+      Now viewing: {{ strait.name }}
+    </div>
+
     <!-- Sticky back bar -->
     <nav :class="contentClassMap[0]" class="strait-mobile-detail__nav" aria-label="Back navigation">
       <button

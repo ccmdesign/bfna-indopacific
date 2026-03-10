@@ -62,9 +62,10 @@ export function useSwipeNavigation(
   const maxVerticalRatio = options.maxVerticalRatio ?? 0.5
   const edgeZone = options.edgeZone ?? 25
 
+  const deadZone = 10 // minimum px movement before evaluating gesture direction
+
   let startX = 0
   let startY = 0
-  let startTime = 0
   let rejected = false
   let isNavigating = false
 
@@ -85,7 +86,6 @@ export function useSwipeNavigation(
 
     startX = x
     startY = e.touches[0].clientY
-    startTime = Date.now()
     rejected = false
   }
 
@@ -94,6 +94,9 @@ export function useSwipeNavigation(
 
     const dx = Math.abs(e.touches[0].clientX - startX)
     const dy = Math.abs(e.touches[0].clientY - startY)
+
+    // Wait until finger moves past dead zone before evaluating direction
+    if (Math.max(dx, dy) < deadZone) return
 
     // Early rejection: if the gesture is clearly vertical, stop tracking
     if (dx > 0 && dy / dx > maxVerticalRatio) {
@@ -143,5 +146,13 @@ export function useSwipeNavigation(
       el.removeEventListener('touchend', onTouchEnd)
       el.removeEventListener('touchcancel', onTouchCancel)
     })
+  })
+}
+
+// Reset module-level state on HMR to prevent stale flags
+if (import.meta.hot) {
+  import.meta.hot.accept(() => {
+    _isSwipeNavigation = false
+    _slideDirection.value = null
   })
 }
