@@ -72,6 +72,10 @@ function onTransitionAfterEnter() {
   clearSlideDirection()
 }
 
+// --- Size metric (shared between StraitMap and StraitHeader) ---
+type SizeMetric = 'tonnage' | 'ships' | 'value'
+const sizeMetric = ref<SizeMetric>('tonnage')
+
 function onSelect(id: string | null) {
   if (id) {
     navigateTo({ path: `/infographics/straits/${id}` })
@@ -86,8 +90,14 @@ function onSelect(id: string | null) {
   <StraitMap
     v-if="!isMobile"
     :selected-strait-id="straitId"
+    :size-metric="sizeMetric"
     class="strait-map"
     @select="onSelect"
+  />
+  <StraitHeader
+    v-if="!isMobile && !straitId"
+    :size-metric="sizeMetric"
+    @update:size-metric="sizeMetric = $event"
   />
   <!-- Mobile: client-only (depends on viewport detection) -->
   <ClientOnly v-else>

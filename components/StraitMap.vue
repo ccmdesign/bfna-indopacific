@@ -18,8 +18,10 @@ useHead({
 // --- Props & Emits (dual-mode: route-driven vs local-state for embeds) ---
 const props = withDefaults(defineProps<{
   selectedStraitId?: string | null
+  sizeMetric?: 'tonnage' | 'ships' | 'value'
 }>(), {
-  selectedStraitId: undefined
+  selectedStraitId: undefined,
+  sizeMetric: 'tonnage'
 })
 
 const emit = defineEmits<{
@@ -32,18 +34,15 @@ const ZOOM_OUT_DURATION_MS = 600
 /** Delay before showing panels after zoom-in completes */
 const PANEL_SHOW_DELAY_MS = 650
 
-// --- Size metric toggle ---
-type SizeMetric = 'tonnage' | 'ships' | 'value'
-const sizeMetric = ref<SizeMetric>('tonnage')
-
+// --- Size metric ---
 function getMetricValue(straitId: string): number {
-  if (sizeMetric.value === 'value') {
+  if (props.sizeMetric === 'value') {
     const strait = straits.find((s) => s.id === straitId)
     return strait?.valueUSD ?? 0
   }
   const yearData = historical[LATEST_YEAR]?.[straitId]
   if (!yearData) return 0
-  return sizeMetric.value === 'tonnage' ? yearData.capacityMt : yearData.vessels.total
+  return props.sizeMetric === 'tonnage' ? yearData.capacityMt : yearData.vessels.total
 }
 
 // --- Circle scale ---
@@ -365,8 +364,8 @@ const panelFallbackRight = computed(() => {
 
 // --- Scale legend ---
 const metricLabel = computed(() => {
-  if (sizeMetric.value === 'tonnage') return 'Cargo (Mt)'
-  if (sizeMetric.value === 'ships') return 'Vessels'
+  if (props.sizeMetric === 'tonnage') return 'Cargo (Mt)'
+  if (props.sizeMetric === 'ships') return 'Vessels'
   return 'Trade Value (USD)'
 })
 
@@ -464,26 +463,6 @@ const legendEntries = computed(() => {
 
     <ScaleLegend :entries="legendEntries" :title="metricLabel" :class="{ 'controls-hidden': !!effectiveSelectedId }" />
 
-    <div class="metric-toggle" :class="{ 'controls-hidden': !!effectiveSelectedId }">
-      <button
-        :class="{ active: sizeMetric === 'tonnage' }"
-        @click="sizeMetric = 'tonnage'"
-      >
-        Trade Volume
-      </button>
-      <button
-        :class="{ active: sizeMetric === 'ships' }"
-        @click="sizeMetric = 'ships'"
-      >
-        N. of Ships
-      </button>
-      <button
-        :class="{ active: sizeMetric === 'value' }"
-        @click="sizeMetric = 'value'"
-      >
-        Trade Value
-      </button>
-    </div>
   </div>
 </template>
 
@@ -588,45 +567,6 @@ const legendEntries = computed(() => {
 .controls-hidden {
   opacity: 0;
   pointer-events: none;
-}
-
-.metric-toggle {
-  position: absolute;
-  bottom: 16px;
-  left: 16px;
-  display: flex;
-  gap: 0;
-  z-index: 1;
-  transition: opacity 0.3s ease;
-}
-
-.metric-toggle button {
-  padding: 6px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.5);
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 11px;
-  font-weight: 400;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.metric-toggle button:first-child {
-  border-radius: 4px 0 0 4px;
-}
-
-.metric-toggle button + button {
-  border-left: none;
-}
-
-.metric-toggle button:last-child {
-  border-radius: 0 4px 4px 0;
-}
-
-.metric-toggle button.active {
-  background: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.9);
 }
 
 @media (prefers-reduced-motion: reduce) {
