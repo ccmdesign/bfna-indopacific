@@ -33,6 +33,7 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
     }"
     :class="{ 'strait-circle--active': active, 'strait-circle--selected': selected }"
   >
+    <!-- <div class="glow-ring" aria-hidden="true" /> -->
     <img
       v-if="bgImageSrc"
       :src="bgImageSrc"
@@ -55,15 +56,61 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
   width: var(--diameter);
   height: var(--diameter);
   border-radius: 50%;
-  background: hsla(var(--h), var(--s), var(--l), 0.12);
-  border: none;
+  background: transparent;
   box-shadow: none;
-  transition: background 0.2s ease;
+  position: relative;
+  border: calc(2px / var(--zoom-scale, 1)) solid white;
+}
+
+/* Glow ring — real DOM element so it stacks reliably */
+.glow-ring {
+  position: absolute;
+  top: -4px;
+  left: -4px;
+  width: calc(100% + 8px);
+  height: calc(100% + 8px);
+  border-radius: 50%;
+  
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0.8),
+    rgba(0, 200, 200, 0.6),
+    rgba(30, 90, 200, 0.7),
+    rgba(0, 180, 220, 0.6),
+    rgba(255, 255, 255, 0.8),
+    rgba(50, 130, 220, 0.7),
+    rgba(0, 200, 200, 0.6),
+    rgba(255, 255, 255, 0.8)
+  );
+  filter: blur(24px);
+  animation: glow-spin 8s linear infinite;
+  opacity: 0.75;
+  transition: opacity 0.3s ease-in-out, filter 0.3s ease-in-out;
+  pointer-events: none;
+  /* Mask out the interior — only a ~4px ring is visible */
+  -webkit-mask: radial-gradient(circle, transparent calc(65% - 4px), black 35%);
+  mask: radial-gradient(circle, transparent calc(65% - 4px), black 35%);
+  outline: 4px solid white;
+}
+
+/* Hover: intensify the glow */
+.strait-circle--active .glow-ring {
+  opacity: 0.85;
+  filter: blur(24px);
 }
 
 .strait-circle--selected {
-  position: relative;
   overflow: hidden;
+}
+
+/* Selected: keep glow visible, fit inside the clipped area */
+.strait-circle--selected .glow-ring {
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.85;
+  filter: blur(24px);
 }
 
 .strait-bg-image {
@@ -83,11 +130,15 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
   scale: 1;
 }
 
-.strait-circle--active {
-  background: hsla(var(--h), var(--s), var(--l), 0.25);
+@keyframes glow-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .glow-ring {
+    animation: none;
+  }
   .strait-circle,
   .strait-bg-image {
     transition: none;

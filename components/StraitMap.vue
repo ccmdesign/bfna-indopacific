@@ -4,6 +4,7 @@ import { scaleSqrt } from 'd3-scale'
 import { min, max } from 'd3-array'
 import { straits, meta, historical, LATEST_YEAR, historicalByStrait } from '~/utils/straitsData'
 import { flowConfigs } from '~/data/straits/flow-configs'
+import { useTiltOnMouse } from '~/composables/useTiltOnMouse'
 import type { Strait } from '~/types/strait'
 
 // Preload strait background images so they're cached before click
@@ -161,6 +162,7 @@ watch(() => props.selectedStraitId, (newId, oldId) => {
 
 // --- Zoom ---
 const mapRef = ref<HTMLElement | null>(null)
+const { rotateX: tiltX, rotateY: tiltY } = useTiltOnMouse(mapRef)
 
 // --- Cover-fit inner wrapper (matches object-fit:cover for 2400x1350) ---
 const MAP_RATIO = 2400 / 1350 // ~1.778 (16:9)
@@ -262,7 +264,9 @@ function straitZoomStyle(strait: Strait) {
 
   if (strait.id === effectiveSelectedId.value) {
     const baseR = getBaseRadius(strait)
-    style.scale = (innerSize.value.h * 0.45) / baseR
+    const s = (innerSize.value.h * 0.45) / baseR
+    style.scale = s
+    style['--zoom-scale'] = s
   }
 
   return style
@@ -402,6 +406,8 @@ const legendEntries = computed(() => {
         :strait="selectedStrait"
         :historical="historicalByStrait(selectedStrait.id)"
         :year="LATEST_YEAR"
+        :tilt-x="tiltX"
+        :tilt-y="tiltY"
         class="strait-panel-left"
         :style="panelFallbackLeft"
       />
@@ -412,6 +418,8 @@ const legendEntries = computed(() => {
         v-if="panelsVisible && selectedStrait"
         :key="'qual-' + selectedStrait.id"
         :strait="selectedStrait"
+        :tilt-x="tiltX"
+        :tilt-y="tiltY"
         class="strait-panel-right"
         :style="panelFallbackRight"
         @close="deselect"

@@ -5,6 +5,8 @@ const props = defineProps<{
   strait: Strait
   historical: Record<string, { capacityMt: number; vessels: { total: number; container: number; dryBulk: number; tanker: number }; capacityByType: { container: number; dryBulk: number; tanker: number } }>
   year: string
+  tiltX: number
+  tiltY: number
 }>()
 
 const yearData = computed(() => props.historical[props.year])
@@ -30,39 +32,49 @@ function fmtUsd(v: number): string {
 function fmtNum(v: number): string {
   return v.toLocaleString('en-US')
 }
+
 </script>
 
 <template>
-  <div class="quant-panel" @click.stop>
-    <!-- Hero stat: Trade value -->
-    <div class="quant-panel__hero">
-      <span class="quant-panel__hero-value">{{ fmtUsd(strait.valueUSD) }}</span>
-      <span class="quant-panel__hero-label">Annual trade value</span>
+  <div
+    class="quant-plane"
+    :style="{
+      transform: `perspective(800px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`,
+    }"
+    @click.stop
+  >
+    <!-- Thin top rule -->
+    <div class="plane-rule" />
+
+    <!-- Hero stat -->
+    <div class="plane-hero">
+      <span class="plane-hero__value">{{ fmtUsd(strait.valueUSD) }}</span>
+      <span class="plane-hero__label">Annual Trade Value</span>
     </div>
 
-    <!-- Key metrics row -->
-    <div class="quant-panel__metrics">
-      <div v-if="strait.oilMbpd != null" class="quant-panel__metric">
-        <span class="quant-panel__metric-value">{{ strait.oilMbpd }}</span>
-        <span class="quant-panel__metric-label">Oil mb/d</span>
+    <!-- Key metrics -->
+    <div class="plane-metrics">
+      <div v-if="strait.oilMbpd != null" class="plane-metric">
+        <span class="plane-metric__value">{{ strait.oilMbpd }}</span>
+        <span class="plane-metric__label">Oil mb/d</span>
       </div>
-      <div v-if="strait.lngBcfd != null" class="quant-panel__metric">
-        <span class="quant-panel__metric-value">{{ strait.lngBcfd }}</span>
-        <span class="quant-panel__metric-label">LNG bcf/d</span>
+      <div v-if="strait.lngBcfd != null" class="plane-metric">
+        <span class="plane-metric__value">{{ strait.lngBcfd }}</span>
+        <span class="plane-metric__label">LNG bcf/d</span>
       </div>
-      <div v-if="yearData" class="quant-panel__metric">
-        <span class="quant-panel__metric-value">{{ fmtNum(yearData.capacityMt) }}</span>
-        <span class="quant-panel__metric-label">Cargo Mt</span>
+      <div v-if="yearData" class="plane-metric">
+        <span class="plane-metric__value">{{ fmtNum(yearData.capacityMt) }}</span>
+        <span class="plane-metric__label">Cargo Mt</span>
       </div>
-      <div v-if="yearData" class="quant-panel__metric">
-        <span class="quant-panel__metric-value">{{ fmtNum(yearData.vessels.total) }}</span>
-        <span class="quant-panel__metric-label">Vessels</span>
+      <div v-if="yearData" class="plane-metric">
+        <span class="plane-metric__value">{{ fmtNum(yearData.vessels.total) }}</span>
+        <span class="plane-metric__label">Vessels</span>
       </div>
     </div>
 
-    <!-- Vessel breakdown bar -->
-    <div v-if="vesselSegments.length" class="quant-panel__bar-section">
-      <h3 class="quant-panel__section-title">Vessel Breakdown</h3>
+    <!-- Vessel breakdown -->
+    <div v-if="vesselSegments.length" class="plane-section">
+      <h3 class="plane-section__title">Vessel Breakdown</h3>
       <div class="stacked-bar">
         <div class="stacked-bar__track">
           <div
@@ -71,130 +83,158 @@ function fmtNum(v: number): string {
             class="stacked-bar__segment"
             :style="{ width: seg.pct + '%', background: seg.color }"
           >
-            <span v-if="seg.pct > 15" class="stacked-bar__value">{{ Math.round(seg.pct) }}%</span>
+            <span v-if="seg.pct > 15" class="stacked-bar__pct">{{ Math.round(seg.pct) }}%</span>
           </div>
         </div>
         <div class="stacked-bar__legend">
           <span v-for="seg in vesselSegments" :key="seg.key" class="stacked-bar__legend-item">
             <span class="stacked-bar__dot" :style="{ background: seg.color }" />
-            {{ seg.label }} <span class="stacked-bar__legend-count">{{ fmtNum(seg.value) }}</span>
+            {{ seg.label }}
+            <span class="stacked-bar__count">{{ fmtNum(seg.value) }}</span>
           </span>
         </div>
       </div>
     </div>
 
-    <!-- Historical trend chart -->
+    <!-- Historical chart -->
     <StraitHistoryChart v-if="Object.keys(historical).length > 1" :historical="historical" />
   </div>
 </template>
 
 <style scoped>
-.quant-panel {
+/* ─── 3D Glass Plane ─── */
+.quant-plane {
   width: 280px;
   max-height: 100%;
   overflow-y: auto;
-  padding: 20px;
-  color: rgba(255, 255, 255, 0.85);
-  font-family: 'Encode Sans', sans-serif;
+  padding: 24px 24px 20px;
+
+  /* Swiss typography base */
+  color: #fff;
+  font-family: 'Encode Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   font-size: 12px;
   line-height: 1.5;
-  background: var(--color-card-bg);
-  border: 1px solid var(--color-card-border);
-  border-radius: 12px;
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  box-shadow:
-    0 4px 24px rgba(0, 0, 0, 0.4),
-    0 0 0 1px rgba(255, 255, 255, 0.05) inset;
+
+  /* No background */
+  background: transparent;
+  border: none;
+  border-radius: 0;
+
+  /* 3D setup */
+  transform-style: preserve-3d;
+  will-change: transform;
+  transition: transform 0.15s ease-out;
 }
 
-.quant-panel::-webkit-scrollbar { width: 4px; }
-.quant-panel::-webkit-scrollbar-track { background: transparent; }
-.quant-panel::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.15); border-radius: 2px; }
+.quant-plane::-webkit-scrollbar { width: 3px; }
+.quant-plane::-webkit-scrollbar-track { background: transparent; }
+.quant-plane::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 1px; }
 
-/* --- Hero stat --- */
-.quant-panel__hero {
+/* ─── Top rule ─── */
+.plane-rule {
+  width: 100%;
+  height: 1px;
+  background: #fff;
+  margin-bottom: 20px;
+  opacity: 0.6;
+}
+
+/* ─── Hero stat ─── */
+.plane-hero {
   display: flex;
   flex-direction: column;
-  padding: 14px 16px;
-  margin-bottom: 16px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 24px;
 }
 
-.quant-panel__hero-value {
-  font-size: 28px;
+.plane-hero__value {
+  font-size: 36px;
   font-weight: 700;
   color: #fff;
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  letter-spacing: -0.03em;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
-.quant-panel__hero-label {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.4);
+.plane-hero__label {
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-top: 4px;
+  letter-spacing: 0.12em;
+  margin-top: 6px;
 }
 
-/* --- Key metrics row --- */
-.quant-panel__metrics {
+/* ─── Key metrics grid ─── */
+.plane-metrics {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 16px;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin-bottom: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-.quant-panel__metric {
+.plane-metric {
   display: flex;
   flex-direction: column;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 6px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 12px 0;
+  border-bottom: none;
 }
 
-.quant-panel__metric-value {
-  font-size: 15px;
+.plane-metric:nth-child(odd) {
+  padding-right: 12px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.plane-metric:nth-child(even) {
+  padding-left: 12px;
+}
+
+/* Top row gets a bottom border when there are 4 items */
+.plane-metric:nth-child(-n+2) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.plane-metric__value {
+  font-size: 18px;
   font-weight: 600;
   color: #fff;
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
 }
 
-.quant-panel__metric-label {
-  font-size: 10px;
+.plane-metric__label {
+  font-size: 9px;
+  font-weight: 500;
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 2px;
+  letter-spacing: 0.1em;
+  margin-top: 3px;
 }
 
-/* --- Section titles --- */
-.quant-panel__section-title {
-  font-size: 10px;
+/* ─── Section titles ─── */
+.plane-section {
+  margin-bottom: 20px;
+}
+
+.plane-section__title {
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
   color: rgba(255, 255, 255, 0.35);
-  margin: 0 0 8px;
+  margin: 0 0 10px;
 }
 
-.quant-panel__bar-section {
-  margin-bottom: 16px;
-}
-
-/* --- Stacked bar --- */
+/* ─── Stacked bar ─── */
 .stacked-bar { width: 100%; }
 
 .stacked-bar__track {
   display: flex;
   width: 100%;
-  height: 24px;
-  border-radius: 4px;
+  height: 3px;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -209,47 +249,44 @@ function fmtNum(v: number): string {
 }
 
 .stacked-bar__segment + .stacked-bar__segment {
-  border-left: 1px solid rgba(0, 0, 0, 0.3);
+  border-left: 1px solid rgba(0, 0, 0, 0.4);
 }
 
-.stacked-bar__value {
-  font-size: 10px;
-  font-weight: 600;
-  color: #fff;
-  font-variant-numeric: tabular-nums;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-  white-space: nowrap;
+.stacked-bar__pct {
+  display: none; /* too thin for inline percentages */
 }
 
 .stacked-bar__legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 8px;
+  gap: 12px;
+  margin-top: 10px;
 }
 
 .stacked-bar__legend-item {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.6);
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 0.02em;
 }
 
 .stacked-bar__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 0;
   flex-shrink: 0;
 }
 
-.stacked-bar__legend-count {
+.stacked-bar__count {
   color: rgba(255, 255, 255, 0.85);
-  font-weight: 500;
+  font-weight: 600;
   font-variant-numeric: tabular-nums;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .quant-panel { transition: none; }
+  .quant-plane { transition: none; }
 }
 </style>
