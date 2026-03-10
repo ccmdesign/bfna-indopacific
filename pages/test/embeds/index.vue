@@ -7,7 +7,8 @@
 <script setup lang="ts">
 definePageMeta({
   layoutClass: 'layout-test',
-  suppressRotateOverlay: true
+  suppressRotateOverlay: true,
+  hideFooter: true,
 })
 
 useHead({
