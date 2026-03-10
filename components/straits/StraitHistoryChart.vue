@@ -107,28 +107,8 @@ const vesselColor = 'rgba(255, 180, 100, 0.9)'
 
       <!-- Cargo line -->
       <path :d="cargoLine" fill="none" :stroke="cargoColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" />
-      <!-- Cargo dots -->
-      <circle
-        v-for="(val, i) in cargoData"
-        :key="'c-' + i"
-        :cx="xScale(years[i])!"
-        :cy="yScaleCargo(val)"
-        r="2.5"
-        :fill="cargoColor"
-      />
-
       <!-- Vessel line -->
       <path :d="vesselLine" fill="none" :stroke="vesselColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="4 3" />
-      <!-- Vessel dots -->
-      <circle
-        v-for="(val, i) in vesselData"
-        :key="'v-' + i"
-        :cx="xScale(years[i])!"
-        :cy="yScaleVessels(val)"
-        r="2.5"
-        :fill="vesselColor"
-      />
-
       <!-- Left Y axis labels (Cargo) -->
       <text
         v-for="tick in cargoTicks"

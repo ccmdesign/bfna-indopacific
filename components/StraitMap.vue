@@ -162,6 +162,9 @@ watch(() => props.selectedStraitId, (newId, oldId) => {
 
 // --- Zoom ---
 const mapRef = ref<HTMLElement | null>(null)
+const circleSlotRef = ref<HTMLElement | null>(null)
+const circleSlotSize = ref(0)
+const circleSlotCenter = ref({ x: 0, y: 0 }) // center relative to map-inner, as %
 const { rotateX: tiltX, rotateY: tiltY } = useTiltOnMouse(mapRef)
 
 // --- Cover-fit inner wrapper (matches object-fit:cover for 2400x1350) ---
@@ -176,6 +179,19 @@ onMounted(() => {
   const update = () => {
     containerW.value = mapRef.value!.offsetWidth
     containerH.value = mapRef.value!.offsetHeight
+    if (circleSlotRef.value) {
+      const slotRect = circleSlotRef.value.getBoundingClientRect()
+      circleSlotSize.value = slotRect.width
+      // Compute slot center as % of map-inner (the cover-fit container)
+      const mapRect = mapRef.value!.getBoundingClientRect()
+      const { w, h } = innerSize.value
+      const innerLeft = (mapRect.width - w) / 2
+      const innerTop = (mapRect.height - h) / 2
+      circleSlotCenter.value = {
+        x: ((slotRect.left - mapRect.left - innerLeft) + slotRect.width / 2) / w * 100,
+        y: ((slotRect.top - mapRect.top - innerTop) + slotRect.height / 2) / h * 100,
+      }
+    }
   }
   update()
   resizeObserver = new ResizeObserver(update)
@@ -227,8 +243,9 @@ const selectedStrait = computed(() =>
 const zoomScale = computed(() => {
   const s = selectedStrait.value
   if (!s) return 1
-  const h = innerSize.value.h
-  return (h * 0.9) / (radiusScale.value(getMetricValue(s.id)) * 2)
+  // Target diameter comes from the CSS grid slot (columns 4-10, aspect-ratio 1:1)
+  const targetDiameter = circleSlotSize.value || 1
+  return targetDiameter / (radiusScale.value(getMetricValue(s.id)) * 2)
 })
 
 const mapBgTransform = computed(() => {
@@ -236,21 +253,23 @@ const mapBgTransform = computed(() => {
   if (!s) return undefined
   const { w, h } = innerSize.value
   const S = zoomScale.value
-  const tx = w / 2 - (s.posX / 100) * w * S
-  const ty = h / 2 - (s.posY / 100) * h * S
+  const cx = (circleSlotCenter.value.x / 100) * w
+  const cy = (circleSlotCenter.value.y / 100) * h
+  const tx = cx - (s.posX / 100) * w * S
+  const ty = cy - (s.posY / 100) * h * S
   return `translate(${tx}px, ${ty}px) scale(${S})`
 })
 
 function getZoomedPosX(strait: Strait) {
   const s = selectedStrait.value
   if (!s) return strait.posX
-  return (strait.posX - s.posX) * zoomScale.value + 50
+  return (strait.posX - s.posX) * zoomScale.value + circleSlotCenter.value.x
 }
 
 function getZoomedPosY(strait: Strait) {
   const s = selectedStrait.value
   if (!s) return strait.posY
-  return (strait.posY - s.posY) * zoomScale.value + 50
+  return (strait.posY - s.posY) * zoomScale.value + circleSlotCenter.value.y
 }
 
 function getBaseRadius(strait: Strait) {
@@ -264,7 +283,8 @@ function straitZoomStyle(strait: Strait) {
 
   if (strait.id === effectiveSelectedId.value) {
     const baseR = getBaseRadius(strait)
-    const s = (innerSize.value.h * 0.45) / baseR
+    const targetDiameter = circleSlotSize.value || 1
+    const s = targetDiameter / (baseR * 2)
     style.scale = s
     style['--zoom-scale'] = s
   }
@@ -316,12 +336,12 @@ const panelFallbackLeft = computed(() => {
   const s = selectedStrait.value
   const x = getZoomedPosX(s)
   const y = getZoomedPosY(s)
-  const visualR = innerSize.value.h * 0.45
+  const visualR = (circleSlotSize.value || 0) / 2
   const rPct = (visualR / innerSize.value.w) * 100
   return {
     top: `${y}%`,
     right: `${100 - x + rPct}%`,
-    translate: '-40px -50%',
+    translate: '-2rem -50%',
   }
 })
 
@@ -330,12 +350,12 @@ const panelFallbackRight = computed(() => {
   const s = selectedStrait.value
   const x = getZoomedPosX(s)
   const y = getZoomedPosY(s)
-  const visualR = innerSize.value.h * 0.45
+  const visualR = (circleSlotSize.value || 0) / 2
   const rPct = (visualR / innerSize.value.w) * 100
   return {
     top: `${y}%`,
     left: `${x + rPct}%`,
-    translate: '40px -50%',
+    translate: '2rem -50%',
   }
 })
 
@@ -358,6 +378,9 @@ const legendEntries = computed(() => {
 
 <template>
   <div ref="mapRef" class="strait-map" :aria-label="meta.title" @click="onBackgroundClick">
+    <!-- Invisible grid slot: defines 1:1 circle area at columns 4-10 -->
+    <div ref="circleSlotRef" class="circle-slot" />
+
     <div class="map-inner" data-map-bg :style="mapInnerStyle">
       <img
         class="map-bg"
@@ -453,10 +476,28 @@ const legendEntries = computed(() => {
   height: 100%;
   overflow: hidden;
   background: #0a1628;
+
+  /* Inherit parent grid columns so children can use column placement */
+  display: grid;
+  grid-template-columns: subgrid;
+  grid-template-rows: subgrid;
+}
+
+/* Invisible slot that defines the 1:1 circle area in columns 4-9 */
+.circle-slot {
+  grid-column: 4 / 9;
+  grid-row: 1 / -1;
+  place-self: center;
+  aspect-ratio: 1;
+  width: 100%;
+  max-height: 100%;
+  pointer-events: none;
 }
 
 .map-inner {
-  position: absolute;
+  grid-column: 1 / -1;
+  grid-row: 1 / -1;
+  position: relative;
 }
 
 .map-bg {
@@ -504,14 +545,14 @@ const legendEntries = computed(() => {
     position-anchor: --selected-strait;
     top: anchor(center);
     right: anchor(left);
-    translate: -40px -50%;
+    translate: -2rem -50%;
   }
 
   .strait-panel-right {
     position-anchor: --selected-strait;
     top: anchor(center);
     left: anchor(right);
-    translate: 40px -50%;
+    translate: 2rem -50%;
   }
 }
 
