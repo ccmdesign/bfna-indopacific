@@ -83,9 +83,19 @@ function onFocusOut(event: FocusEvent) {
   transition: opacity 0.4s ease, scale 0.6s cubic-bezier(0.4, 0, 0.2, 1), translate 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.strait-data--dimmed {
+.strait-data--dimmed :deep(.strait-circle) {
+  border-color: rgba(255, 255, 255, 0.3);
+  transition: border-color 0.3s ease, transform 0.15s ease-out, width 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.strait-data--dimmed :deep(.snapshot-overlay) {
   opacity: 0.3;
-  transition: opacity 0.3s ease, scale 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: opacity 0.3s ease;
+}
+
+.strait-data--dimmed :deep(.strait-label) {
+  opacity: 0.3;
+  transition: opacity 0.3s ease;
 }
 
 .strait-data--hidden {

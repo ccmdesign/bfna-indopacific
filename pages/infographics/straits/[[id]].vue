@@ -72,9 +72,64 @@ function onTransitionAfterEnter() {
   clearSlideDirection()
 }
 
-// --- Size metric (shared between StraitMap and StraitHeader) ---
+// --- Size metric with auto-cycle ---
 type SizeMetric = 'tonnage' | 'ships' | 'value'
+const METRICS: SizeMetric[] = ['tonnage', 'ships', 'value']
+const IDLE_TIMEOUT = 7000
+const CYCLE_INTERVAL = 7000
+
 const sizeMetric = ref<SizeMetric>('tonnage')
+const cycling = ref(false)
+// Bump to restart the CSS progress animation on each cycle tick
+const cycleKey = ref(0)
+let idleTimer: ReturnType<typeof setTimeout> | null = null
+let cycleTimer: ReturnType<typeof setInterval> | null = null
+
+function startCycling() {
+  if (cycleTimer) return
+  cycling.value = true
+  cycleKey.value++
+  cycleTimer = setInterval(() => {
+    const i = METRICS.indexOf(sizeMetric.value)
+    sizeMetric.value = METRICS[(i + 1) % METRICS.length]
+    cycleKey.value++
+  }, CYCLE_INTERVAL)
+}
+
+function stopCycling() {
+  if (cycleTimer) { clearInterval(cycleTimer); cycleTimer = null }
+  cycling.value = false
+}
+
+function resetIdleTimer() {
+  stopCycling()
+  if (idleTimer) clearTimeout(idleTimer)
+  if (!straitId.value) {
+    idleTimer = setTimeout(startCycling, IDLE_TIMEOUT)
+  }
+}
+
+watch(straitId, (id) => {
+  if (id) {
+    stopCycling()
+    if (idleTimer) { clearTimeout(idleTimer); idleTimer = null }
+  } else {
+    resetIdleTimer()
+  }
+})
+
+onMounted(() => {
+  window.addEventListener('mousemove', resetIdleTimer)
+  window.addEventListener('mousedown', resetIdleTimer)
+  resetIdleTimer()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('mousemove', resetIdleTimer)
+  window.removeEventListener('mousedown', resetIdleTimer)
+  stopCycling()
+  if (idleTimer) clearTimeout(idleTimer)
+})
 
 function onSelect(id: string | null) {
   if (id) {
@@ -97,6 +152,9 @@ function onSelect(id: string | null) {
   <StraitHeader
     v-if="!isMobile && !straitId"
     :size-metric="sizeMetric"
+    :cycling="cycling"
+    :cycle-duration="CYCLE_INTERVAL"
+    :cycle-key="cycleKey"
     @update:size-metric="sizeMetric = $event"
   />
   <!-- Mobile: client-only (depends on viewport detection) -->

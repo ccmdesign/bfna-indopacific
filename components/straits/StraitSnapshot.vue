@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { straits } from '~/utils/straitsData'
 import { historical, LATEST_YEAR } from '~/utils/straitsData'
 import type { Strait } from '~/types/strait'
@@ -70,11 +71,65 @@ function fmtNum(v: number): string {
 function fmtMt(v: number): string {
   return v.toLocaleString('en-US')
 }
+
+// --- Scramble number effect ---
+const SCRAMBLE_DURATION = 400 // total animation time in ms
+const SCRAMBLE_INTERVAL = 30  // tick interval in ms
+const SCRAMBLE_DIGITS = '0123456789'
+
+const displayValue = ref<string>(heroValue.value ?? '')
+let scrambleTimer: ReturnType<typeof setInterval> | null = null
+
+function scrambleChar(ch: string): string {
+  if (ch >= '0' && ch <= '9') {
+    return SCRAMBLE_DIGITS[Math.floor(Math.random() * 10)]
+  }
+  return ch
+}
+
+function scrambleTo(target: string) {
+  if (scrambleTimer) { clearInterval(scrambleTimer); scrambleTimer = null }
+
+  let elapsed = 0
+
+  scrambleTimer = setInterval(() => {
+    elapsed += SCRAMBLE_INTERVAL
+    const progress = Math.min(elapsed / SCRAMBLE_DURATION, 1)
+
+    // Reveal characters left-to-right as progress advances
+    const settled = Math.floor(progress * target.length)
+    let result = ''
+    for (let i = 0; i < target.length; i++) {
+      result += i < settled ? target[i] : scrambleChar(target[i])
+    }
+    displayValue.value = result
+
+    if (progress >= 1) {
+      clearInterval(scrambleTimer!)
+      scrambleTimer = null
+      displayValue.value = target
+    }
+  }, SCRAMBLE_INTERVAL)
+}
+
+watch(() => props.sizeMetric, () => {
+  scrambleTo(heroValue.value ?? '')
+})
+
+watch(heroValue, (val) => {
+  if (!scrambleTimer) {
+    displayValue.value = val ?? ''
+  }
+})
+
+onBeforeUnmount(() => {
+  if (scrambleTimer) clearInterval(scrambleTimer)
+})
 </script>
 
 <template>
   <div class="snapshot-overlay">
-    <span class="snapshot-hero" :style="{ fontSize: `${heroFontSize}px` }">{{ heroValue }}</span>
+    <span class="snapshot-hero" :style="{ fontSize: `${heroFontSize}px` }">{{ displayValue }}</span>
     <span class="snapshot-label">{{ heroLabel }}</span>
   </div>
 </template>
@@ -98,6 +153,7 @@ function fmtMt(v: number): string {
   letter-spacing: -0.03em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
+  transition: font-size 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .snapshot-label {

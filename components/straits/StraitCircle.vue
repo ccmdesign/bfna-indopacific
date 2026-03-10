@@ -34,6 +34,8 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
     class="strait-circle"
     :style="{
       '--diameter': `${radius * 2}px`,
+      width: `${radius * 2}px`,
+      height: `${radius * 2}px`,
       '--h': color.h,
       '--s': `${color.s}%`,
       '--l': `${color.l}%`,
@@ -78,7 +80,7 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
   position: relative;
   border: calc(2px / var(--zoom-scale, 1)) solid white;
   transform-style: preserve-3d;
-  transition: transform 0.15s ease-out;
+  transition: transform 0.15s ease-out, width 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Glow ring — real DOM element so it stacks reliably */

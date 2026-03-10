@@ -6,6 +6,9 @@ type SizeMetric = 'tonnage' | 'ships' | 'value'
 
 defineProps<{
   sizeMetric: SizeMetric
+  cycling?: boolean
+  cycleDuration?: number
+  cycleKey?: number
 }>()
 
 const emit = defineEmits<{
@@ -22,22 +25,18 @@ const emit = defineEmits<{
     </p>
     <div class="metric-toggle">
       <button
-        :class="{ active: sizeMetric === 'tonnage' }"
-        @click="emit('update:sizeMetric', 'tonnage')"
+        v-for="m in (['tonnage', 'ships', 'value'] as const)"
+        :key="m"
+        :class="{ active: sizeMetric === m }"
+        @click="emit('update:sizeMetric', m)"
       >
-        Trade Volume
-      </button>
-      <button
-        :class="{ active: sizeMetric === 'ships' }"
-        @click="emit('update:sizeMetric', 'ships')"
-      >
-        N. of Ships
-      </button>
-      <button
-        :class="{ active: sizeMetric === 'value' }"
-        @click="emit('update:sizeMetric', 'value')"
-      >
-        Trade Value
+        {{ m === 'tonnage' ? 'Trade Volume' : m === 'ships' ? 'N. of Ships' : 'Trade Value' }}
+        <span
+          v-if="cycling && sizeMetric === m"
+          :key="cycleKey"
+          class="cycle-progress"
+          :style="{ animationDuration: `${cycleDuration}ms` }"
+        />
       </button>
     </div>
     <p class="strait-header__source">{{ meta.dataSource }}</p>
@@ -93,23 +92,21 @@ const emit = defineEmits<{
 }
 
 .metric-toggle button {
-  padding: 7px 17px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  position: relative;
+  padding: 9px 21px;
+  border: none;
   background: rgba(255, 255, 255, 0.06);
   color: rgba(255, 255, 255, 0.5);
   font-family: 'Encode Sans', sans-serif;
-  font-size: 13px;
+  font-size: 16px;
   font-weight: 400;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease;
+  overflow: hidden;
 }
 
 .metric-toggle button:first-child {
   border-radius: 4px 0 0 4px;
-}
-
-.metric-toggle button + button {
-  border-left: none;
 }
 
 .metric-toggle button:last-child {
@@ -119,5 +116,26 @@ const emit = defineEmits<{
 .metric-toggle button.active {
   background: rgba(255, 255, 255, 0.15);
   color: rgba(255, 255, 255, 0.9);
+}
+
+.cycle-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.6);
+  animation: progress-grow linear forwards;
+}
+
+@keyframes progress-grow {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cycle-progress {
+    animation: none;
+    width: 100%;
+  }
 }
 </style>
