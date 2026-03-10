@@ -427,6 +427,8 @@ const legendEntries = computed(() => {
         :disabled="!!effectiveSelectedId && effectiveSelectedId !== strait.id"
         :zooming-out="zoomingOut && strait.id !== zoomOutFromId"
         :year="LATEST_YEAR"
+        :tilt-x="tiltX"
+        :tilt-y="tiltY"
         :style="straitZoomStyle(strait)"
         @hover="onHover"
         @activate="onActivate"

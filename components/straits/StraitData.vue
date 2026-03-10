@@ -22,6 +22,8 @@ const props = defineProps<{
   sizeMetric: 'tonnage' | 'ships' | 'value'
   disabled?: boolean
   year?: string
+  tiltX?: number
+  tiltY?: number
 }>()
 
 const emit = defineEmits<{
@@ -65,6 +67,8 @@ function onFocusOut(event: FocusEvent) {
       :vessels="vessels"
       :any-selected="anySelected"
       :size-metric="sizeMetric"
+      :tilt-x="tiltX"
+      :tilt-y="tiltY"
     />
     <StraitLabel :text="name" :anchor="(id === 'taiwan' || id === 'luzon') ? 'right' : 'below'" :radius="radius" />
   </div>

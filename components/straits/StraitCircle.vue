@@ -14,6 +14,8 @@ const props = defineProps<{
   vessels?: number
   anySelected?: boolean
   sizeMetric?: 'tonnage' | 'ships' | 'value'
+  tiltX?: number
+  tiltY?: number
 }>()
 
 const flowConfig = computed(() =>
@@ -35,6 +37,7 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
       '--h': color.h,
       '--s': `${color.s}%`,
       '--l': `${color.l}%`,
+      transform: selected ? 'none' : `perspective(600px) rotateX(${tiltX ?? 0}deg) rotateY(${tiltY ?? 0}deg)`,
     }"
     :class="{ 'strait-circle--active': active, 'strait-circle--selected': selected }"
   >
@@ -74,6 +77,8 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
   box-shadow: none;
   position: relative;
   border: calc(2px / var(--zoom-scale, 1)) solid white;
+  transform-style: preserve-3d;
+  transition: transform 0.15s ease-out;
 }
 
 /* Glow ring — real DOM element so it stacks reliably */
