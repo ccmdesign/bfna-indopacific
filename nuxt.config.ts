@@ -16,9 +16,9 @@ export default defineNuxtConfig({
     prerender: {
       routes: publishedInfographics.flatMap((i) => [
         `/embed/${i.slug}`,
-        `/infographics/${i.slug}`,
-        `/test/embeds/${i.slug}`
-      ])
+        `/infographics/${i.slug}`
+      ]),
+      ignore: [/^\/test\//]
     }
   },
 
