@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import type { Strait } from '~/types/strait'
 import { fmtUsd } from '~/utils/straitFormatters'
-import { LATEST_YEAR } from '~/utils/straitsData'
 import { useStraitTransition } from '~/composables/useStraitTransition'
 
 const props = defineProps<{
   strait: Strait
 }>()
-
-const CIRCLE_COLOR = { h: 218, s: 60, l: 58 }
 
 const thumbnailRef = ref<HTMLElement | null>(null)
 const { captureCard } = useStraitTransition()
@@ -19,6 +16,12 @@ function handleClick() {
   }
   // NuxtLink handles navigation
 }
+
+const thumbnailUrl = computed(() => {
+  if (!props.strait.imageUrl) return undefined
+  const name = props.strait.imageUrl.split('/').pop()?.replace('.webp', '') ?? ''
+  return `/assets/straits/thumbs/${name}.jpg`
+})
 
 const ariaLabel = computed(() =>
   `${props.strait.name}, ${props.strait.globalShareLabel}, ${fmtUsd(props.strait.valueUSD)} annual trade`
@@ -34,13 +37,13 @@ const ariaLabel = computed(() =>
       @click.capture="handleClick"
     >
       <div ref="thumbnailRef" class="strait-card__thumbnail">
-        <StraitCircle
-          :radius="36"
-          :color="CIRCLE_COLOR"
-          :active="false"
-          :image-url="strait.imageUrl"
-          :strait-id="strait.id"
-          :year="LATEST_YEAR"
+        <img
+          v-if="thumbnailUrl"
+          :src="thumbnailUrl"
+          :alt="strait.name"
+          class="strait-card__thumbnail-img"
+          width="72"
+          height="72"
         />
       </div>
       <div class="strait-card__content">
@@ -64,40 +67,43 @@ const ariaLabel = computed(() =>
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 14px 16px;
-  background: var(--color-card-bg);
-  border: 1px solid var(--color-card-border);
-  border-radius: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   text-decoration: none;
   color: inherit;
   min-height: 44px;
-  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 
 @media (hover: hover) {
   .strait-card__link:hover {
-    background: rgba(2, 38, 64, 1);
-    border-color: rgba(255, 255, 255, 0.25);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    opacity: 0.75;
   }
 }
 
 .strait-card__link:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline: 1px solid rgba(255, 255, 255, 0.6);
   outline-offset: 2px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 .strait-card__thumbnail {
   flex-shrink: 0;
-  width: 72px;
-  height: 72px;
+  width: 56px;
+  height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 50%;
-  -webkit-transform: translateZ(0); /* Safari overflow+radius compositing fix */
+  border-radius: 0;
+  -webkit-transform: translateZ(0);
+  transform: translateZ(0);
+}
+
+.strait-card__thumbnail-img {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  display: block;
 }
 
 .strait-card__content {
@@ -106,40 +112,43 @@ const ariaLabel = computed(() =>
 }
 
 .strait-card__name {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
-  color: var(--color-text-primary);
-  margin: 0 0 2px;
-  letter-spacing: -0.01em;
+  color: #fff;
+  margin: 0 0 3px;
+  letter-spacing: -0.02em;
 }
 
 .strait-card__share {
-  font-size: 12px;
-  color: var(--color-accent);
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.5);
   font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
   margin: 0 0 4px;
 }
 
 .strait-card__value {
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--color-text-secondary);
+  color: rgba(255, 255, 255, 0.85);
   margin: 0;
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .strait-card__value span {
   font-weight: 400;
-  font-size: 11px;
-  color: var(--color-text-dim);
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
   margin-left: 4px;
 }
 
 .strait-card__chevron {
   flex-shrink: 0;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.25);
 }
 
 @media (prefers-reduced-motion: reduce) {
