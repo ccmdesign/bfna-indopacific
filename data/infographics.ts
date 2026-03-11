@@ -26,7 +26,7 @@ export const infographics: InfographicEntry[] = [
     description:
       'Visualize maritime traffic through six critical chokepoints, from Malacca to Hormuz, with vessel data from 2019 to 2025.',
     embedTitle: 'Indo-Pacific Straits',
-    status: 'draft'
+    status: 'published'
   }
 ]
 
