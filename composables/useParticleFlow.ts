@@ -316,13 +316,13 @@ export function useParticleFlow(options: {
     // Particles
     for (const p of sim.particles) {
       ctx!.fillStyle = p.color
-      ctx!.globalAlpha = params.dotOpacity
+      ctx!.globalAlpha = params.dotOpacity * p.opacity
       ctx!.beginPath()
       ctx!.arc(p.x, p.y, p.radius, 0, TAU)
       ctx!.fill()
 
       if (params.showGlow && params.glowOpacity > 0) {
-        ctx!.globalAlpha = params.glowOpacity
+        ctx!.globalAlpha = params.glowOpacity * p.opacity
         ctx!.beginPath()
         ctx!.arc(p.x, p.y, p.radius * params.glowRadius, 0, TAU)
         ctx!.fill()
@@ -406,14 +406,19 @@ export function useParticleFlow(options: {
       ctx!.stroke()
     }
 
-    // Group particles by type once, then draw both dot and glow passes
+    // Group particles by type; separate fading particles for individual alpha draws
+    const fading: Particle[] = []
     const grouped: Record<ParticleType, Particle[]> = { container: [], dryBulk: [], tanker: [] }
     for (const p of sim.particles) {
-      const type = particleTypeMap.get(p) ?? 'tanker'
-      grouped[type].push(p)
+      if (p.opacity < 1) {
+        fading.push(p)
+      } else {
+        const type = particleTypeMap.get(p) ?? 'tanker'
+        grouped[type].push(p)
+      }
     }
 
-    // Dot pass
+    // Dot pass (batched, non-fading)
     for (const type of PARTICLE_TYPES) {
       const group = grouped[type]
       if (group.length === 0) continue
@@ -428,7 +433,7 @@ export function useParticleFlow(options: {
       ctx!.fill()
     }
 
-    // Glow pass
+    // Glow pass (batched, non-fading)
     for (const type of PARTICLE_TYPES) {
       const group = grouped[type]
       if (group.length === 0) continue
@@ -443,6 +448,22 @@ export function useParticleFlow(options: {
       }
       ctx!.fill()
     }
+
+    // Individual draw for fading particles (per-particle globalAlpha)
+    for (const p of fading) {
+      const type = particleTypeMap.get(p) ?? 'tanker'
+      ctx!.fillStyle = PARTICLE_COLORS[type]
+      ctx!.globalAlpha = 0.85 * p.opacity
+      ctx!.beginPath()
+      ctx!.arc(p.x, p.y, p.radius, 0, TAU)
+      ctx!.fill()
+      // Glow
+      ctx!.globalAlpha = 0.2 * p.opacity
+      ctx!.beginPath()
+      ctx!.arc(p.x, p.y, p.radius * 2.5, 0, TAU)
+      ctx!.fill()
+    }
+    ctx!.globalAlpha = 1 // Reset after fading draws
 
     ctx!.restore()
   }

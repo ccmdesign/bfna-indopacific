@@ -365,77 +365,91 @@ const hasQualContent = computed(() =>
 .strait-mobile-detail__hero-stat {
   display: flex;
   flex-direction: column;
-  padding: 16px 20px;
-  margin-bottom: 16px;
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 24px;
 }
 
 .strait-mobile-detail__hero-value {
-  font-size: 32px;
+  font-size: 36px;
   font-weight: 700;
-  color: var(--color-text-primary);
-  letter-spacing: -0.02em;
-  line-height: 1.1;
+  color: #fff;
+  letter-spacing: -0.03em;
+  line-height: 1;
   font-variant-numeric: tabular-nums;
 }
 
 .strait-mobile-detail__hero-label {
-  font-size: 12px;
-  color: var(--color-text-dim);
+  font-size: 10px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.45);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-top: 4px;
+  letter-spacing: 0.12em;
+  margin-top: 6px;
 }
 
 /* --- Key metrics --- */
 .strait-mobile-detail__metrics {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 10px;
-  margin-bottom: 20px;
+  gap: 0;
+  margin-bottom: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .strait-mobile-detail__metric {
   display: flex;
   flex-direction: column;
-  padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 14px 0;
+}
+
+.strait-mobile-detail__metric:nth-child(odd) {
+  padding-right: 14px;
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.strait-mobile-detail__metric:nth-child(even) {
+  padding-left: 14px;
+}
+
+.strait-mobile-detail__metric:nth-child(-n+2) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .strait-mobile-detail__metric-value {
   font-size: 18px;
   font-weight: 600;
-  color: var(--color-text-primary);
+  color: #fff;
   font-variant-numeric: tabular-nums;
-  line-height: 1.2;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
 }
 
 .strait-mobile-detail__metric-label {
-  font-size: 11px;
-  color: var(--color-text-dim);
+  font-size: 9px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-top: 2px;
+  letter-spacing: 0.1em;
+  margin-top: 3px;
 }
 
 /* --- Description --- */
 .strait-mobile-detail__desc {
   margin: 0 0 20px;
-  color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
+  padding-bottom: 20px;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 13px;
   line-height: 1.7;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* --- Divider between qual and quant sections --- */
 .strait-mobile-detail__divider {
   border: none;
   height: 1px;
-  background: rgba(255, 255, 255, 0.06);
-  margin: 0 0 20px;
+  background: #fff;
+  opacity: 0.6;
+  margin: 0 0 24px;
 }
 
 /* --- Sections --- */
@@ -444,10 +458,10 @@ const hasQualContent = computed(() =>
 }
 
 .strait-mobile-detail__section-title {
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.14em;
   color: rgba(255, 255, 255, 0.35);
   margin: 0 0 10px;
 }
@@ -456,24 +470,25 @@ const hasQualContent = computed(() =>
 .strait-mobile-detail__tags {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .strait-mobile-detail__tag {
-  padding: 6px 12px;
-  font-size: 12px;
+  padding: 5px 11px;
+  font-size: 10px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.75);
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 100px;
+  color: rgba(255, 255, 255, 0.7);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 0;
   white-space: nowrap;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .strait-mobile-detail__tag--threat {
-  color: var(--color-threat);
-  background: var(--color-threat-bg);
-  border-color: var(--color-threat-border);
+  color: hsl(348, 80%, 72%);
+  border-color: hsla(348, 60%, 55%, 0.3);
 }
 
 /* --- Key facts --- */
@@ -487,7 +502,7 @@ const hasQualContent = computed(() =>
   position: relative;
   padding-left: 14px;
   margin-bottom: 8px;
-  color: rgba(255, 255, 255, 0.65);
+  color: rgba(255, 255, 255, 0.6);
   font-size: 13px;
   line-height: 1.6;
 }
@@ -496,12 +511,11 @@ const hasQualContent = computed(() =>
   content: '';
   position: absolute;
   left: 0;
-  top: 8px;
-  width: 4px;
-  height: 4px;
-  border-radius: 1px;
-  background: var(--color-accent);
-  opacity: 0.6;
+  top: 9px;
+  width: 6px;
+  height: 1px;
+  border-radius: 0;
+  background: rgba(255, 255, 255, 0.35);
 }
 
 /* Stacked bar styles now live in public/styles.css */

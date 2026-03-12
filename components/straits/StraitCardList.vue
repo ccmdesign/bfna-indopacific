@@ -41,18 +41,20 @@ import { sortedStraits } from '~/utils/straitsData'
 }
 
 .strait-card-list__subtitle {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.45);
+  font-size: 9px;
+  color: rgba(255, 255, 255, 0.4);
   margin: 0;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.12em;
+  font-weight: 500;
 }
 
 .strait-card-list__grid {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
   margin: 0;
   padding: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
 }
 </style>
