@@ -78,6 +78,7 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
   -webkit-backdrop-filter: blur(3px);
   box-shadow: none;
   position: relative;
+  overflow: hidden;
   border: calc(2px / var(--zoom-scale, 1)) solid white;
   transform-style: preserve-3d;
   transition: transform 0.15s ease-out, width 0.4s cubic-bezier(0.4, 0, 0.2, 1), height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -118,10 +119,6 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
 .strait-circle--active .glow-ring {
   opacity: 0.85;
   filter: blur(24px);
-}
-
-.strait-circle--selected {
-  overflow: hidden;
 }
 
 /* Selected: keep glow visible, fit inside the clipped area */

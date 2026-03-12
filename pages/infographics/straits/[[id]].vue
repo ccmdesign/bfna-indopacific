@@ -17,6 +17,7 @@ definePageMeta({
 })
 
 const route = useRoute()
+const router = useRouter()
 const { isMobile } = useViewport()
 const { scrollY } = useStraitTransition()
 
@@ -24,7 +25,10 @@ const VALID_IDS = new Set(straits.map((s: Strait) => s.id))
 
 const straitId = computed(() => {
   const id = route.params.id as string | undefined
-  return id || undefined
+  if (id) return id
+  // Also check hash for client-side strait selection (no page reload)
+  const hash = route.hash?.replace('#', '')
+  return hash || null
 })
 
 // Validate route param reactively (handles param-only changes that skip beforeEnter)
@@ -136,10 +140,10 @@ function onSelect(id: string | null) {
   isStraitActive.value = !!id
   if (id) {
     document.body.dataset.strait = id
-    navigateTo({ path: `/infographics/straits/${id}` })
+    router.replace({ hash: `#${id}` })
   } else {
     delete document.body.dataset.strait
-    navigateTo({ path: '/infographics/straits' })
+    router.replace({ hash: '' })
   }
 }
 </script>

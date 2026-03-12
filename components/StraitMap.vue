@@ -46,17 +46,23 @@ function getMetricValue(straitId: string): number {
   return props.sizeMetric === 'tonnage' ? yearData.capacityMt : yearData.vessels.total
 }
 
-// --- Circle scale ---
-const RADIUS_MIN = 48
-const RADIUS_MAX = 144
+// --- Container dimensions (needed by radiusScale below) ---
+const containerW = ref(0)
+const containerH = ref(0)
+
+// --- Circle scale (vw-relative, based on design width 1280px) ---
+const DESIGN_WIDTH = 1280
 
 const radiusScale = computed(() => {
+  const vw = containerW.value || DESIGN_WIDTH
+  const rMin = Math.max(24, Math.round(vw * 48 / DESIGN_WIDTH))
+  const rMax = Math.max(72, Math.round(vw * 144 / DESIGN_WIDTH))
   const values = straits.map((s) => getMetricValue(s.id))
   const lo = min(values) ?? 0
   const hi = max(values) ?? 1
   return scaleSqrt()
     .domain([lo, hi])
-    .range([RADIUS_MIN, RADIUS_MAX])
+    .range([rMin, rMax])
     .clamp(true)
 })
 
@@ -192,8 +198,6 @@ const { rotateX: tiltX, rotateY: tiltY } = useTiltOnMouse(mapRef)
 
 // --- Cover-fit inner wrapper (matches object-fit:cover for 2400x1350) ---
 const MAP_RATIO = 2400 / 1350 // ~1.778 (16:9)
-const containerW = ref(0)
-const containerH = ref(0)
 
 let resizeObserver: ResizeObserver | null = null
 
@@ -315,11 +319,9 @@ function straitZoomStyle(strait: Strait) {
   return style
 }
 
-const OVERLAP_PAIRS = new Set(['taiwan', 'luzon'])
-
 function isHidden(strait: Strait) {
   if (!effectiveSelectedId.value) return false
-  return OVERLAP_PAIRS.has(strait.id) && OVERLAP_PAIRS.has(effectiveSelectedId.value) && strait.id !== effectiveSelectedId.value
+  return strait.id !== effectiveSelectedId.value
 }
 
 function deselect() {
@@ -351,40 +353,6 @@ function onBackgroundClick(event: MouseEvent) {
     deselect()
   }
 }
-
-// --- Panel fallback positioning (for browsers without CSS Anchor Positioning) ---
-const supportsAnchor = ref(false)
-onMounted(() => {
-  supportsAnchor.value = CSS.supports('anchor-name', '--x')
-})
-
-const panelFallbackLeft = computed(() => {
-  if (supportsAnchor.value || !selectedStrait.value) return undefined
-  const s = selectedStrait.value
-  const x = getZoomedPosX(s)
-  const y = getZoomedPosY(s)
-  const visualR = (circleSlotSize.value || 0) / 2
-  const rPct = (visualR / innerSize.value.w) * 100
-  return {
-    top: `${y}%`,
-    right: `${100 - x + rPct}%`,
-    translate: '-2rem -50%',
-  }
-})
-
-const panelFallbackRight = computed(() => {
-  if (supportsAnchor.value || !selectedStrait.value) return undefined
-  const s = selectedStrait.value
-  const x = getZoomedPosX(s)
-  const y = getZoomedPosY(s)
-  const visualR = (circleSlotSize.value || 0) / 2
-  const rPct = (visualR / innerSize.value.w) * 100
-  return {
-    top: `${y}%`,
-    left: `${x + rPct}%`,
-    translate: '2rem -50%',
-  }
-})
 
 // --- Scale legend ---
 const metricLabel = computed(() => {
@@ -468,7 +436,6 @@ const legendEntries = computed(() => {
         :tilt-x="tiltX"
         :tilt-y="tiltY"
         class="strait-panel-left"
-        :style="panelFallbackLeft"
       />
     </Transition>
 
@@ -480,7 +447,6 @@ const legendEntries = computed(() => {
         :tilt-x="tiltX"
         :tilt-y="tiltY"
         class="strait-panel-right"
-        :style="panelFallbackRight"
         @close="deselect"
       />
     </Transition>
@@ -505,9 +471,9 @@ const legendEntries = computed(() => {
   grid-template-rows: subgrid;
 }
 
-/* Invisible slot that defines the 1:1 circle area in columns 4-9 */
+/* Invisible slot that defines the 1:1 circle area in columns 4-10 (6 cols between panels) */
 .circle-slot {
-  grid-column: 4 / 9;
+  grid-column: 4 / 10;
   grid-row: 1 / -1;
   place-self: center;
   aspect-ratio: 1;
@@ -550,32 +516,31 @@ const legendEntries = computed(() => {
 }
 
 
+/* Panels occupy fixed outer columns, sitting above the full-bleed map */
 .strait-panel-left {
-  position: absolute;
+  grid-column: 1 / 4;
+  grid-row: 1 / -1;
   z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow-y: auto;
+  padding-block: var(--space-xl);
+  box-sizing: border-box;
+  justify-self: end;
 }
 
 .strait-panel-right {
-  position: absolute;
+  grid-column: 10 / 13;
+  grid-row: 1 / -1;
   z-index: 2;
-}
-
-/* CSS Anchor Positioning (Chromium 125+). Fallback for Firefox/Safari uses
-   JS-computed inline styles via panelFallbackLeft / panelFallbackRight. */
-@supports (anchor-name: --x) {
-  .strait-panel-left {
-    position-anchor: --selected-strait;
-    top: anchor(center);
-    right: anchor(left);
-    translate: -2rem -50%;
-  }
-
-  .strait-panel-right {
-    position-anchor: --selected-strait;
-    top: anchor(center);
-    left: anchor(right);
-    translate: 2rem -50%;
-  }
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  justify-self: start;
+  overflow-y: auto;
+  padding-block: var(--space-xl);
+  box-sizing: border-box;
 }
 
 .panel-fade-enter-active,
