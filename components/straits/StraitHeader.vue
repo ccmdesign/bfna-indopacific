@@ -140,6 +140,16 @@ const emit = defineEmits<{
   pointer-events: none;
 }
 
+@media (max-width: 1820px) {
+  .strait-header__title {
+    font-size: var(--size-2);
+  }
+
+  .strait-header__description {
+    font-size: var(--size-0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cycle-progress {
     animation: none;

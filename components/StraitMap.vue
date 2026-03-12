@@ -354,23 +354,6 @@ function onBackgroundClick(event: MouseEvent) {
   }
 }
 
-// --- Scale legend ---
-const metricLabel = computed(() => {
-  if (props.sizeMetric === 'tonnage') return 'Cargo (Mt)'
-  if (props.sizeMetric === 'ships') return 'Vessels'
-  return 'Trade Value (USD)'
-})
-
-const legendEntries = computed(() => {
-  const scale = radiusScale.value
-  const [lo, hi] = scale.domain() as [number, number]
-  const mid = Math.round((lo + hi) / 2)
-  return [lo, mid, hi].map((v) => ({
-    value: v,
-    r: scale(v),
-    label: v === hi ? 'High' : v === lo ? 'Low' : 'Med',
-  }))
-})
 </script>
 
 <template>
@@ -450,8 +433,6 @@ const legendEntries = computed(() => {
         @close="deselect"
       />
     </Transition>
-
-    <ScaleLegend :entries="legendEntries" :title="metricLabel" :class="{ 'controls-hidden': !!effectiveSelectedId }" />
 
   </div>
 </template>
