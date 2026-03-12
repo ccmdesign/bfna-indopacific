@@ -1,7 +1,7 @@
 ---
 title: Particle Stuck Prevention & Edge Fade-Out (Ship Docking)
 type: feat
-status: active
+status: completed
 date: 2026-03-11
 linear: BF-110
 deepened: 2026-03-11
@@ -307,20 +307,20 @@ After this change, the following become unused internally:
 
 ## Acceptance Criteria
 
-- [ ] `Particle` interface has `opacity: number` (default 1) and `fadeRate: number` (default 0)
-- [ ] `stuckTarget` field and its steering logic are removed from `Particle` and `updateParticle()`
-- [ ] Stuck particles (within `STUCK_RADIUS` for `STUCK_FRAMES`) trigger `fadeRate = FADE_RATE` instead of boundary steering
-- [ ] Particles leaving water polygon (`!isInWater` after position update) stop velocity and trigger `fadeRate = FADE_RATE`
-- [ ] **NEW:** Edge collision check is guarded with `!inStrait` to prevent false positives in strait-mode
-- [ ] Fading particles decrement `opacity` each tick with `Math.max(0, ...)` clamping; when `opacity <= 0`, `respawn()` is called
-- [ ] `drawTest()` multiplies `globalAlpha` by `p.opacity`
-- [ ] `drawProduction()` handles `p.opacity` for fading particles without breaking batch rendering for non-fading particles
-- [ ] `globalAlpha` is reset to 1 after fading particle draws in both renderers
-- [ ] No visual glitches: particles smoothly fade rather than disappearing abruptly
-- [ ] Particle pool stays healthy: count remains at `params.particleCount` over time
-- [ ] No new object allocations in the tick hot path
-- [ ] `STUCK_SECONDS` reduced from 3 to 2 to match the ~2s acceptance criterion
-- [ ] **NEW:** `stuckFrames` reset to 0 when fade is triggered to prevent redundant re-trigger
+- [x] `Particle` interface has `opacity: number` (default 1) and `fadeRate: number` (default 0)
+- [x] `stuckTarget` field and its steering logic are removed from `Particle` and `updateParticle()`
+- [x] Stuck particles (within `STUCK_RADIUS` for `STUCK_FRAMES`) trigger `fadeRate = FADE_RATE` instead of boundary steering
+- [x] Particles leaving water polygon (`!isInWater` after position update) stop velocity and trigger `fadeRate = FADE_RATE`
+- [x] **NEW:** Edge collision check is guarded with `!inStrait` to prevent false positives in strait-mode
+- [x] Fading particles decrement `opacity` each tick with `Math.max(0, ...)` clamping; when `opacity <= 0`, `respawn()` is called
+- [x] `drawTest()` multiplies `globalAlpha` by `p.opacity`
+- [x] `drawProduction()` handles `p.opacity` for fading particles without breaking batch rendering for non-fading particles
+- [x] `globalAlpha` is reset to 1 after fading particle draws in both renderers
+- [x] No visual glitches: particles smoothly fade rather than disappearing abruptly
+- [x] Particle pool stays healthy: count remains at `params.particleCount` over time
+- [x] No new object allocations in the tick hot path
+- [x] `STUCK_SECONDS` reduced from 3 to 2 to match the ~2s acceptance criterion
+- [x] **NEW:** `stuckFrames` reset to 0 when fade is triggered to prevent redundant re-trigger
 
 ## Files to Modify
 

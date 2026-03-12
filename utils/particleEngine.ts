@@ -63,7 +63,8 @@ export interface Particle {
   stuckX: number
   stuckY: number
   stuckFrames: number
-  stuckTarget: { x: number; y: number } | null
+  opacity: number       // 1.0 = fully visible, fades to 0
+  fadeRate: number       // 0 = not fading, >0 = decrement per frame
 }
 
 export interface FlowParams {
@@ -390,7 +391,8 @@ export function spineDistance(segIdx: number, segT: number, sd: SpineData): numb
   return sd.cumLen[segIdx]! + segT * (sd.cumLen[segIdx + 1]! - sd.cumLen[segIdx]!)
 }
 
-/** Find the nearest point on a boundary polygon */
+/** Find the nearest point on a boundary polygon.
+ *  Currently unused internally -- retained as public API. */
 export function nearestBoundaryPoint(px: number, py: number, boundary: [number, number][]): { x: number; y: number } {
   let bestDist = Infinity, bestX = 0, bestY = 0
   for (let i = 0; i < boundary.length; i++) {
@@ -416,10 +418,12 @@ const GROW_SECONDS = 0.5
 const GROW_FRAMES = Math.round(GROW_SECONDS * 60)
 const STRAIT_THRESHOLD = 30
 const STUCK_RADIUS = 12
-const STUCK_SECONDS = 3
+const STUCK_SECONDS = 2
 const STUCK_FRAMES = Math.round(STUCK_SECONDS * 60)
 const SPAWN_INTERVAL = 30
 const SPAWN_BATCH_FRAC = 0.05
+const FADE_SECONDS = 0.5
+const FADE_RATE = 1 / (FADE_SECONDS * 60) // ~0.033 per frame
 const COLORS = ['hsl(218,60%,58%)', 'hsl(34,60%,50%)', 'hsl(186,60%,50%)']
 
 export class ParticleSimulation {
@@ -540,7 +544,8 @@ export class ParticleSimulation {
       waypointIdx: -1,
       stuckX: pos.x, stuckY: pos.y,
       stuckFrames: 0,
-      stuckTarget: null,
+      opacity: 1,
+      fadeRate: 0,
     }
   }
 
@@ -557,6 +562,15 @@ export class ParticleSimulation {
     const sd = this.spineDataArr[p.branchIdx]
     if (!sd) { this.respawn(p); return }
     const spinePts = sd.pts
+
+    // Fade-out phase: decrement opacity, freeze position
+    if (p.fadeRate > 0) {
+      p.opacity = Math.max(0, p.opacity - p.fadeRate * dt)
+      if (p.opacity <= 0) {
+        this.respawn(p)
+      }
+      return
+    }
 
     // Wait phase
     if (p.waitFrames > 0) {
@@ -710,22 +724,25 @@ export class ParticleSimulation {
       }
     }
 
-    // Stuck detection
-    if (p.stuckTarget) {
-      const toDx = p.stuckTarget.x - p.x, toDy = p.stuckTarget.y - p.y
-      const toDist = Math.hypot(toDx, toDy)
-      if (toDist < params.respawnThreshold) { this.respawn(p); return }
-      const toLen = toDist || 1
-      p.vx = (toDx / toLen) * p.speed * 1.5
-      p.vy = (toDy / toLen) * p.speed * 1.5
-      p.x += p.vx * dt; p.y += p.vy * dt
+    // Edge collision: particle left water polygon -> dock fade-out
+    // Skip for strait-mode particles: spineAt() positions them on the polyline,
+    // which may cross non-water grid cells due to 4px quantization.
+    if (!inStrait && !isInWater(p.x, p.y, grid)) {
+      p.vx = 0
+      p.vy = 0
+      p.fadeRate = FADE_RATE
       return
     }
+
+    // Stuck detection -- trigger fade instead of boundary steering
     const dFromRef = Math.hypot(p.x - p.stuckX, p.y - p.stuckY)
     if (dFromRef < STUCK_RADIUS) {
       p.stuckFrames += dt
       if (p.stuckFrames >= STUCK_FRAMES) {
-        p.stuckTarget = nearestBoundaryPoint(p.x, p.y, polygon.boundary)
+        p.fadeRate = FADE_RATE
+        p.vx = 0
+        p.vy = 0
+        p.stuckFrames = 0 // prevent redundant re-trigger
       }
     } else {
       p.stuckX = p.x; p.stuckY = p.y
