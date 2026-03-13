@@ -1,3 +1,4 @@
+<!-- @deprecated BF-111: safe to remove once MarineTraffic embed is validated -->
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import type { StraitFlowConfig } from '~/utils/particleEngine'

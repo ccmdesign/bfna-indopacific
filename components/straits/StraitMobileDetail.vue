@@ -131,6 +131,9 @@ const globalSharePct = computed(() => {
   return match ? match[0] : props.strait.globalShareLabel
 })
 
+// --- Mobile embed tap-to-load gate (saves bandwidth on mobile connections) ---
+const embedLoaded = ref(false)
+
 // --- Conditional divider ---
 const hasQualContent = computed(() =>
   !!props.strait.description ||
@@ -181,6 +184,16 @@ const hasQualContent = computed(() =>
       <h1 :class="contentClassMap[1]" class="strait-mobile-detail__name">{{ strait.name }}</h1>
       <p :class="contentClassMap[2]" class="strait-mobile-detail__share">{{ strait.globalShareLabel }}</p>
     </section>
+
+    <!-- Live MarineTraffic embed (rectangular on mobile, tap-to-load to save bandwidth) -->
+    <div :class="contentClassMap[2]" class="mt-mobile-embed">
+      <ClientOnly>
+        <div v-if="!embedLoaded" class="mt-mobile-embed__placeholder" @click="embedLoaded = true">
+          <span class="mt-mobile-embed__tap-label">Tap to view live traffic</span>
+        </div>
+        <MarineTrafficEmbed v-else :strait-id="strait.id" />
+      </ClientOnly>
+    </div>
 
     <!-- Qualitative content: Description -->
     <p v-if="strait.description" :class="contentClassMap[3]" class="strait-mobile-detail__desc">
@@ -431,6 +444,41 @@ const hasQualContent = computed(() =>
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-top: 3px;
+}
+
+/* --- MarineTraffic mobile embed --- */
+.mt-mobile-embed {
+  margin-bottom: 20px;
+}
+
+.mt-mobile-embed__placeholder {
+  aspect-ratio: 16/9;
+  border-radius: 8px;
+  background: rgba(26, 39, 68, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.mt-mobile-embed__placeholder:hover {
+  background: rgba(26, 39, 68, 0.8);
+}
+
+.mt-mobile-embed__tap-label {
+  color: var(--color-text-dim);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.mt-mobile-embed :deep(.mt-embed) {
+  position: relative;
+  border-radius: 8px;
+  aspect-ratio: 16/9;
+  height: auto;
+  -webkit-mask-image: none;
 }
 
 /* --- Description --- */

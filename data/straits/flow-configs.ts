@@ -1,3 +1,4 @@
+/** @deprecated BF-111: safe to remove once MarineTraffic embed is validated */
 import type { StraitFlowConfig } from '~/utils/particleEngine'
 import { hormuzFlowConfig } from './hormuz-flow'
 import { luzonFlowConfig } from './luzon-flow'
