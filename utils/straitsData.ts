@@ -4,8 +4,13 @@ import type { Strait, StraitHistoricalEntry } from '~/types/strait'
 /** All strait entries, typed. */
 export const straits = straitsData.straits as Strait[]
 
+/** Compare two straits alphabetically by name. */
+function compareByName(a: Strait, b: Strait): number {
+  return a.name.localeCompare(b.name, 'en')
+}
+
 /** Straits sorted alphabetically by name (stable, computed once at module load). */
-export const sortedStraits = [...straits].sort((a, b) => a.name.localeCompare(b.name, 'en'))
+export const sortedStraits = [...straits].sort(compareByName)
 
 /**
  * Returns the adjacent strait in alphabetical order.
