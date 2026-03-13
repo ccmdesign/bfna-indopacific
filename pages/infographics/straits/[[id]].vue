@@ -25,10 +25,11 @@ const VALID_IDS = new Set(straits.map((s: Strait) => s.id))
 
 const straitId = computed(() => {
   const id = route.params.id as string | undefined
-  if (id) return id
+  if (id && VALID_IDS.has(id)) return id
   // Also check hash for client-side strait selection (no page reload)
   const hash = route.hash?.replace('#', '')
-  return hash || null
+  if (hash && VALID_IDS.has(hash)) return hash
+  return null
 })
 
 // Validate route param reactively (handles param-only changes that skip beforeEnter)

@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p2
 issue_id: "BF-111"
 tags: [code-review, security, iframe]

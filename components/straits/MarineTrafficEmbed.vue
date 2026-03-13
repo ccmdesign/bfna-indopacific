@@ -15,6 +15,9 @@ let loadTimeout: ReturnType<typeof setTimeout> | null = null
 const LOAD_TIMEOUT_MS = 15_000
 
 function onIframeLoad() {
+  // Guard: ignore the load event fired when src is set to about:blank during cleanup
+  const currentSrc = iframeRef.value?.src ?? ''
+  if (!currentSrc || currentSrc === 'about:blank' || currentSrc.endsWith('/about:blank')) return
   loaded.value = true
   errored.value = false
   if (loadTimeout) { clearTimeout(loadTimeout); loadTimeout = null }
@@ -46,16 +49,19 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="config" class="mt-embed">
+    <!--
+      sandbox removed: combining allow-scripts + allow-same-origin on a same-origin
+      iframe negates sandbox protection (MDN/OWASP). Security is enforced via CSP
+      headers in netlify.toml and per-embed CSP meta tags.
+    -->
     <iframe
       ref="iframeRef"
       :src="config.embedUrl"
       :title="`Live vessel traffic - ${straitId}`"
       class="mt-embed__iframe"
       :class="{ 'mt-embed__iframe--loaded': loaded }"
-      loading="lazy"
       allow="fullscreen"
       referrerpolicy="no-referrer"
-      sandbox="allow-scripts allow-same-origin"
       @load="onIframeLoad"
     />
     <div v-if="errored" class="mt-embed__fallback" aria-label="Embed unavailable">
@@ -98,7 +104,7 @@ onBeforeUnmount(() => {
 }
 
 .mt-embed__fallback-text {
-  color: rgba(255, 255, 255, 0.45);
+  color: var(--color-text-dim);
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.1em;

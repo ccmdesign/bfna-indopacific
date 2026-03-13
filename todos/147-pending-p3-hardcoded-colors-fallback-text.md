@@ -1,5 +1,5 @@
 ---
-status: pending
+status: resolved
 priority: p3
 issue_id: "BF-111"
 tags: [code-review, quality, design-tokens]
