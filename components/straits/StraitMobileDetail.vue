@@ -182,6 +182,13 @@ const hasQualContent = computed(() =>
       <p :class="contentClassMap[2]" class="strait-mobile-detail__share">{{ strait.globalShareLabel }}</p>
     </section>
 
+    <!-- Live MarineTraffic embed (rectangular on mobile) -->
+    <div :class="contentClassMap[2]" class="mt-mobile-embed">
+      <ClientOnly>
+        <MarineTrafficEmbed :strait-id="strait.id" />
+      </ClientOnly>
+    </div>
+
     <!-- Qualitative content: Description -->
     <p v-if="strait.description" :class="contentClassMap[3]" class="strait-mobile-detail__desc">
       {{ strait.description }}
@@ -431,6 +438,19 @@ const hasQualContent = computed(() =>
   text-transform: uppercase;
   letter-spacing: 0.1em;
   margin-top: 3px;
+}
+
+/* --- MarineTraffic mobile embed --- */
+.mt-mobile-embed {
+  margin-bottom: 20px;
+}
+
+.mt-mobile-embed :deep(.mt-embed) {
+  position: relative;
+  border-radius: 8px;
+  aspect-ratio: 16/9;
+  height: auto;
+  -webkit-mask-image: none;
 }
 
 /* --- Description --- */

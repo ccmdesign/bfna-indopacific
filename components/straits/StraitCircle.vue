@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { flowConfigs } from '~/data/straits/flow-configs'
+import { marineTrafficConfigs } from '~/data/straits/marinetraffic-config'
 
 const props = defineProps<{
   radius: number
@@ -18,15 +18,9 @@ const props = defineProps<{
   tiltY?: number
 }>()
 
-const flowConfig = computed(() =>
-  props.straitId ? flowConfigs[props.straitId] ?? null : null
+const bgImageSrc = computed(() =>
+  props.straitId ? marineTrafficConfigs[props.straitId]?.backgroundImage ?? null : null
 )
-
-const showParticles = computed(() =>
-  props.selected && flowConfig.value
-)
-
-const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
 </script>
 
 <template>
@@ -54,10 +48,12 @@ const bgImageSrc = computed(() => flowConfig.value?.backgroundImage ?? null)
       class="strait-bg-image"
       :class="{ 'strait-bg-image--visible': selected }"
     />
-    <StraitParticles
-      v-if="showParticles"
-      :config="flowConfig as any"
-    />
+    <ClientOnly>
+      <MarineTrafficEmbed
+        v-if="selected"
+        :strait-id="straitId!"
+      />
+    </ClientOnly>
     <StraitSnapshot
       v-if="valueUSD != null && !anySelected"
       :value-u-s-d="valueUSD"
