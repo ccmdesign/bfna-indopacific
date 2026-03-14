@@ -134,7 +134,7 @@ const marineTrafficUrl = computed(() => {
   /* Swiss typography base */
   color: #fff;
   font-family: 'Encode Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
 
   /* No background */
@@ -169,7 +169,7 @@ const marineTrafficUrl = computed(() => {
 }
 
 .plane-hero__value {
-  font-size: 36px;
+  font-size: 43px;
   font-weight: 700;
   color: #fff;
   letter-spacing: -0.03em;
@@ -178,7 +178,7 @@ const marineTrafficUrl = computed(() => {
 }
 
 .plane-hero__label {
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.45);
   text-transform: uppercase;
@@ -218,7 +218,7 @@ const marineTrafficUrl = computed(() => {
 }
 
 .plane-metric__value {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 600;
   color: #fff;
   font-variant-numeric: tabular-nums;
@@ -227,7 +227,7 @@ const marineTrafficUrl = computed(() => {
 }
 
 .plane-metric__label {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.4);
   text-transform: uppercase;
@@ -241,7 +241,7 @@ const marineTrafficUrl = computed(() => {
 }
 
 .plane-section__title {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -289,7 +289,7 @@ const marineTrafficUrl = computed(() => {
   display: flex;
   align-items: center;
   gap: 5px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.55);
   letter-spacing: 0.02em;
@@ -316,7 +316,7 @@ const marineTrafficUrl = computed(() => {
   margin-top: 4px;
   margin-left: auto;
   padding: 8px 14px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;

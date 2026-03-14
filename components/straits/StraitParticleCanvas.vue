@@ -1,4 +1,3 @@
-<!-- @deprecated BF-111: safe to remove once MarineTraffic embed is validated -->
 <script setup lang="ts">
 /**
  * StraitParticleCanvas — canvas overlay inside StraitCircle.

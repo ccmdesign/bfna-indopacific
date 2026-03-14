@@ -375,7 +375,7 @@ function onBackgroundClick(event: MouseEvent) {
       />
       <div
         class="map-dim-overlay"
-        :class="{ active: !!effectiveSelectedId }"
+        :class="{ active: effectiveSelectedId }"
         :style="{ transform: mapBgTransform }"
       />
       <StraitData
@@ -500,7 +500,8 @@ function onBackgroundClick(event: MouseEvent) {
 /* Panels occupy fixed outer columns, sitting above the full-bleed map */
 .strait-panel-left {
   grid-column: 1 / 4;
-  grid-row: 1 / -1;
+  grid-row: inherit;
+  align-self: center;
   z-index: 2;
   display: flex;
   flex-direction: column;
@@ -513,7 +514,8 @@ function onBackgroundClick(event: MouseEvent) {
 
 .strait-panel-right {
   grid-column: 10 / 13;
-  grid-row: 1 / -1;
+  grid-row: inherit;
+  align-self: center;
   z-index: 2;
   display: flex;
   flex-direction: column;

@@ -82,7 +82,7 @@ const emit = defineEmits<{
   /* Swiss typography base */
   color: #fff;
   font-family: 'Encode Sans', 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.5;
 
   /* No background */
@@ -119,7 +119,7 @@ const emit = defineEmits<{
 }
 
 .plane-header__name {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 600;
   margin: 0 0 2px;
   color: #fff;
@@ -130,7 +130,7 @@ const emit = defineEmits<{
 .plane-header__share {
   margin: 0;
   color: rgba(255, 255, 255, 0.5);
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -166,7 +166,7 @@ const emit = defineEmits<{
   margin: 0 0 20px;
   padding-bottom: 20px;
   color: rgba(255, 255, 255, 0.55);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.7;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
@@ -177,7 +177,7 @@ const emit = defineEmits<{
 }
 
 .plane-section__title {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.14em;
@@ -194,7 +194,7 @@ const emit = defineEmits<{
 
 .plane-tag {
   padding: 4px 10px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.7);
   background: transparent;
@@ -222,7 +222,7 @@ const emit = defineEmits<{
   padding-left: 14px;
   margin-bottom: 8px;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.6;
 }
 
