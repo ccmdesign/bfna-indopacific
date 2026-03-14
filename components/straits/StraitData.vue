@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, watch, onBeforeUnmount } from 'vue'
 import type { LabelAnchor } from '~/types/strait'
 
 const props = defineProps<{
@@ -31,6 +32,20 @@ const emit = defineEmits<{
   (e: 'activate', id: string): void
 }>()
 
+const raised = ref(false)
+let raiseTimer: ReturnType<typeof setTimeout> | null = null
+
+watch(() => props.active, (isActive) => {
+  if (raiseTimer) { clearTimeout(raiseTimer); raiseTimer = null }
+  if (isActive) {
+    raiseTimer = setTimeout(() => { raised.value = true }, 1000)
+  } else {
+    raised.value = false
+  }
+})
+
+onBeforeUnmount(() => { if (raiseTimer) clearTimeout(raiseTimer) })
+
 function onFocusOut(event: FocusEvent) {
   const currentTarget = event.currentTarget as Element
   if (!currentTarget.contains(event.relatedTarget as Node)) {
@@ -42,7 +57,7 @@ function onFocusOut(event: FocusEvent) {
 <template>
   <div
     class="strait-data"
-    :class="{ 'strait-data--dimmed': dimmed, 'strait-data--hidden': hidden, 'strait-data--selected': selected, 'strait-data--zooming-out': zoomingOut }"
+    :class="{ 'strait-data--active': raised, 'strait-data--dimmed': dimmed, 'strait-data--hidden': hidden, 'strait-data--selected': selected, 'strait-data--zooming-out': zoomingOut }"
     :style="{ left: `${posX}%`, top: `${posY}%`, anchorName: selected ? '--selected-strait' : 'none' }"
     role="button"
     :tabindex="disabled ? -1 : 0"
@@ -80,7 +95,12 @@ function onFocusOut(event: FocusEvent) {
   transform: translate(-50%, -50%);
   transform-origin: 0 0;
   cursor: pointer;
+  z-index: 0;
   transition: opacity 0.4s ease, scale 0.6s cubic-bezier(0.4, 0, 0.2, 1), translate 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.strait-data--active {
+  z-index: 1;
 }
 
 .strait-data--dimmed :deep(.strait-circle) {

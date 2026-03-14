@@ -66,13 +66,15 @@ const emit = defineEmits<{
         <li v-for="fact in strait.keyFacts" :key="fact">{{ fact }}</li>
       </ul>
     </div>
+
   </div>
 </template>
 
 <style scoped>
 /* ─── 3D Glass Plane ─── */
 .qual-plane {
-  width: 280px;
+  width: 100%;
+  max-width: 320px;
   max-height: 100%;
   overflow-y: auto;
   padding: 24px 24px 20px;

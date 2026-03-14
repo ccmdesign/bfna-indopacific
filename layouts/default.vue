@@ -65,7 +65,6 @@ const suppressRotateOverlay = computed(() => route.meta.suppressRotateOverlay ==
 .page-wrapper {
   max-width: 100vw;
   max-height: 100vh;
-  padding-bottom: 4rem;
   background: linear-gradient(to bottom, #0D0D0D 5%, #022640 105%);
   position: relative;
 

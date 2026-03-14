@@ -6,7 +6,11 @@ const props = defineProps<{
   straitId: string
 }>()
 
-const config = computed(() => marineTrafficConfigs[props.straitId] ?? null)
+const config = computed(() => {
+  const c = marineTrafficConfigs[props.straitId] ?? null
+  if (c) console.log(`[MT Embed] ${props.straitId} → https://www.marinetraffic.com/en/ais/home/centerx:${c.longitude}/centery:${c.latitude}/zoom:${c.zoom}`)
+  return c
+})
 const iframeRef = ref<HTMLIFrameElement | null>(null)
 const loaded = ref(false)
 const errored = ref(false)
@@ -60,8 +64,6 @@ onBeforeUnmount(() => {
       :title="`Live vessel traffic - ${straitId}`"
       class="mt-embed__iframe"
       :class="{ 'mt-embed__iframe--loaded': loaded }"
-      allow="fullscreen"
-      referrerpolicy="no-referrer"
       @load="onIframeLoad"
     />
     <div v-if="errored" class="mt-embed__fallback" aria-label="Embed unavailable">
@@ -84,8 +86,14 @@ onBeforeUnmount(() => {
 }
 
 .mt-embed__iframe {
-  width: 100%;
-  height: 100%;
+  /* 150% of container: enough overflow to crop edge UI (zoom controls,
+     watermark) while keeping zoom changes visible in the circle. */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 150%;
+  height: 150%;
   border: none;
   opacity: 0;
   transition: opacity 0.4s ease;

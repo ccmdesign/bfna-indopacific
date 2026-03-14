@@ -83,7 +83,10 @@ const METRICS: SizeMetric[] = ['tonnage', 'ships', 'value']
 const IDLE_TIMEOUT = 7000
 const CYCLE_INTERVAL = 7000
 
-const isStraitActive = ref(false)
+// Track header visibility separately — hashes aren't available during SSR,
+// so straitId is null on server render. This ref is set eagerly on mount.
+const headerHidden = ref(false)
+
 const sizeMetric = ref<SizeMetric>('tonnage')
 const cycling = ref(false)
 // Bump to restart the CSS progress animation on each cycle tick
@@ -110,12 +113,13 @@ function stopCycling() {
 function resetIdleTimer() {
   stopCycling()
   if (idleTimer) clearTimeout(idleTimer)
-  if (!straitId.value && !isStraitActive.value) {
+  if (!straitId.value) {
     idleTimer = setTimeout(startCycling, IDLE_TIMEOUT)
   }
 }
 
 watch(straitId, (id) => {
+  headerHidden.value = !!id
   if (id) {
     stopCycling()
     if (idleTimer) { clearTimeout(idleTimer); idleTimer = null }
@@ -125,6 +129,11 @@ watch(straitId, (id) => {
 })
 
 onMounted(() => {
+  // Eagerly read hash — route.hash may not be reactive yet after SSR hydration
+  const hash = window.location.hash.replace('#', '')
+  if (hash && VALID_IDS.has(hash)) {
+    headerHidden.value = true
+  }
   window.addEventListener('mousemove', resetIdleTimer)
   window.addEventListener('mousedown', resetIdleTimer)
   resetIdleTimer()
@@ -138,7 +147,6 @@ onBeforeUnmount(() => {
 })
 
 function onSelect(id: string | null) {
-  isStraitActive.value = !!id
   if (id) {
     document.body.dataset.strait = id
     router.replace({ hash: `#${id}` })
@@ -160,7 +168,7 @@ function onSelect(id: string | null) {
   />
   <StraitHeader
     v-if="!isMobile"
-    :is-hidden="isStraitActive"
+    :is-hidden="headerHidden"
     :size-metric="sizeMetric"
     :cycling="cycling"
     :cycle-duration="CYCLE_INTERVAL"

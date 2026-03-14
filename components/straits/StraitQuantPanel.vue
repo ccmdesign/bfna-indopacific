@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Strait } from '~/types/strait'
+import { marineTrafficConfigs } from '~/data/straits/marinetraffic-config'
 
 const props = defineProps<{
   strait: Strait
@@ -32,6 +33,12 @@ function fmtUsd(v: number): string {
 function fmtNum(v: number): string {
   return v.toLocaleString('en-US')
 }
+
+const marineTrafficUrl = computed(() => {
+  const config = marineTrafficConfigs[props.strait.id]
+  if (!config) return null
+  return `https://www.marinetraffic.com/en/ais/home/centerx:${config.longitude}/centery:${config.latitude}/zoom:${config.zoom}`
+})
 
 </script>
 
@@ -98,13 +105,28 @@ function fmtNum(v: number): string {
 
     <!-- Historical chart -->
     <StraitHistoryChart v-if="Object.keys(historical).length > 1" :historical="historical" />
+
+    <!-- Marine Traffic Link -->
+    <a
+      v-if="marineTrafficUrl"
+      :href="marineTrafficUrl"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="plane-mt-link"
+    >
+      Live Marine Traffic
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+        <path d="M3 9l6-6M5 3h4v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="square" />
+      </svg>
+    </a>
   </div>
 </template>
 
 <style scoped>
 /* ─── 3D Glass Plane ─── */
 .quant-plane {
-  width: 280px;
+  width: 100%;
+  max-width: 320px;
   max-height: 100%;
   overflow-y: auto;
   padding: 24px 24px 20px;
@@ -286,7 +308,37 @@ function fmtNum(v: number): string {
   font-variant-numeric: tabular-nums;
 }
 
+/* ─── Marine Traffic link ─── */
+.plane-mt-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  margin-left: auto;
+  padding: 8px 14px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  color: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  transition: border-color 0.15s ease, color 0.15s ease;
+}
+
+.plane-mt-link:hover {
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.plane-mt-link:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.6);
+  outline-offset: 1px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .quant-plane { transition: none; }
+  .plane-mt-link { transition: none; }
 }
 </style>

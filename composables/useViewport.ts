@@ -9,7 +9,7 @@ export function useViewport() {
   const isMobile = ref(false)
 
   if (import.meta.client) {
-    const mql = window.matchMedia('(max-width: 899px)')
+    const mql = window.matchMedia('(max-width: 879px)')
     isMobile.value = mql.matches
 
     const handler = (e: MediaQueryListEvent) => { isMobile.value = e.matches }
