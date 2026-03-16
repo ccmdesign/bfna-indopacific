@@ -1,6 +1,4 @@
 /**
- * @deprecated BF-111: safe to remove once MarineTraffic embed is validated
- *
  * useParticleFlow — Unified Vue composable for strait particle rendering.
  *
  * Replaces both useParticleSystem.ts (production) and inline test-page logic.

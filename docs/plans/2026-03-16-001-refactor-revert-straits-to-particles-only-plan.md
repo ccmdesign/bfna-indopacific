@@ -1,7 +1,7 @@
 ---
 title: "refactor: Revert straits infographic to particles only, remove live data embed"
 type: refactor
-status: active
+status: completed
 date: 2026-03-16
 linear: BF-112
 ---
@@ -261,19 +261,19 @@ The following todo files in `todos/` reference MarineTrafficEmbed code, iframe b
 
 ## Acceptance Criteria
 
-- [ ] Selecting a strait on desktop shows particles permanently inside the circle (no fade to iframe)
-- [ ] No "Loading Live Data" overlay appears
-- [ ] No iframe network requests to marinetraffic.com
-- [ ] The "Live Marine Traffic" external link button in StraitQuantPanel still works and opens the correct MT page
-- [ ] Mobile detail page shows strait circle with particles (no "Tap to view live traffic" placeholder)
-- [ ] Background images still display behind particles when a strait is selected
-- [ ] `MarineTrafficEmbed.vue` and `StraitLoadingOverlay.vue` are deleted
-- [ ] `public/embeds/mt-embed.html` is deleted
-- [ ] No `@deprecated` tags remain on particle system files
-- [ ] CSP in `netlify.toml` no longer references `marinetraffic.com`
-- [ ] No preconnect/dns-prefetch hints for `marinetraffic.com` in `nuxt.config.ts`
-- [ ] Obsolete todo files (141-143, 145-148) are deleted
-- [ ] Build passes (`npm run generate`)
+- [x] Selecting a strait on desktop shows particles permanently inside the circle (no fade to iframe)
+- [x] No "Loading Live Data" overlay appears
+- [x] No iframe network requests to marinetraffic.com
+- [x] The "Live Marine Traffic" external link button in StraitQuantPanel still works and opens the correct MT page
+- [x] Mobile detail page shows strait circle with particles (no "Tap to view live traffic" placeholder)
+- [x] Background images still display behind particles when a strait is selected
+- [x] `MarineTrafficEmbed.vue` and `StraitLoadingOverlay.vue` are deleted
+- [x] `public/embeds/mt-embed.html` is deleted
+- [x] No `@deprecated` tags remain on particle system files
+- [x] CSP in `netlify.toml` no longer references `marinetraffic.com`
+- [x] No preconnect/dns-prefetch hints for `marinetraffic.com` in `nuxt.config.ts`
+- [x] Obsolete todo files (141-143, 145-148) are deleted
+- [x] Build passes (`npm run generate`)
 
 ### Verification Checklist
 

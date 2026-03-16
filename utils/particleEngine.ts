@@ -1,6 +1,4 @@
 /**
- * @deprecated BF-111: safe to remove once MarineTraffic embed is validated
- *
  * particleEngine — Pure physics engine for strait particle flow.
  *
  * Zero Vue/DOM/Canvas dependencies. All geometry, simulation, and
