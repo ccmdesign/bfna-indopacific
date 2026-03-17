@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { marineTrafficConfigs } from '~/data/straits/marinetraffic-config'
-
-const mtLoaded = ref(false)
+import { computed } from 'vue'
+import { straitConfigs } from '~/data/straits/strait-config'
 
 const props = defineProps<{
   radius: number
@@ -21,11 +19,9 @@ const props = defineProps<{
 }>()
 
 const bgImageSrc = computed(() =>
-  props.straitId ? marineTrafficConfigs[props.straitId]?.backgroundImage ?? null : null
+  props.straitId ? straitConfigs[props.straitId]?.backgroundImage ?? null : null
 )
 
-// Reset when strait changes so particles show again while new MT embed loads
-watch(() => props.straitId, () => { mtLoaded.value = false })
 </script>
 
 <template>
@@ -55,16 +51,10 @@ watch(() => props.straitId, () => { mtLoaded.value = false })
     />
     <ClientOnly>
       <StraitParticleCanvas
-        v-if="selected && !mtLoaded"
+        v-if="selected"
         :strait-id="straitId!"
         :year="year ?? '2023'"
         :circle-size="radius * 2"
-      />
-      <StraitLoadingOverlay v-if="selected && !mtLoaded" />
-      <MarineTrafficEmbed
-        v-if="selected"
-        :strait-id="straitId!"
-        @loaded="mtLoaded = true"
       />
     </ClientOnly>
     <StraitSnapshot

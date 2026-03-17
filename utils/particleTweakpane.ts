@@ -1,6 +1,4 @@
 /**
- * @deprecated BF-111: safe to remove once MarineTraffic embed is validated
- *
  * particleTweakpane — Shared Tweakpane control panel for particle test pages.
  *
  * Dynamic import('tweakpane') ensures tree-shaking in production.

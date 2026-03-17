@@ -1,5 +1,5 @@
 ---
-status: pending
+status: wont_fix
 priority: p2
 issue_id: "BF-110"
 tags: [code-review, process]
