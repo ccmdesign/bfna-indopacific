@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { meta } from '~/utils/straitsData'
-import bfnaLogo from '~/assets/images/bfna.svg'
 
 type SizeMetric = 'tonnage' | 'ships' | 'value'
 
@@ -19,7 +18,6 @@ const emit = defineEmits<{
 
 <template>
   <header class="strait-header" :class="{ 'strait-header--hidden': isHidden }">
-    <img :src="bfnaLogo" alt="BFNA" class="strait-header__logo" />
     <h2 class="strait-header__title">{{ meta.title }}</h2>
     <p class="strait-header__description">
       Visualize maritime traffic through six critical chokepoints, from Malacca to Hormuz, with vessel data from 2019 to 2025.
@@ -54,11 +52,6 @@ const emit = defineEmits<{
   position: relative;
   z-index: 10;
   transition: opacity 0.3s ease;
-}
-
-.strait-header__logo {
-  width: 120px;
-  margin-bottom: 1rem;
 }
 
 .strait-header__title {

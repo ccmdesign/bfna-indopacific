@@ -4,6 +4,7 @@ import { useStraitTransition } from '~/composables/useStraitTransition'
 import { straits, LATEST_YEAR, historicalByStrait } from '~/utils/straitsData'
 import { slideDirection, clearSlideDirection } from '~/composables/useSwipeNavigation'
 import type { Strait } from '~/types/strait'
+import bfnaLogo from '~/assets/images/bfna.svg'
 
 definePageMeta({
   layoutClass: 'layout-2',
@@ -158,6 +159,9 @@ function onSelect(id: string | null) {
 </script>
 
 <template>
+  <a v-if="!isMobile" href="https://bfna.org" target="_blank" rel="noopener noreferrer" class="strait-logo-link">
+    <img :src="bfnaLogo" alt="BFNA" class="strait-logo" />
+  </a>
   <!-- Desktop: SSR-rendered map (isMobile defaults to false during SSR) -->
   <StraitMap
     v-if="!isMobile"
