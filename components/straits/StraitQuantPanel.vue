@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Strait } from '~/types/strait'
-import { marineTrafficConfigs } from '~/data/straits/marinetraffic-config'
+import { straitConfigs } from '~/data/straits/strait-config'
 
 const props = defineProps<{
   strait: Strait
@@ -35,7 +35,7 @@ function fmtNum(v: number): string {
 }
 
 const marineTrafficUrl = computed(() => {
-  const config = marineTrafficConfigs[props.strait.id]
+  const config = straitConfigs[props.strait.id]
   if (!config) return null
   return `https://www.marinetraffic.com/en/ais/home/centerx:${config.longitude}/centery:${config.latitude}/zoom:${config.zoom}`
 })

@@ -33,6 +33,12 @@ import straitsData from '~/data/straits/straits.json'
 
 const TAU = Math.PI * 2
 const TOTAL_BUDGET = 240
+
+// Shared render constants — used by both batched and fading draw paths
+// to ensure visual consistency at opacity=1.
+const DOT_ALPHA = 0.85
+const GLOW_ALPHA = 0.2
+const GLOW_RADIUS_MULT = 2.5
 const PARTICLE_COLORS: Record<ParticleType, string> = {
   container: 'hsl(218, 60%, 58%)',
   dryBulk: 'hsl(34, 60%, 50%)',
@@ -40,6 +46,9 @@ const PARTICLE_COLORS: Record<ParticleType, string> = {
 }
 const PARTICLE_TYPES: ParticleType[] = ['container', 'dryBulk', 'tanker']
 const historical = (straitsData as any).historical as Record<string, Record<string, StraitHistoricalEntry>>
+
+// Reusable buffer for fading particles — avoids per-frame allocation / GC pressure
+let fadingBuf: Particle[] = []
 
 // ---------------------------------------------------------------------------
 // Vessel data helpers (production mode)
@@ -407,7 +416,8 @@ export function useParticleFlow(options: {
     }
 
     // Group particles by type; separate fading particles for individual alpha draws
-    const fading: Particle[] = []
+    fadingBuf.length = 0
+    const fading = fadingBuf
     const grouped: Record<ParticleType, Particle[]> = { container: [], dryBulk: [], tanker: [] }
     for (const p of sim.particles) {
       if (p.opacity < 1) {
@@ -424,7 +434,7 @@ export function useParticleFlow(options: {
       if (group.length === 0) continue
 
       ctx!.fillStyle = PARTICLE_COLORS[type]
-      ctx!.globalAlpha = 0.85
+      ctx!.globalAlpha = DOT_ALPHA
       ctx!.beginPath()
       for (const p of group) {
         ctx!.moveTo(p.x + p.radius, p.y)
@@ -439,10 +449,10 @@ export function useParticleFlow(options: {
       if (group.length === 0) continue
 
       ctx!.fillStyle = PARTICLE_COLORS[type]
-      ctx!.globalAlpha = 0.2
+      ctx!.globalAlpha = GLOW_ALPHA
       ctx!.beginPath()
       for (const p of group) {
-        const gr = p.radius * 2.5
+        const gr = p.radius * GLOW_RADIUS_MULT
         ctx!.moveTo(p.x + gr, p.y)
         ctx!.arc(p.x, p.y, gr, 0, TAU)
       }
@@ -453,14 +463,14 @@ export function useParticleFlow(options: {
     for (const p of fading) {
       const type = particleTypeMap.get(p) ?? 'tanker'
       ctx!.fillStyle = PARTICLE_COLORS[type]
-      ctx!.globalAlpha = 0.85 * p.opacity
+      ctx!.globalAlpha = DOT_ALPHA * p.opacity
       ctx!.beginPath()
       ctx!.arc(p.x, p.y, p.radius, 0, TAU)
       ctx!.fill()
       // Glow
-      ctx!.globalAlpha = 0.2 * p.opacity
+      ctx!.globalAlpha = GLOW_ALPHA * p.opacity
       ctx!.beginPath()
-      ctx!.arc(p.x, p.y, p.radius * 2.5, 0, TAU)
+      ctx!.arc(p.x, p.y, p.radius * GLOW_RADIUS_MULT, 0, TAU)
       ctx!.fill()
     }
     ctx!.globalAlpha = 1 // Reset after fading draws

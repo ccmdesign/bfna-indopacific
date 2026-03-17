@@ -23,6 +23,11 @@ const thumbnailUrl = computed(() => {
   return `/assets/straits/thumbs/${name}.jpg`
 })
 
+const thumbnailVisible = ref(true)
+function onThumbnailError() {
+  thumbnailVisible.value = false
+}
+
 const ariaLabel = computed(() =>
   `${props.strait.name}, ${props.strait.globalShareLabel}, ${fmtUsd(props.strait.valueUSD)} annual trade`
 )
@@ -38,12 +43,13 @@ const ariaLabel = computed(() =>
     >
       <div ref="thumbnailRef" class="strait-card__thumbnail">
         <img
-          v-if="thumbnailUrl"
+          v-if="thumbnailUrl && thumbnailVisible"
           :src="thumbnailUrl"
           :alt="strait.name"
           class="strait-card__thumbnail-img"
           width="72"
           height="72"
+          @error="onThumbnailError"
         />
       </div>
       <div class="strait-card__content">

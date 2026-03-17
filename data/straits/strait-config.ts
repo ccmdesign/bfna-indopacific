@@ -1,4 +1,4 @@
-export interface MarineTrafficConfig {
+export interface StraitConfig {
   straitId: string
   backgroundImage: string
   latitude: number
@@ -6,7 +6,7 @@ export interface MarineTrafficConfig {
   zoom: number
 }
 
-export const marineTrafficConfigs: Record<string, MarineTrafficConfig> = {
+export const straitConfigs: Record<string, StraitConfig> = {
   malacca:         { straitId: 'malacca',        backgroundImage: '/assets/images/straits/malacca.jpg',       latitude: 2.3,   longitude: 102.2, zoom: 5 },
   taiwan:          { straitId: 'taiwan',         backgroundImage: '/assets/images/straits/luzon.jpg',         latitude: 23.3,  longitude: 121.8, zoom: 5 },
   hormuz:          { straitId: 'hormuz',         backgroundImage: '/assets/images/straits/hormuz.jpg',        latitude: 25.7,  longitude: 56.5,  zoom: 5 },

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { marineTrafficConfigs } from '~/data/straits/marinetraffic-config'
+import { straitConfigs } from '~/data/straits/strait-config'
 
 const props = defineProps<{
   radius: number
@@ -19,7 +19,7 @@ const props = defineProps<{
 }>()
 
 const bgImageSrc = computed(() =>
-  props.straitId ? marineTrafficConfigs[props.straitId]?.backgroundImage ?? null : null
+  props.straitId ? straitConfigs[props.straitId]?.backgroundImage ?? null : null
 )
 
 </script>
