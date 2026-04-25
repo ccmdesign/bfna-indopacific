@@ -1,0 +1,15 @@
+# Python virtualenv
+.venv/
+
+# Raw data artifacts — regenerable from SCOUT.md URLs.
+# Commit SCOUT.md + small derived CSVs only.
+data-raw/**/*.zip
+data-raw/**/*.pdf
+data-raw/**/*.xlsx
+data-raw/aiddata-gcdf/AidDatas_Global_Chinese_Development_Finance_Dataset_Version_3_0/
+
+# Keep the CGIT XLSX explicitly (only 684KB, no alternative way to fetch historically)
+!data-raw/china-gi-tracker/*.xlsx
+
+# OS
+.DS_Store
