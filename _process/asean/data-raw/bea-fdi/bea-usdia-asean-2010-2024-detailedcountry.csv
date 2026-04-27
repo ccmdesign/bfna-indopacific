@@ -1,0 +1,301 @@
+country,year,metric,value,file
+Indonesia,2010,Position,10558,2009-2019
+Indonesia,2011,Position,12046,2009-2019
+Indonesia,2012,Position,11441,2009-2019
+Indonesia,2013,Position,12117,2009-2019
+Indonesia,2014,Position,15674,2009-2019
+Indonesia,2015,Position,15717,2009-2019
+Indonesia,2016,Position,15049,2009-2019
+Indonesia,2017,Position,13866,2009-2019
+Indonesia,2018,Position,19886,2009-2019
+Indonesia,2019,Position,19918,2009-2019
+Malaysia,2010,Position,11791,2009-2019
+Malaysia,2011,Position,11627,2009-2019
+Malaysia,2012,Position,10898,2009-2019
+Malaysia,2013,Position,13360,2009-2019
+Malaysia,2014,Position,14642,2009-2019
+Malaysia,2015,Position,15765,2009-2019
+Malaysia,2016,Position,10069,2009-2019
+Malaysia,2017,Position,11767,2009-2019
+Malaysia,2018,Position,10385,2009-2019
+Malaysia,2019,Position,12673,2009-2019
+Philippines,2010,Position,5399,2009-2019
+Philippines,2011,Position,4897,2009-2019
+Philippines,2012,Position,3988,2009-2019
+Philippines,2013,Position,4091,2009-2019
+Philippines,2014,Position,4073,2009-2019
+Philippines,2015,Position,5992,2009-2019
+Philippines,2016,Position,6412,2009-2019
+Philippines,2017,Position,6926,2009-2019
+Philippines,2018,Position,5562,2009-2019
+Philippines,2019,Position,6378,2009-2019
+Singapore,2010,Position,102778,2009-2019
+Singapore,2011,Position,119395,2009-2019
+Singapore,2012,Position,145236,2009-2019
+Singapore,2013,Position,182079,2009-2019
+Singapore,2014,Position,229189,2009-2019
+Singapore,2015,Position,253277,2009-2019
+Singapore,2016,Position,243165,2009-2019
+Singapore,2017,Position,293452,2009-2019
+Singapore,2018,Position,232940,2009-2019
+Singapore,2019,Position,251384,2009-2019
+Thailand,2010,Position,12999,2009-2019
+Thailand,2011,Position,11840,2009-2019
+Thailand,2012,Position,10773,2009-2019
+Thailand,2013,Position,9957,2009-2019
+Thailand,2014,Position,18143,2009-2019
+Thailand,2015,Position,17942,2009-2019
+Thailand,2016,Position,18386,2009-2019
+Thailand,2017,Position,15578,2009-2019
+Thailand,2018,Position,16415,2009-2019
+Thailand,2019,Position,17134,2009-2019
+Brunei,2010,Position,103,2009-2019
+Brunei,2011,Position,99,2009-2019
+Brunei,2012,Position,116,2009-2019
+Brunei,2013,Position,31,2009-2019
+Brunei,2014,Position,11,2009-2019
+Brunei,2015,Position,10,2009-2019
+Brunei,2016,Position,16,2009-2019
+Brunei,2017,Position,19,2009-2019
+Brunei,2018,Position,15,2009-2019
+Brunei,2019,Position,10,2009-2019
+Burma,2010,Position,(*),2009-2019
+Burma,2011,Position,1,2009-2019
+Burma,2012,Position,1,2009-2019
+Burma,2013,Position,1,2009-2019
+Burma,2014,Position,(*),2009-2019
+Burma,2015,Position,1,2009-2019
+Burma,2016,Position,1,2009-2019
+Burma,2017,Position,-4,2009-2019
+Burma,2018,Position,(D),2009-2019
+Burma,2019,Position,1,2009-2019
+Cambodia,2010,Position,30,2009-2019
+Cambodia,2011,Position,37,2009-2019
+Cambodia,2012,Position,54,2009-2019
+Cambodia,2013,Position,(D),2009-2019
+Cambodia,2014,Position,105,2009-2019
+Cambodia,2015,Position,120,2009-2019
+Cambodia,2016,Position,158,2009-2019
+Cambodia,2017,Position,174,2009-2019
+Cambodia,2018,Position,202,2009-2019
+Cambodia,2019,Position,(D),2009-2019
+Laos,2010,Position,0,2009-2019
+Laos,2011,Position,0,2009-2019
+Laos,2012,Position,0,2009-2019
+Laos,2013,Position,0,2009-2019
+Laos,2014,Position,(*),2009-2019
+Laos,2015,Position,(*),2009-2019
+Laos,2016,Position,(*),2009-2019
+Laos,2017,Position,(*),2009-2019
+Laos,2018,Position,(*),2009-2019
+Laos,2019,Position,(D),2009-2019
+Vietnam,2010,Position,799,2009-2019
+Vietnam,2011,Position,964,2009-2019
+Vietnam,2012,Position,1143,2009-2019
+Vietnam,2013,Position,1348,2009-2019
+Vietnam,2014,Position,1746,2009-2019
+Vietnam,2015,Position,1816,2009-2019
+Vietnam,2016,Position,2433,2009-2019
+Vietnam,2017,Position,2461,2009-2019
+Vietnam,2018,Position,2895,2009-2019
+Vietnam,2019,Position,2680,2009-2019
+Indonesia,2010,Financial transactions,315,2009-2019
+Indonesia,2011,Financial transactions,1926,2009-2019
+Indonesia,2012,Financial transactions,2301,2009-2019
+Indonesia,2013,Financial transactions,440,2009-2019
+Indonesia,2014,Financial transactions,3443,2009-2019
+Indonesia,2015,Financial transactions,176,2009-2019
+Indonesia,2016,Financial transactions,-729,2009-2019
+Indonesia,2017,Financial transactions,-861,2009-2019
+Indonesia,2018,Financial transactions,-2978,2009-2019
+Indonesia,2019,Financial transactions,931,2009-2019
+Malaysia,2010,Financial transactions,2730,2009-2019
+Malaysia,2011,Financial transactions,450,2009-2019
+Malaysia,2012,Financial transactions,1230,2009-2019
+Malaysia,2013,Financial transactions,2496,2009-2019
+Malaysia,2014,Financial transactions,2940,2009-2019
+Malaysia,2015,Financial transactions,2054,2009-2019
+Malaysia,2016,Financial transactions,-1191,2009-2019
+Malaysia,2017,Financial transactions,1342,2009-2019
+Malaysia,2018,Financial transactions,-674,2009-2019
+Malaysia,2019,Financial transactions,237,2009-2019
+Philippines,2010,Financial transactions,703,2009-2019
+Philippines,2011,Financial transactions,228,2009-2019
+Philippines,2012,Financial transactions,-63,2009-2019
+Philippines,2013,Financial transactions,-111,2009-2019
+Philippines,2014,Financial transactions,643,2009-2019
+Philippines,2015,Financial transactions,75,2009-2019
+Philippines,2016,Financial transactions,756,2009-2019
+Philippines,2017,Financial transactions,562,2009-2019
+Philippines,2018,Financial transactions,238,2009-2019
+Philippines,2019,Financial transactions,325,2009-2019
+Singapore,2010,Financial transactions,15501,2009-2019
+Singapore,2011,Financial transactions,12500,2009-2019
+Singapore,2012,Financial transactions,15763,2009-2019
+Singapore,2013,Financial transactions,20329,2009-2019
+Singapore,2014,Financial transactions,25117,2009-2019
+Singapore,2015,Financial transactions,21390,2009-2019
+Singapore,2016,Financial transactions,10095,2009-2019
+Singapore,2017,Financial transactions,23369,2009-2019
+Singapore,2018,Financial transactions,-39799,2009-2019
+Singapore,2019,Financial transactions,15732,2009-2019
+Thailand,2010,Financial transactions,2643,2009-2019
+Thailand,2011,Financial transactions,1181,2009-2019
+Thailand,2012,Financial transactions,1041,2009-2019
+Thailand,2013,Financial transactions,-710,2009-2019
+Thailand,2014,Financial transactions,2929,2009-2019
+Thailand,2015,Financial transactions,200,2009-2019
+Thailand,2016,Financial transactions,1772,2009-2019
+Thailand,2017,Financial transactions,1041,2009-2019
+Thailand,2018,Financial transactions,1317,2009-2019
+Thailand,2019,Financial transactions,1400,2009-2019
+Brunei,2010,Financial transactions,42,2009-2019
+Brunei,2011,Financial transactions,-5,2009-2019
+Brunei,2012,Financial transactions,17,2009-2019
+Brunei,2013,Financial transactions,6,2009-2019
+Brunei,2014,Financial transactions,-40,2009-2019
+Brunei,2015,Financial transactions,-3,2009-2019
+Brunei,2016,Financial transactions,(D),2009-2019
+Brunei,2017,Financial transactions,(*),2009-2019
+Brunei,2018,Financial transactions,-7,2009-2019
+Brunei,2019,Financial transactions,(*),2009-2019
+Burma,2010,Financial transactions,(*),2009-2019
+Burma,2011,Financial transactions,(*),2009-2019
+Burma,2012,Financial transactions,(*),2009-2019
+Burma,2013,Financial transactions,(*),2009-2019
+Burma,2014,Financial transactions,(*),2009-2019
+Burma,2015,Financial transactions,(*),2009-2019
+Burma,2016,Financial transactions,(*),2009-2019
+Burma,2017,Financial transactions,-4,2009-2019
+Burma,2018,Financial transactions,(D),2009-2019
+Burma,2019,Financial transactions,-1,2009-2019
+Cambodia,2010,Financial transactions,6,2009-2019
+Cambodia,2011,Financial transactions,7,2009-2019
+Cambodia,2012,Financial transactions,18,2009-2019
+Cambodia,2013,Financial transactions,3,2009-2019
+Cambodia,2014,Financial transactions,22,2009-2019
+Cambodia,2015,Financial transactions,15,2009-2019
+Cambodia,2016,Financial transactions,16,2009-2019
+Cambodia,2017,Financial transactions,17,2009-2019
+Cambodia,2018,Financial transactions,(D),2009-2019
+Cambodia,2019,Financial transactions,(D),2009-2019
+Laos,2010,Financial transactions,0,2009-2019
+Laos,2011,Financial transactions,0,2009-2019
+Laos,2012,Financial transactions,0,2009-2019
+Laos,2013,Financial transactions,0,2009-2019
+Laos,2014,Financial transactions,1,2009-2019
+Laos,2015,Financial transactions,1,2009-2019
+Laos,2016,Financial transactions,1,2009-2019
+Laos,2017,Financial transactions,1,2009-2019
+Laos,2018,Financial transactions,1,2009-2019
+Laos,2019,Financial transactions,2,2009-2019
+Vietnam,2010,Financial transactions,68,2009-2019
+Vietnam,2011,Financial transactions,166,2009-2019
+Vietnam,2012,Financial transactions,136,2009-2019
+Vietnam,2013,Financial transactions,184,2009-2019
+Vietnam,2014,Financial transactions,240,2009-2019
+Vietnam,2015,Financial transactions,88,2009-2019
+Vietnam,2016,Financial transactions,171,2009-2019
+Vietnam,2017,Financial transactions,36,2009-2019
+Vietnam,2018,Financial transactions,154,2009-2019
+Vietnam,2019,Financial transactions,-7,2009-2019
+Indonesia,2020,Position,12158,2020-2024
+Indonesia,2021,Position,12831,2020-2024
+Indonesia,2022,Position,13311,2020-2024
+Indonesia,2023,Position,14693,2020-2024
+Indonesia,2024,Position,14615,2020-2024
+Malaysia,2020,Position,13788,2020-2024
+Malaysia,2021,Position,11349,2020-2024
+Malaysia,2022,Position,25477,2020-2024
+Malaysia,2023,Position,20994,2020-2024
+Malaysia,2024,Position,23915,2020-2024
+Philippines,2020,Position,5037,2020-2024
+Philippines,2021,Position,4997,2020-2024
+Philippines,2022,Position,5709,2020-2024
+Philippines,2023,Position,5813,2020-2024
+Philippines,2024,Position,6068,2020-2024
+Singapore,2020,Position,264188,2020-2024
+Singapore,2021,Position,333672,2020-2024
+Singapore,2022,Position,361065,2020-2024
+Singapore,2023,Position,445005,2020-2024
+Singapore,2024,Position,467591,2020-2024
+Thailand,2020,Position,15484,2020-2024
+Thailand,2021,Position,15755,2020-2024
+Thailand,2022,Position,16670,2020-2024
+Thailand,2023,Position,13804,2020-2024
+Thailand,2024,Position,15812,2020-2024
+Brunei,2020,Position,5,2020-2024
+Brunei,2021,Position,(D),2020-2024
+Brunei,2022,Position,(D),2020-2024
+Brunei,2023,Position,(D),2020-2024
+Brunei,2024,Position,(D),2020-2024
+Burma,2020,Position,-1,2020-2024
+Burma,2021,Position,-4,2020-2024
+Burma,2022,Position,-6,2020-2024
+Burma,2023,Position,-9,2020-2024
+Burma,2024,Position,-12,2020-2024
+Cambodia,2020,Position,(D),2020-2024
+Cambodia,2021,Position,(D),2020-2024
+Cambodia,2022,Position,(D),2020-2024
+Cambodia,2023,Position,(D),2020-2024
+Cambodia,2024,Position,(D),2020-2024
+Laos,2020,Position,(D),2020-2024
+Laos,2021,Position,(D),2020-2024
+Laos,2022,Position,(D),2020-2024
+Laos,2023,Position,(D),2020-2024
+Laos,2024,Position,(D),2020-2024
+Vietnam,2020,Position,2530,2020-2024
+Vietnam,2021,Position,2862,2020-2024
+Vietnam,2022,Position,3520,2020-2024
+Vietnam,2023,Position,4018,2020-2024
+Vietnam,2024,Position,4369,2020-2024
+Indonesia,2020,Financial transactions,-1663,2020-2024
+Indonesia,2021,Financial transactions,1066,2020-2024
+Indonesia,2022,Financial transactions,354,2020-2024
+Indonesia,2023,Financial transactions,1201,2020-2024
+Indonesia,2024,Financial transactions,-421,2020-2024
+Malaysia,2020,Financial transactions,968,2020-2024
+Malaysia,2021,Financial transactions,776,2020-2024
+Malaysia,2022,Financial transactions,9765,2020-2024
+Malaysia,2023,Financial transactions,-4156,2020-2024
+Malaysia,2024,Financial transactions,2962,2020-2024
+Philippines,2020,Financial transactions,338,2020-2024
+Philippines,2021,Financial transactions,-603,2020-2024
+Philippines,2022,Financial transactions,818,2020-2024
+Philippines,2023,Financial transactions,208,2020-2024
+Philippines,2024,Financial transactions,256,2020-2024
+Singapore,2020,Financial transactions,19902,2020-2024
+Singapore,2021,Financial transactions,23687,2020-2024
+Singapore,2022,Financial transactions,44299,2020-2024
+Singapore,2023,Financial transactions,48973,2020-2024
+Singapore,2024,Financial transactions,19413,2020-2024
+Thailand,2020,Financial transactions,164,2020-2024
+Thailand,2021,Financial transactions,-558,2020-2024
+Thailand,2022,Financial transactions,791,2020-2024
+Thailand,2023,Financial transactions,-1867,2020-2024
+Thailand,2024,Financial transactions,1734,2020-2024
+Brunei,2020,Financial transactions,-4,2020-2024
+Brunei,2021,Financial transactions,-12,2020-2024
+Brunei,2022,Financial transactions,(D),2020-2024
+Brunei,2023,Financial transactions,(D),2020-2024
+Brunei,2024,Financial transactions,2,2020-2024
+Burma,2020,Financial transactions,-2,2020-2024
+Burma,2021,Financial transactions,-2,2020-2024
+Burma,2022,Financial transactions,(*),2020-2024
+Burma,2023,Financial transactions,-2,2020-2024
+Burma,2024,Financial transactions,-2,2020-2024
+Cambodia,2020,Financial transactions,(D),2020-2024
+Cambodia,2021,Financial transactions,28,2020-2024
+Cambodia,2022,Financial transactions,22,2020-2024
+Cambodia,2023,Financial transactions,(D),2020-2024
+Cambodia,2024,Financial transactions,11,2020-2024
+Laos,2020,Financial transactions,2,2020-2024
+Laos,2021,Financial transactions,2,2020-2024
+Laos,2022,Financial transactions,2,2020-2024
+Laos,2023,Financial transactions,(*),2020-2024
+Laos,2024,Financial transactions,-2,2020-2024
+Vietnam,2020,Financial transactions,103,2020-2024
+Vietnam,2021,Financial transactions,-5,2020-2024
+Vietnam,2022,Financial transactions,677,2020-2024
+Vietnam,2023,Financial transactions,335,2020-2024
+Vietnam,2024,Financial transactions,506,2020-2024
