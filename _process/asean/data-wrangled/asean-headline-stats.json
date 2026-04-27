@@ -1,0 +1,176 @@
+{
+  "_meta": {
+    "compiled": "2026-04-27",
+    "source_files": [
+      "asean-normalization-wide.csv",
+      "asean-flows-yearly.csv",
+      "asean-minerals-production.csv",
+      "asean-minerals-flows.csv",
+      "asean-defense-yearly.csv"
+    ],
+    "purpose": "Cite-ready headlines for the BFNA ASEAN infographic. Use sparingly \u2014 one or two anchors per layer."
+  },
+  "thesis_b_minerals": {
+    "indonesia_nickel_2025": {
+      "country": "IDN",
+      "mineral": "Nickel",
+      "year": 2025,
+      "production": 2600000.0,
+      "unit": "metric tons",
+      "world_total": 3900000.0,
+      "share_of_world_pct": 66.67,
+      "source": "USGS MCS2026"
+    },
+    "philippines_nickel_2025": {
+      "country": "PHL",
+      "mineral": "Nickel",
+      "year": 2025,
+      "production": 270000.0,
+      "unit": "metric tons",
+      "world_total": 3900000.0,
+      "share_of_world_pct": 6.92,
+      "source": "USGS MCS2026"
+    },
+    "indonesia_cobalt_2025": {
+      "country": "IDN",
+      "mineral": "Cobalt",
+      "year": 2025,
+      "production": 44000.0,
+      "unit": "metric tons",
+      "world_total": 310000.0,
+      "share_of_world_pct": 14.19,
+      "source": "USGS MCS2026"
+    },
+    "indonesia_tin_2025": {
+      "country": "IDN",
+      "mineral": "Tin",
+      "year": 2025,
+      "production": 61000.0,
+      "unit": "metric tons",
+      "world_total": 290000.0,
+      "share_of_world_pct": 21.03,
+      "source": "USGS MCS2026"
+    },
+    "myanmar_rare_earths_2025": {
+      "country": "MMR",
+      "mineral": "Rare Earths",
+      "year": 2025,
+      "production": 22000.0,
+      "unit": "metric tons",
+      "world_total": 390000.0,
+      "share_of_world_pct": 5.64,
+      "source": "USGS MCS2026"
+    },
+    "asean_nickel_share_2025_pct": {
+      "value": 73.59,
+      "unit": "%",
+      "note": "Sum of Indonesia + Philippines (only ASEAN producers in MCS2026).",
+      "source": "USGS MCS2026"
+    },
+    "indonesia_nickel_exports_2024": {
+      "total_usd_millions": 21001.689874000007,
+      "by_partner_group_usd_millions": {
+        "CHN": 18973.593196,
+        "EU": 275.531829,
+        "GBR": 395.370324,
+        "JPN": 1059.376775,
+        "KOR": 282.177043,
+        "OTHER": 0.014906,
+        "USA": 15.625801000000001
+      },
+      "note": "All HS6 nickel-related products (ore, matte, sinter, refined, sulfate, ferronickel).",
+      "source": "BACI HS07 V202601"
+    },
+    "asean_nickel_exports_growth": {
+      "2010_usd_millions": 3982.290806,
+      "2024_usd_millions": 23477.720328,
+      "multiple": 5.9,
+      "source": "BACI HS07 V202601"
+    },
+    "iea_nickel_growth_indonesia_share": {
+      "value": 90,
+      "unit": "%",
+      "year_range": "2020\u20132024",
+      "note": "Indonesia's share of global nickel supply *growth* during 2020\u20132024 (not stock share).",
+      "source": "IEA Global Critical Minerals Outlook 2025, Executive Summary"
+    },
+    "china_critical_minerals_refining_share": {
+      "value": 70,
+      "unit": "%",
+      "scope": "19 of 20 minerals analysed",
+      "year": 2024,
+      "source": "IEA Global Critical Minerals Outlook 2025"
+    }
+  },
+  "thesis_a_d_flows": {
+    "indonesia_china_trade_2024": {
+      "exports_usd_millions": 68211.72932099986,
+      "imports_usd_millions": 74356.27893099995,
+      "source": "BACI HS07 V202601"
+    },
+    "china_dev_finance_to_asean_2010_2021_usd_millions": {
+      "total": 133026.87322937744,
+      "top_3_recipients": {
+        "IDN": 39281.0,
+        "VNM": 21243.0,
+        "LAO": 18605.0
+      },
+      "unit": "USD millions, constant 2021 USD",
+      "source": "AidData GCDF 3.0"
+    },
+    "japan_indonesia_fdi_stock_growth": {
+      "2010_usd_millions": 11946.454789278729,
+      "2024_usd_millions": 39040.16167655963,
+      "source": "JETRO/BOJ"
+    }
+  },
+  "thesis_c_defense": {
+    "china_milex_2024_usd_millions": 311900.3506008155,
+    "usa_milex_2024_usd_millions": 1004901.0,
+    "singapore_milex_share_gdp_2024_pct": 2.7998207909070936,
+    "myanmar_milex_share_gdp_2024_pct": 6.604805119117459,
+    "indonesia_milex_share_gdp_2024_pct": 0.860301773831874,
+    "_source": "SIPRI Military Expenditure Database 2026 release (1949\u20132025)"
+  },
+  "policy_anchors": {
+    "indonesia_esdm_17_2025_quota_cut": {
+      "from_2024_quota_mt": 272,
+      "to_2025_quota_mt": 150,
+      "cut_mt": 122,
+      "cut_pct": 44.85,
+      "regulation": "ESDM Ministerial Regulation No. 17 of 2025",
+      "effective_date": "2025-10-03",
+      "source": "Carbon Credits, S&P Global, SMM Analysis"
+    },
+    "oecd_export_restrictions_growth_2009_2023": {
+      "value": "more than fivefold",
+      "value_x": 5.0,
+      "scope": "Industrial raw materials, count of export restrictions",
+      "source": "OECD Inventory of Export Restrictions on Industrial Raw Materials 2025"
+    },
+    "oecd_critical_minerals_restriction_share_2021_2023": {
+      "cobalt_pct": 67,
+      "rare_earths_pct": 46,
+      "all_industrial_raw_materials_pct": 14,
+      "source": "OECD Inventory 2025"
+    },
+    "eu_crma_2030_targets": {
+      "extraction_pct": 10,
+      "processing_pct": 40,
+      "recycling_pct": 25,
+      "max_share_one_third_country_pct": 65,
+      "regulation": "Regulation (EU) 2024/1252",
+      "in_force_date": "2024-05-23",
+      "strategic_materials_count": 17,
+      "source": "EUR-Lex"
+    },
+    "lynas_lamp_world_rare_earths_share": {
+      "value_range_pct": [
+        12,
+        15
+      ],
+      "scope": "Lynas Malaysia LAMP processing share of global rare earths",
+      "source": "Lynas FY2024 Annual Report"
+    }
+  }
+}
