@@ -244,6 +244,21 @@ html {
   }
 }
 
+/* layout-3: ASEAN infographic grid — full-bleed map, lower-left title block,
+   right-side country panel, top-center data layer toggle. Slots are placed by
+   the AseanInfographic component itself; this rule only handles mobile fallback
+   so the grid does not viewport-lock below 880px. */
+.layout-3 {
+  @media (max-width: 879px) {
+    height: auto;
+    min-height: 100svh;
+    overflow: visible;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 0;
+  }
+}
+
 /* layout-home: scrollable hub page — overrides master-grid viewport lock */
 .layout-home {
   height: auto;
