@@ -1,0 +1,244 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-04-29T00:00:00Z",
+  "title": "Design System: BFNA Indo-Pacific",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(15.5% 0.003 254)",
+        "tonalRamp": [
+          "oklch(8% 0.002 254)",
+          "oklch(15% 0.003 254)",
+          "oklch(22% 0.003 254)",
+          "oklch(30% 0.004 254)",
+          "oklch(45% 0.004 254)",
+          "oklch(60% 0.004 254)",
+          "oklch(78% 0.003 254)",
+          "oklch(94% 0.002 254)"
+        ]
+      },
+      "abyss": {
+        "role": "neutral",
+        "displayName": "Abyss Navy",
+        "canonical": "oklch(24% 0.05 232)",
+        "tonalRamp": [
+          "oklch(12% 0.04 232)",
+          "oklch(20% 0.05 232)",
+          "oklch(28% 0.06 232)",
+          "oklch(38% 0.07 232)",
+          "oklch(50% 0.075 232)",
+          "oklch(62% 0.075 232)",
+          "oklch(76% 0.06 232)",
+          "oklch(92% 0.03 232)"
+        ]
+      },
+      "bureau": {
+        "role": "neutral",
+        "displayName": "Bureau White",
+        "canonical": "oklch(99% 0 0)",
+        "tonalRamp": [
+          "oklch(20% 0 0)",
+          "oklch(35% 0 0)",
+          "oklch(50% 0 0)",
+          "oklch(65% 0 0)",
+          "oklch(78% 0 0)",
+          "oklch(88% 0 0)",
+          "oklch(94% 0 0)",
+          "oklch(99% 0 0)"
+        ]
+      },
+      "meridian": {
+        "role": "primary",
+        "displayName": "Meridian Blue",
+        "canonical": "oklch(63% 0.13 257)",
+        "tonalRamp": [
+          "oklch(20% 0.07 257)",
+          "oklch(30% 0.10 257)",
+          "oklch(42% 0.13 257)",
+          "oklch(53% 0.14 257)",
+          "oklch(63% 0.13 257)",
+          "oklch(74% 0.10 257)",
+          "oklch(85% 0.07 257)",
+          "oklch(94% 0.03 257)"
+        ]
+      },
+      "coral-alert": {
+        "role": "secondary",
+        "displayName": "Coral Alert",
+        "canonical": "oklch(73% 0.16 12)",
+        "tonalRamp": [
+          "oklch(28% 0.10 12)",
+          "oklch(40% 0.14 12)",
+          "oklch(52% 0.17 12)",
+          "oklch(63% 0.18 12)",
+          "oklch(73% 0.16 12)",
+          "oklch(82% 0.12 12)",
+          "oklch(90% 0.08 12)",
+          "oklch(96% 0.03 12)"
+        ]
+      },
+      "tanker": {
+        "role": "secondary",
+        "displayName": "Tanker Red",
+        "canonical": "oklch(58% 0.16 10)",
+        "tonalRamp": [
+          "oklch(22% 0.10 10)",
+          "oklch(34% 0.14 10)",
+          "oklch(45% 0.16 10)",
+          "oklch(58% 0.16 10)",
+          "oklch(70% 0.13 10)",
+          "oklch(80% 0.10 10)",
+          "oklch(90% 0.06 10)",
+          "oklch(96% 0.02 10)"
+        ]
+      },
+      "bulk": {
+        "role": "tertiary",
+        "displayName": "Bulk Amber",
+        "canonical": "oklch(60% 0.13 60)",
+        "tonalRamp": [
+          "oklch(24% 0.07 60)",
+          "oklch(36% 0.10 60)",
+          "oklch(48% 0.12 60)",
+          "oklch(60% 0.13 60)",
+          "oklch(72% 0.12 60)",
+          "oklch(82% 0.09 60)",
+          "oklch(90% 0.06 60)",
+          "oklch(96% 0.03 60)"
+        ]
+      },
+      "card-surface": {
+        "role": "surface",
+        "displayName": "Card Surface",
+        "canonical": "oklch(24% 0.05 232 / 0.95)",
+        "tonalRamp": []
+      },
+      "scrim-soft": {
+        "role": "scrim",
+        "displayName": "Soft Scrim",
+        "canonical": "oklch(0% 0 0 / 0.30)",
+        "tonalRamp": []
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Hero infographic title against the gradient. One per screen." },
+      "headline": { "displayName": "Headline", "purpose": "Hub H1 and section openers." },
+      "title": { "displayName": "Title", "purpose": "Card titles, strait names, panel headers." },
+      "body": { "displayName": "Body", "purpose": "Description copy and prose. Cap line length at 65–75ch." },
+      "label": { "displayName": "Label", "purpose": "Axis labels, source lines, meta chrome, small caps." }
+    },
+    "shadows": [
+      { "name": "card-ambient-rest", "value": "0 8px 32px rgba(0, 0, 0, 0.30)", "purpose": "Hub-page InfographicCard at rest. Hub signature." },
+      { "name": "card-ambient-hover", "value": "0 12px 40px rgba(0, 0, 0, 0.40)", "purpose": "Hub-page InfographicCard on hover, paired with translateY(-2px)." },
+      { "name": "title-drop", "value": "0 5px 5px rgba(0, 0, 0, 0.25)", "purpose": "Display and hub-headline text-shadow over the gradient." },
+      { "name": "stacked-bar-value", "value": "0 1px 2px rgba(0, 0, 0, 0.50)", "purpose": "White numerals laid over saturated stacked-bar segments. Legibility, not effect." }
+    ],
+    "motion": [
+      { "name": "ease-out-standard", "value": "cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "Default ease-out-quart for state transitions." },
+      { "name": "duration-tap", "value": "200ms", "purpose": "Button hover, source-link, content fade." },
+      { "name": "duration-slide", "value": "250ms", "purpose": "Swipe slide between straits." },
+      { "name": "duration-zoom-out", "value": "600ms", "purpose": "Strait map zoom-out. Must stay in sync with .map-bg transition." },
+      { "name": "panel-show-delay", "value": "650ms", "purpose": "Delay before showing strait detail panels after zoom-in completes." },
+      { "name": "float-cycle", "value": "6s", "purpose": "Renewables background-image idle float (translateY ±1svh)." }
+    ],
+    "breakpoints": [
+      { "name": "mobile-portrait-cap", "value": "879px", "purpose": "Below this width, infographics flip to flex column or show the rotate overlay." },
+      { "name": "wrapper-cap", "value": "900px", "purpose": "Page-wrapper switches off the viewport-locked max-height." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Infographic Card (Hub)",
+      "kind": "card",
+      "refersTo": "card-infographic",
+      "description": "Hub-page card listing a published infographic with title, description, and embed/view CTAs.",
+      "html": "<article class=\"ds-card-infographic\"><div class=\"ds-card-thumb\"><span class=\"ds-card-thumb-label\">Renewables on the Rise</span></div><div class=\"ds-card-body\"><h2 class=\"ds-card-title\">Renewables on the Rise</h2><p class=\"ds-card-desc\">Explore how Indo-Pacific nations are expanding renewable energy infrastructure, with 2024 data on solar, wind, hydropower and more.</p><div class=\"ds-card-actions\"><button class=\"ds-btn-secondary\">Copy Embed Code</button><a class=\"ds-btn-secondary\" href=\"#\">View Infographic</a></div></div></article>",
+      "css": ".ds-card-infographic { background: rgba(2, 38, 64, 0.95); backdrop-filter: blur(8px); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 12px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.30); overflow: hidden; transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease; color: #fff; font-family: 'Encode Sans', system-ui, sans-serif; max-width: 400px; } .ds-card-infographic:hover { border-color: rgba(255, 255, 255, 0.30); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.40); transform: translateY(-2px); } .ds-card-thumb { aspect-ratio: 16 / 10; background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)); display: flex; align-items: center; justify-content: center; } .ds-card-thumb-label { font-size: 1.25rem; font-weight: 600; color: rgba(255, 255, 255, 0.20); } .ds-card-body { padding: 1.5rem; } .ds-card-title { font-size: 1.5625rem; font-weight: 600; margin: 0 0 0.5rem 0; color: rgba(255, 255, 255, 0.95); } .ds-card-desc { font-size: 1rem; line-height: 1.5; color: rgba(255, 255, 255, 0.70); margin: 0 0 1.5rem 0; } .ds-card-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Ghost-style button used for embed-copy, view-infographic, and any CTA. The system has no filled primary button.",
+      "html": "<button class=\"ds-btn-secondary\">Copy Embed Code</button>",
+      "css": ".ds-btn-secondary { font-family: 'Encode Sans', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; padding: 0.5rem 1.25rem; border: 1px solid rgba(255, 255, 255, 0.20); border-radius: 6px; background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.85); text-decoration: none; cursor: pointer; transition: background 200ms ease, border-color 200ms ease, color 200ms ease; } .ds-btn-secondary:hover { background: rgba(255, 255, 255, 0.15); border-color: rgba(255, 255, 255, 0.35); color: #fff; } .ds-btn-secondary:focus-visible { outline: 2px solid rgba(255, 255, 255, 0.70); outline-offset: 2px; }"
+    },
+    {
+      "name": "Embed-Copy Button (Success)",
+      "kind": "button",
+      "refersTo": "button-secondary-success",
+      "description": "Secondary button after the embed code copies to clipboard. Two-second confirmation skin.",
+      "html": "<button class=\"ds-btn-secondary ds-btn-secondary--success\">Copied!</button>",
+      "css": ".ds-btn-secondary { font-family: 'Encode Sans', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; padding: 0.5rem 1.25rem; border: 1px solid rgba(255, 255, 255, 0.20); border-radius: 6px; background: rgba(255, 255, 255, 0.08); color: rgba(255, 255, 255, 0.85); transition: background 200ms ease, border-color 200ms ease, color 200ms ease; } .ds-btn-secondary--success { background: rgba(34, 197, 94, 0.20); border-color: rgba(34, 197, 94, 0.50); color: rgba(34, 197, 94, 0.95); }"
+    },
+    {
+      "name": "Stacked Bar (Cargo Mix)",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Signature data primitive. Horizontal stacked bar showing container/dry-bulk/tanker share for a strait.",
+      "html": "<div class=\"ds-stacked-bar\"><div class=\"ds-stacked-bar__track\"><div class=\"ds-stacked-bar__seg ds-seg--container\" style=\"flex-basis:48%\"><span class=\"ds-stacked-bar__value\">48%</span></div><div class=\"ds-stacked-bar__seg ds-seg--bulk\" style=\"flex-basis:32%\"><span class=\"ds-stacked-bar__value\">32%</span></div><div class=\"ds-stacked-bar__seg ds-seg--tanker\" style=\"flex-basis:20%\"><span class=\"ds-stacked-bar__value\">20%</span></div></div><div class=\"ds-stacked-bar__legend\"><span class=\"ds-stacked-bar__legend-item\"><span class=\"ds-dot ds-dot--container\"></span>Container <span class=\"ds-stacked-bar__count\">48</span></span><span class=\"ds-stacked-bar__legend-item\"><span class=\"ds-dot ds-dot--bulk\"></span>Dry bulk <span class=\"ds-stacked-bar__count\">32</span></span><span class=\"ds-stacked-bar__legend-item\"><span class=\"ds-dot ds-dot--tanker\"></span>Tanker <span class=\"ds-stacked-bar__count\">20</span></span></div></div>",
+      "css": ".ds-stacked-bar { font-family: 'Encode Sans', system-ui, sans-serif; color: #fff; width: 100%; } .ds-stacked-bar__track { display: flex; width: 100%; height: 24px; border-radius: 4px; overflow: hidden; } .ds-stacked-bar__seg { flex: none; height: 100%; display: flex; align-items: center; justify-content: center; box-sizing: border-box; } .ds-stacked-bar__seg + .ds-stacked-bar__seg { border-left: 1px solid rgba(0,0,0,0.30); } .ds-seg--container { background: hsl(218, 60%, 58%); } .ds-seg--bulk { background: hsl(34, 60%, 50%); } .ds-seg--tanker { background: hsl(348, 60%, 55%); } .ds-stacked-bar__value { font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; text-shadow: 0 1px 2px rgba(0,0,0,0.50); white-space: nowrap; } .ds-stacked-bar__legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 8px; } .ds-stacked-bar__legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: rgba(255,255,255,0.60); } .ds-dot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; } .ds-dot--container { background: hsl(218, 60%, 58%); } .ds-dot--bulk { background: hsl(34, 60%, 50%); } .ds-dot--tanker { background: hsl(348, 60%, 55%); } .ds-stacked-bar__count { color: rgba(255,255,255,0.85); font-weight: 500; font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Strait Circle (Selection Token)",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Signature interactive primitive on the Strait map. Area-scaled disc whose radius encodes tonnage / vessels / value via d3.scaleSqrt. Click expands via FLIP transition into a detail panel.",
+      "html": "<button class=\"ds-strait-circle\" aria-label=\"Strait of Malacca, 105.4 Mt capacity\"><span class=\"ds-strait-circle__label\">Malacca</span></button>",
+      "css": ".ds-strait-circle { width: 144px; height: 144px; border-radius: 50%; background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(255, 255, 255, 0.4); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), background 200ms ease, border-color 200ms ease; } .ds-strait-circle:hover { background: #fff; transform: scale(1.04); border-color: rgba(255, 255, 255, 0.7); } .ds-strait-circle:focus-visible { outline: 2px solid hsl(218, 60%, 58%); outline-offset: 4px; } .ds-strait-circle__label { font-family: 'Encode Sans', system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; color: #022640; letter-spacing: 0.02em; text-transform: uppercase; }"
+    },
+    {
+      "name": "Page Surface (Atmosphere)",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The page wrapper itself. Vertical gradient + radial blue mix-blend halo + soft top scrim. Atmosphere is part of the page, not an effect.",
+      "html": "<div class=\"ds-surface\"><div class=\"ds-surface__halo\"></div><div class=\"ds-surface__scrim\"></div><div class=\"ds-surface__content\"><h1>Atmosphere is the page</h1></div></div>",
+      "css": ".ds-surface { position: relative; width: 100%; min-height: 100svh; background: linear-gradient(to bottom, #0D0D0D 5%, #022640 105%); overflow: hidden; font-family: 'Encode Sans', system-ui, sans-serif; color: #fff; } .ds-surface__halo { position: absolute; inset: 0; pointer-events: none; mix-blend-mode: color; z-index: 10; background: radial-gradient(circle at 50% 0%, rgba(0, 0, 200, 0.20) 0%, rgba(0, 0, 200, 0) 100%); } .ds-surface__scrim { position: absolute; inset: 0; pointer-events: none; z-index: 0; background: linear-gradient(to bottom, rgba(0, 0, 0, 0.30) 0%, rgba(0, 0, 0, 0) 100%); } .ds-surface__content { position: relative; z-index: 1; padding: 4rem 2rem; } .ds-surface h1 { font-size: clamp(1.866rem, 1.381rem + 3.5vw, 5.052rem); font-weight: 600; line-height: 1.1; text-shadow: 0 5px 5px rgba(0, 0, 0, 0.25); margin: 0; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Deep Watch",
+    "overview": "A think-tank reading-room rendered as a moonless sea. Surfaces are abyssal navy fading into ink; light arrives through restricted apertures — a single accent blue, a coral alert when something reads as risk, white text held at editorial weight. The mood is satellite-feed-at-2am, not dashboard-at-9am: somebody is paying attention, and the reader is briefly let inside that posture.\n\nDensity is restrained on purpose. Each infographic occupies a 16:9 stage and earns one defensible takeaway. Atmosphere — radial blue mix-blend overlays, particle drifts across the Strait map, GSAP-driven intros, FLIP zoom into detail — is structural, not garnish. The system explicitly rejects Tableau corporate slate, generic think-tank PDF flatness, SaaS hero-metric templates, and the host publisher's softer house style. The infographic must feel like a guest essay in a stronger magazine, not a widget in someone else's CMS.",
+    "keyCharacteristics": [
+      "Two-tone vertical gradient (ink → abyss) anchors every embed; never a flat solid.",
+      "One accent (Meridian) carries selection, lines, and the container-cargo role; restraint is the rule, not the exception.",
+      "Single typeface (Encode Sans) at 400 / 600 only — hierarchy lives in scale and color, not in weight sprawl.",
+      "Motion is exponential ease-out, never elastic; respects prefers-reduced-motion.",
+      "Landscape canon at 1280×800; portrait gets a respectful rotate overlay rather than a shrunk fallback."
+    ],
+    "rules": [
+      { "name": "The One Voice Rule", "body": "Meridian is the only saturated color permitted as UI chrome. If a second accent enters a screen, justify it as data, not decoration.", "section": "colors" },
+      { "name": "The Tinted-Black Rule", "body": "Neither #000 nor #fff ship as raw values. Ink and Bureau both sit on the warm side of pure; the gradient gives away the temperature.", "section": "colors" },
+      { "name": "The Mix-Blend Halo Rule", "body": "The radial rgba(0, 0, 200, 0.20) overlay at 50% 0% with mix-blend-mode: color is part of the page surface, not an effect. Do not remove it; do not stack a second blend mode on top of it.", "section": "colors" },
+      { "name": "The Two-Weight Rule", "body": "Encode Sans at 400 and 600 only. Italic is permitted for source-attribution copy; bold-italic and 700 are forbidden.", "section": "typography" },
+      { "name": "The Display Singular Rule", "body": "One Display element per infographic. If two compete for the role, the second is a Headline.", "section": "typography" },
+      { "name": "The Atmosphere-Not-Stack Rule", "body": "Depth comes from the page gradient + mix-blend halo, not from layered shadows on every element. If a new component is asking for a shadow, ask first whether it should sit at z-index 1 with no shadow at all.", "section": "elevation" },
+      { "name": "The Card-Lift Exception", "body": "0 8px 32px rgba(0,0,0,0.30) is the hub card's signature. Do not reuse the same value on dialogs, panels, or in-infographic chrome — it is meant to be unique to the hub.", "section": "elevation" },
+      { "name": "The No-Filled-Button Rule", "body": "No filled primary button exists. CTAs are ghost-style secondaries. If a screen feels like it needs a colored CTA, the screen is wrong, not the system.", "section": "components" },
+      { "name": "The Stacked-Bar Is The Chart Rule", "body": "When a quantitative breakdown across categories is needed, reach for the stacked-bar primitive before reaching for a pie, donut, or grouped bar.", "section": "components" }
+    ],
+    "dos": [
+      "Do anchor every embed in the ink → abyss vertical gradient + radial blue mix-blend halo. The atmosphere is part of the page, not an option.",
+      "Do keep Meridian Blue at ≤10% of the surface area on any given infographic.",
+      "Do ship every infographic with a footer source link + BFNA logo. The mark stays visible on every host page.",
+      "Do use the Utopia clamp ladder (--size-*, --space-*) for all type and spacing. Mixed scales pollute the rhythm.",
+      "Do gate every motion (particles, GSAP intros, FLIP transitions, swipe slides) on prefers-reduced-motion: reduce.",
+      "Do use font-variant-numeric: tabular-nums on every numeric label that participates in alignment."
+    ],
+    "donts": [
+      "Don't make this look like a Tableau dashboard. No dropdown filter as primary UI, no slate-blue corporate skin, no chartjunk legend.",
+      "Don't ship a generic think-tank PDF aesthetic — flat icons, pie charts, key-findings bullet callouts.",
+      "Don't harmonize with the host publisher's softer house style. Surrendering to it defeats the strategic premise.",
+      "Don't use the SaaS hero-metric template (big number / small label / supporting stats / gradient accent).",
+      "Don't apply gradient text (background-clip: text over a gradient). Single solid color always.",
+      "Don't use border-left greater than 1px as a colored stripe on cards, panels, or alerts.",
+      "Don't introduce a third font weight; 400 / 600 is the system. No 700, no light, no italic outside source attribution.",
+      "Don't propagate the hub-card shadow (0 8px 32px rgba(0,0,0,0.30)) to in-infographic chrome — it is the hub's signature only.",
+      "Don't add a second saturated accent color to UI chrome. Coral and Amber are data-only roles.",
+      "Don't ship a portrait fallback for an infographic. Show the rotate overlay; never let a 16:9 design squash to fit.",
+      "Don't stack glassmorphism (additional backdrop-filter: blur layers) on top of the existing card. One blur per surface."
+    ]
+  }
+}

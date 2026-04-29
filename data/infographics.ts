@@ -27,6 +27,14 @@ export const infographics: InfographicEntry[] = [
       'Visualize maritime traffic through six critical chokepoints, from Malacca to Hormuz, with vessel data from 2019 to 2025.',
     embedTitle: 'Indo-Pacific Straits',
     status: 'published'
+  },
+  {
+    slug: 'asean',
+    title: 'ASEAN: Pivot of the Indo-Pacific',
+    description:
+      'Interactive map of ASEAN member states and their economic, strategic, and resource ties to the US, China, and EU.',
+    embedTitle: 'ASEAN: Pivot of the Indo-Pacific',
+    status: 'draft'
   }
 ]
 

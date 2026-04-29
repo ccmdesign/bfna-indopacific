@@ -34,22 +34,22 @@ npm run preview
 
 ## Embedding Infographics
 
-Pages that use the `embed` layout can be embedded on third-party sites via an `<iframe>`. The recommended snippet:
+Pages that use the `embed` layout can be embedded on third-party sites via an `<iframe>`. Recommended snippet:
 
 ```html
 <iframe
-  src="https://indopacific.bfranklinscience.org/embed/renewables"
+  src="https://bfna-indopacific.netlify.app/embed/renewables"
   width="1280"
   height="800"
-  sandbox="allow-scripts allow-same-origin"
+  style="border:0;max-width:100%;aspect-ratio:16/10"
   loading="lazy"
-  title="Indo-Pacific Renewable Energy Infographic"
+  allowfullscreen
+  title="Renewables on the Rise"
 ></iframe>
 ```
 
 **Notes:**
 
-- **Dimensions:** The infographics are designed for a 1280x800 viewport. Using smaller dimensions may clip content due to `overflow: hidden` on the grid layout.
-- **`sandbox` attribute:** `allow-scripts` is required for chart interactivity. `allow-same-origin` is required for asset loading. Do not add `allow-top-navigation` or `allow-forms` unless explicitly needed.
+- **Dimensions:** Infographics are designed for a 1280×800 viewport. The `aspect-ratio: 16/10` + `max-width: 100%` style lets the embed scale down responsively in the host column without clipping.
 - **Headers:** The server returns `Content-Security-Policy: frame-ancestors *` for `/embed/*` routes, allowing embedding from any origin. Non-embed routes return `X-Frame-Options: DENY` and cannot be embedded.
 

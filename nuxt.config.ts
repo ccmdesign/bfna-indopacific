@@ -41,6 +41,7 @@ export default defineNuxtConfig({
   components: [
     { path: '~/components/infographics', pathPrefix: false },
     { path: '~/components/straits', pathPrefix: false },
+    { path: '~/components/asean', pathPrefix: false },
     '~/components'
   ],
 
