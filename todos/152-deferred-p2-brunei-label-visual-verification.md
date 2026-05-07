@@ -1,5 +1,7 @@
 ---
 severity: P2
+status: deferred
+resolution: deferred to browser testing step
 autofix_class: manual
 owner: human
 requires_verification: true

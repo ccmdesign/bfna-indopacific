@@ -1,5 +1,7 @@
 ---
 severity: P3
+status: acknowledged
+resolution: deferred — resolves naturally with May 2026 data drop
 autofix_class: advisory
 owner: human
 requires_verification: false
