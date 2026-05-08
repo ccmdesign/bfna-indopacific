@@ -1,0 +1,25 @@
+{
+  "country": "IDN",
+  "country_name": "Indonesia",
+  "metric": "Two-way trade",
+  "unit": "USD billions",
+  "source": "BACI HS07 V202601 / IEA",
+  "partners": ["CHN", "USA", "EU"],
+  "series": [
+    { "year": 2010, "CHN": 36, "USA": 21, "EU": 25 },
+    { "year": 2011, "CHN": 49, "USA": 24, "EU": 28 },
+    { "year": 2012, "CHN": 51, "USA": 25, "EU": 28 },
+    { "year": 2013, "CHN": 52, "USA": 27, "EU": 28 },
+    { "year": 2014, "CHN": 48, "USA": 27, "EU": 27 },
+    { "year": 2015, "CHN": 44, "USA": 24, "EU": 25 },
+    { "year": 2016, "CHN": 47, "USA": 24, "EU": 25 },
+    { "year": 2017, "CHN": 59, "USA": 26, "EU": 28 },
+    { "year": 2018, "CHN": 72, "USA": 28, "EU": 30 },
+    { "year": 2019, "CHN": 73, "USA": 27, "EU": 27 },
+    { "year": 2020, "CHN": 78, "USA": 27, "EU": 23 },
+    { "year": 2021, "CHN": 110, "USA": 37, "EU": 28 },
+    { "year": 2022, "CHN": 133, "USA": 41, "EU": 32 },
+    { "year": 2023, "CHN": 127, "USA": 35, "EU": 30 },
+    { "year": 2024, "CHN": 143, "USA": 36, "EU": 31 }
+  ]
+}
