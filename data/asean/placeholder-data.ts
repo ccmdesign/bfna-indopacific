@@ -127,6 +127,91 @@ export const PROFILES: Record<string, CountryProfile> = {
       ]
     },
     caption: 'Placeholder caption.'
+  },
+
+  // --- Stretch-tier countries (placeholder stubs) ---
+  // Share rows: us + cn + eu + other === 100 for every row.
+  // Radar values: 0..1 range, 5 values per layer.
+
+  philippines: {
+    slug: 'philippines',
+    subhead: 'Placeholder profile. Real data wires May 2026.',
+    bigMetric: { value: '$52B', label: 'Two-way trade with China, 2025' },
+    bigSecondary: { value: '$24B', label: 'With United States' },
+    shares: [
+      { label: 'Trade', us: 15, cn: 24, eu: 10, other: 51 },
+      { label: 'FDI inflow', us: 18, cn: 15, eu: 12, other: 55 },
+      { label: 'Defense partners', us: 55, cn: 5, eu: 10, other: 30 }
+    ],
+    radar: {
+      axes: RADAR_AXES,
+      layers: [
+        { label: '2020', values: [0.42, 0.3, 0.6, 0.35, 0.52] },
+        { label: '2025', values: [0.55, 0.35, 0.62, 0.45, 0.58] }
+      ]
+    },
+    caption:
+      'Placeholder caption. The narrative for each country will be commissioned alongside the May 2026 data drop.'
+  },
+  brunei: {
+    slug: 'brunei',
+    subhead: 'Placeholder profile. Real data wires May 2026.',
+    bigMetric: { value: '$2.8B', label: 'Two-way trade with China, 2025' },
+    bigSecondary: { value: '$0.4B', label: 'With United States' },
+    shares: [
+      { label: 'Trade', us: 4, cn: 28, eu: 6, other: 62 },
+      { label: 'FDI inflow', us: 6, cn: 20, eu: 8, other: 66 },
+      { label: 'Defense partners', us: 30, cn: 8, eu: 22, other: 40 }
+    ],
+    radar: {
+      axes: RADAR_AXES,
+      layers: [
+        { label: '2020', values: [0.18, 0.55, 0.35, 0.2, 0.28] },
+        { label: '2025', values: [0.22, 0.6, 0.38, 0.25, 0.32] }
+      ]
+    },
+    caption:
+      'Placeholder caption. The narrative for each country will be commissioned alongside the May 2026 data drop.'
+  },
+  cambodia: {
+    slug: 'cambodia',
+    subhead: 'Placeholder profile. Real data wires May 2026.',
+    bigMetric: { value: '$14B', label: 'Two-way trade with China, 2025' },
+    bigSecondary: { value: '$9B', label: 'With United States' },
+    shares: [
+      { label: 'Trade', us: 18, cn: 32, eu: 12, other: 38 },
+      { label: 'FDI inflow', us: 5, cn: 40, eu: 8, other: 47 },
+      { label: 'Defense partners', us: 10, cn: 35, eu: 8, other: 47 }
+    ],
+    radar: {
+      axes: RADAR_AXES,
+      layers: [
+        { label: '2020', values: [0.28, 0.2, 0.3, 0.25, 0.18] },
+        { label: '2025', values: [0.38, 0.25, 0.32, 0.35, 0.22] }
+      ]
+    },
+    caption:
+      'Placeholder caption. The narrative for each country will be commissioned alongside the May 2026 data drop.'
+  },
+  laos: {
+    slug: 'laos',
+    subhead: 'Placeholder profile. Real data wires May 2026.',
+    bigMetric: { value: '$8B', label: 'Two-way trade with China, 2025' },
+    bigSecondary: { value: '$0.2B', label: 'With United States' },
+    shares: [
+      { label: 'Trade', us: 3, cn: 38, eu: 5, other: 54 },
+      { label: 'FDI inflow', us: 2, cn: 45, eu: 4, other: 49 },
+      { label: 'Defense partners', us: 8, cn: 30, eu: 5, other: 57 }
+    ],
+    radar: {
+      axes: RADAR_AXES,
+      layers: [
+        { label: '2020', values: [0.22, 0.15, 0.25, 0.2, 0.12] },
+        { label: '2025', values: [0.32, 0.2, 0.28, 0.3, 0.15] }
+      ]
+    },
+    caption:
+      'Placeholder caption. The narrative for each country will be commissioned alongside the May 2026 data drop.'
   }
 }
 
