@@ -26,3 +26,5 @@ logs
 
 # Local Netlify folder
 .netlify
+
+_process/
