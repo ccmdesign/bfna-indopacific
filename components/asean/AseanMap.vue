@@ -176,7 +176,7 @@ function handleKey(e: KeyboardEvent, slug: string, tier: CountryTier) {
         :class="{ 'is-active': props.activeSlug === f.properties.slug }"
         role="button"
         tabindex="0"
-        :aria-label="`${f.properties.name} (limited V1 data)`"
+        :aria-label="`${f.properties.name}, click to view profile`"
         :aria-pressed="props.activeSlug === f.properties.slug"
         @keydown="handleKey($event, f.properties.slug, f.properties.tier)"
         @focus="emit('hover', f.properties.slug)"
@@ -203,6 +203,20 @@ function handleKey(e: KeyboardEvent, slug: string, tier: CountryTier) {
           @mouseenter="emit('hover', f.properties.slug)"
           @mouseleave="emit('hover', null)"
         />
+        <text
+          :x="f.centroid[0]"
+          :y="f.centroid[1]"
+          :dy="f.properties.slug === 'brunei' ? -12 : 0"
+          :fill="props.activeSlug === f.properties.slug ? '#fff' : 'rgba(255, 255, 255, 0.72)'"
+          :font-size="props.activeSlug === f.properties.slug ? 16 : 13"
+          :font-weight="props.activeSlug === f.properties.slug ? 600 : 500"
+          text-anchor="middle"
+          dominant-baseline="middle"
+          class="asean-map__label"
+          pointer-events="none"
+        >
+          {{ f.properties.name }}
+        </text>
       </g>
 
       <!-- In-scope: full interactive treatment with glow when active. Click
