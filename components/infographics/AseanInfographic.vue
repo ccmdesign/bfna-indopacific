@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { profileBySlug, PROFILES } from '~/data/asean/country-profiles'
-import indonesiaTradeStacked from '~/data/asean/indonesia-trade-stacked.json'
+import { tradeStackedBySlug } from '~/data/asean/trade-stacked'
 
 // Active country state. Default = Indonesia.
 const activeSlug = ref<string | null>('indonesia')
 
 const activeProfile = computed(() =>
   activeSlug.value ? profileBySlug(activeSlug.value) : undefined
+)
+
+const activeTradeStacked = computed(() =>
+  activeSlug.value ? tradeStackedBySlug[activeSlug.value] : undefined
 )
 
 // Layer = which lens is on the same active country. "trade" = all goods;
@@ -119,17 +123,17 @@ function onActiveSlugUpdate(next: string | null) {
         </CardFlip>
       </div>
 
-      <div class="asean-infographic__dock-chart">
+      <div v-if="activeTradeStacked" class="asean-infographic__dock-chart">
         <CardFlip :flipped="layer === 'green'">
           <template #front>
             <CountryChartCard
               eyebrow="Trade flows"
               title="Trade with US, China, EU · 2010–2024"
               meta="USD billions"
-              :source="indonesiaTradeStacked.source"
+              :source="activeTradeStacked.source"
             >
               <CountryStackedArea
-                :data="indonesiaTradeStacked"
+                :data="activeTradeStacked"
                 :partners="CHART_PARTNERS"
                 :height="220"
               />
