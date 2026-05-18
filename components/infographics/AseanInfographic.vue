@@ -307,7 +307,7 @@ function onActiveSlugUpdate(next: string | null) {
   right: clamp(16px, 2vw, 32px);
   bottom: clamp(48px, 6vh, 72px);
   display: grid;
-  grid-template-columns: minmax(360px, 1fr) minmax(420px, 1.2fr);
+  grid-template-columns: 65fr 35fr;
   gap: clamp(12px, 1.4vw, 24px);
   z-index: 20;
   pointer-events: auto;

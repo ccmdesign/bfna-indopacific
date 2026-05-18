@@ -62,24 +62,11 @@ function draw() {
   }
 
   const bars = buildBars()
-  const margin = { top: 14, right: 8, bottom: 36, left: 8 }
-  const innerW = width - margin.left - margin.right
-  const innerH = height - margin.top - margin.bottom
+  // Wide left/right margins reserve room for the value labels parked at each
+  // bar's outer tip. Top margin holds the EXPORTS → / ← IMPORTS tags.
+  const margin = { top: 26, right: 46, bottom: 8, left: 46 }
 
-  const x = d3
-    .scaleBand<string>()
-    .domain(bars.map((d) => d.label))
-    .range([margin.left, width - margin.right])
-    .paddingInner(0.18)
-    .paddingOuter(0.05)
-
-  const yMax = Math.max(...bars.map((d) => Math.abs(d.value))) * 1.15
-  const y = d3
-    .scaleLinear()
-    .domain([-yMax, yMax])
-    .range([height - margin.bottom, margin.top])
-
-  const zeroY = y(0)
+  const center = width / 2
 
   const svg = d3
     .select(chartContainer.value)
@@ -89,38 +76,81 @@ function draw() {
     .attr('viewBox', `0 0 ${width} ${height}`)
     .attr('class', 'trade-bars__svg')
 
-  // Subtle horizontal axis line at zero
-  svg
-    .append('line')
-    .attr('x1', margin.left)
-    .attr('x2', width - margin.right)
-    .attr('y1', zeroY)
-    .attr('y2', zeroY)
-    .attr('stroke', 'rgba(255,255,255,0.2)')
-    .attr('stroke-width', 1)
+  // Measure pass: render the labels off-anchor to get their true pixel width,
+  // size the center column to the widest one + 6px inline padding each side,
+  // then reposition. No truncation — column grows to fit.
+  const LABEL_FONT_SIZE = 10
+  const measureG = svg.append('g').attr('visibility', 'hidden')
+  let maxLabelW = 0
+  for (const d of bars) {
+    const t = measureG
+      .append('text')
+      .attr('font-family', 'Encode Sans, system-ui, sans-serif')
+      .attr('font-size', LABEL_FONT_SIZE)
+      .attr('font-weight', 500)
+      .text(d.label)
+    maxLabelW = Math.max(maxLabelW, t.node()?.getComputedTextLength() ?? 0)
+  }
+  measureG.remove()
 
-  // Bars
+  // colW = widest label + 6px inline-padding per side. Clamp so the bars
+  // always keep usable room on a narrow card.
+  const colW = Math.min(maxLabelW + 12, width * 0.6)
+  const leftEdge = center - colW / 2
+  const rightEdge = center + colW / 2
+
+  const y = d3
+    .scaleBand<string>()
+    .domain(bars.map((d) => d.label))
+    .range([margin.top, height - margin.bottom])
+    .paddingInner(0.3)
+    .paddingOuter(0.06)
+
+  const vMax = Math.max(...bars.map((d) => Math.abs(d.value))) * 1.05
+  // Two scales mirroring outward from the column edges.
+  const xExport = d3
+    .scaleLinear()
+    .domain([0, vMax])
+    .range([rightEdge, width - margin.right])
+  const xImport = d3
+    .scaleLinear()
+    .domain([0, vMax])
+    .range([leftEdge, margin.left])
+
+  // Faint guides bounding the center label column
+  for (const edge of [leftEdge, rightEdge]) {
+    svg
+      .append('line')
+      .attr('x1', edge)
+      .attr('x2', edge)
+      .attr('y1', margin.top)
+      .attr('y2', height - margin.bottom)
+      .attr('stroke', 'rgba(255,255,255,0.12)')
+      .attr('stroke-width', 1)
+  }
+
   const barG = svg.append('g').selectAll('g').data(bars).join('g')
 
   barG
     .append('rect')
-    .attr('x', (d) => x(d.label) ?? 0)
-    .attr('y', (d) => (d.value >= 0 ? y(d.value) : zeroY))
-    .attr('width', x.bandwidth())
-    .attr('height', (d) => Math.abs(y(d.value) - zeroY))
+    .attr('x', (d) => (d.value >= 0 ? rightEdge : xImport(d.raw)))
+    .attr('y', (d) => y(d.label) ?? 0)
+    .attr('width', (d) =>
+      d.value >= 0 ? xExport(d.raw) - rightEdge : leftEdge - xImport(d.raw)
+    )
+    .attr('height', y.bandwidth())
     .attr('fill', (d) => (d.kind === 'export' ? EXPORT_COLOR : IMPORT_COLOR))
     .attr('rx', 2)
     .append('title')
     .text((d) => `${d.label}: ${fmtUsdB(d.raw)} (${d.kind})`)
 
-  // Value labels inside/above bar
+  // Value label parked just outside the bar's outer tip
   barG
     .append('text')
-    .attr('x', (d) => (x(d.label) ?? 0) + x.bandwidth() / 2)
-    .attr('y', (d) =>
-      d.value >= 0 ? y(d.value) - 6 : y(d.value) + 14
-    )
-    .attr('text-anchor', 'middle')
+    .attr('x', (d) => (d.value >= 0 ? xExport(d.raw) + 6 : xImport(d.raw) - 6))
+    .attr('y', (d) => (y(d.label) ?? 0) + y.bandwidth() / 2)
+    .attr('text-anchor', (d) => (d.value >= 0 ? 'start' : 'end'))
+    .attr('dominant-baseline', 'central')
     .attr('fill', '#fff')
     .attr('font-family', 'Encode Sans, system-ui, sans-serif')
     .attr('font-size', 11)
@@ -128,51 +158,44 @@ function draw() {
     .attr('font-variant-numeric', 'tabular-nums')
     .text((d) => fmtUsdB(d.raw))
 
-  // Commodity labels under each bar (always below the zero line for readability)
-  const labelG = svg.append('g').selectAll('g').data(bars).join('g')
-
-  labelG
+  // Commodity label, centered in the auto-sized column
+  barG
     .append('text')
-    .attr('x', (d) => (x(d.label) ?? 0) + x.bandwidth() / 2)
-    .attr('y', height - margin.bottom + 14)
+    .attr('x', center)
+    .attr('y', (d) => (y(d.label) ?? 0) + y.bandwidth() / 2)
     .attr('text-anchor', 'middle')
-    .attr('fill', 'rgba(255,255,255,0.62)')
+    .attr('dominant-baseline', 'central')
+    .attr('fill', 'rgba(255,255,255,0.9)')
     .attr('font-family', 'Encode Sans, system-ui, sans-serif')
-    .attr('font-size', 10)
+    .attr('font-size', LABEL_FONT_SIZE)
     .attr('font-weight', 500)
-    .text((d) => d.label.length > 16 ? d.label.slice(0, 14) + '…' : d.label)
+    .text((d) => d.label)
     .append('title')
     .text((d) => d.label)
 
-  // EXPORTS / IMPORTS axis tags (left-most + first-import)
-  const firstExport = bars[0]
-  const firstImport = bars.find((b) => b.kind === 'import')
-  if (firstExport) {
-    svg
-      .append('text')
-      .attr('x', x(firstExport.label) ?? margin.left)
-      .attr('y', margin.top - 2)
-      .attr('text-anchor', 'start')
-      .attr('fill', EXPORT_COLOR)
-      .attr('font-family', 'Encode Sans, system-ui, sans-serif')
-      .attr('font-size', 9.5)
-      .attr('font-weight', 700)
-      .attr('letter-spacing', '0.08em')
-      .text('EXPORTS ↑')
-  }
-  if (firstImport) {
-    svg
-      .append('text')
-      .attr('x', x(firstImport.label) ?? margin.left)
-      .attr('y', height - margin.bottom + 28)
-      .attr('text-anchor', 'start')
-      .attr('fill', IMPORT_COLOR)
-      .attr('font-family', 'Encode Sans, system-ui, sans-serif')
-      .attr('font-size', 9.5)
-      .attr('font-weight', 700)
-      .attr('letter-spacing', '0.08em')
-      .text('IMPORTS ↓')
-  }
+  // EXPORTS → / ← IMPORTS tags above the column edges
+  svg
+    .append('text')
+    .attr('x', rightEdge)
+    .attr('y', margin.top - 10)
+    .attr('text-anchor', 'start')
+    .attr('fill', EXPORT_COLOR)
+    .attr('font-family', 'Encode Sans, system-ui, sans-serif')
+    .attr('font-size', 9.5)
+    .attr('font-weight', 700)
+    .attr('letter-spacing', '0.08em')
+    .text('EXPORTS →')
+  svg
+    .append('text')
+    .attr('x', leftEdge)
+    .attr('y', margin.top - 10)
+    .attr('text-anchor', 'end')
+    .attr('fill', IMPORT_COLOR)
+    .attr('font-family', 'Encode Sans, system-ui, sans-serif')
+    .attr('font-size', 9.5)
+    .attr('font-weight', 700)
+    .attr('letter-spacing', '0.08em')
+    .text('← IMPORTS')
 }
 
 onMounted(() => {
