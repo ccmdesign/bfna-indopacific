@@ -42,7 +42,8 @@ function fmtProduction(p: MineralShare): string {
   const n = p.production
   const unit = /thousand/i.test(p.unit) ? 'kt' : 't'
   // The "thousand …" units are already in thousands; plain "metric tons" is t.
-  const scaled = unit === 'kt' ? n : n
+  // No rescale needed — the source figure is displayed as-is under its unit.
+  const scaled = n
   let num: string
   if (scaled >= 1_000_000) num = `${(scaled / 1_000_000).toFixed(1)}M`
   else if (scaled >= 1_000) num = `${(scaled / 1_000).toFixed(0)}k`
