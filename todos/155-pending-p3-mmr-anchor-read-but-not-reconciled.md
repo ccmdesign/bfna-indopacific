@@ -1,6 +1,6 @@
 ---
 severity: P3
-status: pending
+status: resolved
 autofix_class: advisory
 owner: human
 requires_verification: false
@@ -85,3 +85,37 @@ mechanical safe_auto fix.
 No action needed for this PR — the figure is correct today and all
 headline dollar anchors are reconciled. Surface for human decision on the
 next minerals-generator touch.
+
+## Resolution
+
+Chose **Suggested fix 1 (strengthen)** — the anchor read is now
+load-bearing and consistent with the IDN flow guard.
+
+Added a reconciliation guard in `scripts/build-asean-minerals.mjs`
+immediately after `mmrRareEarths` is resolved (just below the
+`expected an MMR Rare Earths 2025 production row` existence check). It
+computes the MMR rare-earths share from the production CSV
+(`mmrRareEarths.sharePct`) and asserts it equals
+`ANCHOR_MMR_RARE_EARTHS.share_of_world_pct`, calling `fail()` (exit 1)
+on drift — the same compute-from-CSV / assert-within-tolerance /
+fail-loud shape as the existing Indonesia nickel-flow guard.
+
+**MMR fully reconciles — not a weaker proxy.** The
+`myanmar_rare_earths_2025` anchor and the `PROD_YEAR` (2025) MMR
+"Rare Earths" production row measure exactly the same quantity (Myanmar's
+share of world rare-earths mine production for 2025); both read 5.64, and
+they are sourced from the same USGS MCS2026 cut. So this is a true
+equality reconcile, not a presence/order-of-magnitude fallback.
+
+**Tolerance rationale (mirrors the IDN guard's intent, not its literal
+constant):** the IDN guard uses `round1` / `> 0.1` because it reconciles
+USD-million totals where 1dp is the natural precision. The MMR figure is
+a 2dp world-share percentage and `mmrRareEarths.sharePct` is already
+`round2()`-rounded at parse time, so the analogous tolerance is `round2`
+/ `> 0.01`. The IDN guard was not loosened or altered in any way.
+
+**Verification:** re-ran `node scripts/build-asean-minerals.mjs` —
+`data/asean/minerals.generated.ts` is byte-identical
+(`git diff --quiet` clean). A drift-injection test (anchor temporarily
+set to 9.99) confirmed the guard exits 1 with a clear message; the
+anchor file was restored clean. `npm run build` passes.

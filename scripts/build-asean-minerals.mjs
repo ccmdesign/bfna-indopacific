@@ -431,6 +431,29 @@ if (!mmrRareEarths) {
   fail('expected an MMR Rare Earths 2025 production row for ASEAN context')
 }
 
+// MMR rare-earths reconciliation guard — mirrors the Indonesia nickel-flow
+// guard above (compute the figure from the production CSV, assert it equals
+// the cite-ready anchor within the figure's natural precision, fail loud on
+// drift). The myanmar_rare_earths_2025 anchor and the PROD_YEAR MMR
+// "Rare Earths" production row measure the same thing — Myanmar's share of
+// world rare-earths mine production for PROD_YEAR — so this is a true
+// equality reconcile, not an order-of-magnitude proxy. The IDN guard uses a
+// 1dp tolerance because it reconciles USD-million totals; the MMR share is a
+// 2dp percentage, so the analogous tolerance is 2dp (round2 / > 0.01),
+// matching how mmrRareEarths.sharePct itself is rounded at parse time.
+if (
+  Math.abs(
+    round2(mmrRareEarths.sharePct) -
+      round2(ANCHOR_MMR_RARE_EARTHS.share_of_world_pct)
+  ) > 0.01
+) {
+  fail(
+    `MMR rare-earths CSV share ${round2(mmrRareEarths.sharePct)} does not ` +
+      `reconcile to myanmar_rare_earths_2025 anchor ` +
+      `${round2(ANCHOR_MMR_RARE_EARTHS.share_of_world_pct)} — rollup bug`
+  )
+}
+
 const aseanWide = {
   nickelWorldSharePct: round2(ANCHOR_ASEAN_NICKEL_SHARE.value), // 73.59
   nickelGrowthMultiple: FLOWS_GROWTH_MULTIPLE, // 5.9
