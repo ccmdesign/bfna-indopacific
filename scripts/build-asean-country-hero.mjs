@@ -35,6 +35,12 @@ const OUT = path.join(ROOT, 'data/asean/country-hero.generated.ts')
 // China two-way hero. Adding an alternate later is a one-line change here.
 const HERO_PARTNER = 'CHN'
 
+// Partner-group ISO3 -> display name used in the emitted hero label. Keep in
+// sync with HERO_PARTNER if an alternate partner is ever wired.
+const PARTNER_DISPLAY = {
+  CHN: 'China'
+}
+
 // The single year the hero reports.
 const HERO_YEAR = 2024
 
@@ -73,7 +79,13 @@ const SLUG_ORDER = [
 ]
 
 const METRIC = 'trade_goods'
-const HERO_LABEL = 'Two-way trade with China, 2024'
+
+// Derived from the HERO_PARTNER / HERO_YEAR constants so the label can never
+// drift from the data the figure is actually computed over. With
+// HERO_PARTNER='CHN' and HERO_YEAR=2024 this is exactly
+// "Two-way trade with China, 2024".
+const HERO_PARTNER_NAME = PARTNER_DISPLAY[HERO_PARTNER]
+const HERO_LABEL = `Two-way trade with ${HERO_PARTNER_NAME}, ${HERO_YEAR}`
 
 // Fixed CSV column indices (header verified: country_iso3,year,partner_group,
 // direction,metric,value_usd_millions,source). The file is well-formed with
@@ -91,6 +103,15 @@ const COL = {
 function fail(message) {
   console.error(`[build-asean-country-hero] ${message}`)
   process.exit(1)
+}
+
+// A HERO_PARTNER change without a matching PARTNER_DISPLAY entry would emit a
+// "Two-way trade with undefined, ..." label. Refuse rather than lie.
+if (!HERO_PARTNER_NAME) {
+  fail(
+    `no PARTNER_DISPLAY entry for HERO_PARTNER "${HERO_PARTNER}" — ` +
+      `add one before changing the partner`
+  )
 }
 
 // USD millions -> "$<n>B" string. Mirrors the existing hero style in
@@ -157,7 +178,7 @@ for (const slug of SLUG_ORDER) {
   const total = acc[slug]
   if (!Number.isFinite(total)) {
     fail(
-      `no 2024 ${HERO_PARTNER} ${METRIC} rows aggregated for slug "${slug}"`
+      `no ${HERO_YEAR} ${HERO_PARTNER} ${METRIC} rows aggregated for slug "${slug}"`
     )
   }
   bySlug[slug] = {

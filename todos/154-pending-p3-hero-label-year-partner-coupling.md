@@ -1,6 +1,6 @@
 ---
 severity: P3
-status: pending
+status: resolved
 autofix_class: advisory
 owner: human
 requires_verification: false
@@ -63,3 +63,19 @@ scope, see plan Scope Boundaries), derive the label and the fail-message
 year from `HERO_YEAR` / a `PARTNER_DISPLAY[HERO_PARTNER]` map instead of
 hardcoding `'Two-way trade with China, 2024'` and the literal `2024` in the
 fail string. No action needed until that alternate is requested.
+
+## Resolution (BF-57)
+
+Applied the suggested fix:
+
+- Added a `PARTNER_DISPLAY` map (`{ CHN: 'China' }`) and derived
+  `HERO_LABEL` as `` `Two-way trade with ${PARTNER_DISPLAY[HERO_PARTNER]}, ${HERO_YEAR}` ``.
+- Replaced the literal `2024` in the per-slug fail message with `${HERO_YEAR}`.
+- Added a loud guard that fails if `HERO_PARTNER` has no `PARTNER_DISPLAY`
+  entry (prevents a "Two-way trade with undefined, ..." label on a future
+  partner change).
+
+Generated output `data/asean/country-hero.generated.ts` is byte-identical
+for the current values (HERO_YEAR=2024, partner=CHN → label still reads
+exactly `Two-way trade with China, 2024`); `git diff --quiet` confirms no
+change and `npm run build` passes.
