@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { profileBySlug, PROFILES } from '~/data/asean/country-profiles'
 import { tradeStackedBySlug } from '~/data/asean/trade-stacked'
+import { MINERALS_BY_SLUG } from '~/data/asean/minerals.generated'
 
 // Active country state. Default = Indonesia.
 const activeSlug = ref<string | null>('indonesia')
@@ -12,6 +13,15 @@ const activeProfile = computed(() =>
 
 const activeTradeStacked = computed(() =>
   activeSlug.value ? tradeStackedBySlug[activeSlug.value] : undefined
+)
+
+// Critical-minerals slice for the active country. Mirrors activeTradeStacked
+// so map selection + layer flip update the green faces exactly like trade.
+// MINERALS_BY_SLUG carries a record for every wired slug (the 3 low-data
+// countries carry hasMaterialData:false; the components render the designed
+// honest state, not a blank).
+const activeMinerals = computed(() =>
+  activeSlug.value ? MINERALS_BY_SLUG[activeSlug.value] : undefined
 )
 
 // Layer = which lens is on the same active country. "trade" = all goods;
@@ -110,14 +120,16 @@ function onActiveSlugUpdate(next: string | null) {
           </template>
           <template #back>
             <CountryChartCard
-              eyebrow="Critical minerals · 2023"
-              title="Top mineral exports & imports"
-              meta="USD billions"
-              source="USGS MCS2026 / BACI HS07 V202601"
+              eyebrow="Critical minerals · 2025"
+              title="Share of world mine production"
+              meta="% of world · USGS MCS2026"
+              source="USGS MCS2026"
             >
-              <div class="asean-infographic__layer-stub">
-                Critical-mineral view wires next pass.
-              </div>
+              <CountryMineralShareBars
+                v-if="activeMinerals"
+                :data="activeMinerals"
+                :height="220"
+              />
             </CountryChartCard>
           </template>
         </CardFlip>
@@ -142,13 +154,15 @@ function onActiveSlugUpdate(next: string | null) {
           <template #back>
             <CountryChartCard
               eyebrow="Mineral flows"
-              title="Mineral trade with US, China, EU · 2010–2024"
-              meta="USD billions"
+              title="Where the nickel goes · 2024"
+              meta="USD share by destination"
               source="BACI HS07 V202601 (mineral HS6 codes)"
             >
-              <div class="asean-infographic__layer-stub">
-                Mineral-flow chart wires next pass.
-              </div>
+              <CountryMineralFlowBand
+                v-if="activeMinerals"
+                :data="activeMinerals"
+                :height="220"
+              />
             </CountryChartCard>
           </template>
         </CardFlip>
@@ -313,18 +327,5 @@ function onActiveSlugUpdate(next: string | null) {
 .asean-infographic__dock-bars > *,
 .asean-infographic__dock-chart > * {
   flex: 1;
-}
-
-.asean-infographic__layer-stub {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  font-size: 13px;
-  font-weight: 400;
-  color: rgba(255, 255, 255, 0.5);
-  font-style: italic;
-  text-align: center;
 }
 </style>
