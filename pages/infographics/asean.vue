@@ -4,8 +4,8 @@ definePageMeta({
   embedSlug: 'asean',
   embedTitle: 'ASEAN: Pivot of the Indo-Pacific',
   footerSource: {
-    url: 'https://unctadstat.unctad.org/',
-    label: 'Source: placeholder, real attribution wires May 2026'
+    url: 'https://www.cepii.fr/CEPII/en/bdd_modele/bdd_modele_item.asp?id=37',
+    label: 'Source: CEPII BACI & USGS'
   }
 })
 

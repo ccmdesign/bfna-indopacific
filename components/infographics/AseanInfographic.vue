@@ -110,10 +110,10 @@ function onActiveSlugUpdate(next: string | null) {
         <CardFlip :flipped="layer === 'green'">
           <template #front>
             <CountryChartCard
-              eyebrow="Top trade · 2023"
+              eyebrow="Indicative composition"
               title="Top exports & imports"
               meta="USD billions"
-              source="OEC 2023 / UN Comtrade"
+              source="Indicative composition — not individually sourced"
             >
               <CountryTradeBalanceBars :profile="activeProfile" :height="220" />
             </CountryChartCard>
