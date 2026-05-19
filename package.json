@@ -6,6 +6,7 @@
     "build": "nuxt build",
     "dev": "nuxt dev",
     "gen:country-hero": "node scripts/build-asean-country-hero.mjs",
+    "gen:minerals": "node scripts/build-asean-minerals.mjs",
     "gen:trade-stacked": "node scripts/build-asean-trade-stacked.mjs",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
