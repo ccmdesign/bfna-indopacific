@@ -113,7 +113,7 @@ function onActiveSlugUpdate(next: string | null) {
               eyebrow="Indicative composition"
               title="Top exports & imports"
               meta="USD billions"
-              source="Indicative composition — not individually sourced"
+              source="indicative — not individually sourced"
             >
               <CountryTradeBalanceBars :profile="activeProfile" :height="220" />
             </CountryChartCard>
