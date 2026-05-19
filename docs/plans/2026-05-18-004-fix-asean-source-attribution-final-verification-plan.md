@@ -1,5 +1,5 @@
 ---
-status: active
+status: completed
 type: fix
 plan_depth: standard
 created: 2026-05-18
