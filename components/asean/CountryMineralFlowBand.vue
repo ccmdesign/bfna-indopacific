@@ -161,6 +161,16 @@ function draw() {
   let cursor = margin.left
   const segG = svg.append('g')
 
+  // Below-band labels are collected during the segment pass and rendered
+  // after a single left-to-right declutter pass so two adjacent thin slices
+  // (e.g. "Japan 5%" then "Other 5%") never print on top of each other.
+  // The leader tick stays at the true segment center; only the text nudges.
+  interface BelowLabel {
+    cx: number // true segment center — tick anchor (never moves)
+    text: string
+  }
+  const belowLabels: BelowLabel[] = []
+
   segments.forEach((s) => {
     const w = Math.max(1, x(s.valueUsdM))
     const isChina = s.partnerGroup === 'CHN'
@@ -223,31 +233,90 @@ function draw() {
         .attr('font-variant-numeric', 'tabular-nums')
         .text(`${Math.round(s.pct)}% · ${fmtUsd(s.valueUsdM)}`)
     } else {
-      // Tick + label beneath narrow segments — no unlabelled sliver.
+      // Defer: collected and rendered after the loop so adjacent narrow
+      // segments' labels can be decluttered as a group.
+      belowLabels.push({
+        cx,
+        text:
+          `${PARTNER_LABEL[s.partnerGroup] ?? s.partnerGroup} ` +
+          `${Math.round(s.pct)}%`
+      })
+    }
+  })
+
+  // Tick + label beneath narrow segments — no unlabelled sliver. A single
+  // left-to-right pass pushes any label whose extent overlaps the previous
+  // one rightward by the minimum delta (1-D declutter, the standard
+  // D3-in-Vue pattern), clamped to the chart's right edge. The leader tick
+  // always stays at the true segment center so the label still reads to its
+  // slice. Reduced-motion safe: this is layout-only, no transition added.
+  if (belowLabels.length > 0) {
+    const labelY = bandY + bandH + 20
+    const tickTop = bandY + bandH
+    const tickBottom = bandY + bandH + 8
+    // ~5.4px per glyph at 10px Encode Sans + a small gutter between labels.
+    const estWidth = (t: string) => t.length * 5.4
+    const GUTTER = 6
+    const rightEdge = width - margin.right
+
+    const placed = belowLabels.map((l) => ({ ...l, x: l.cx }))
+    // Forward pass: keep each label at least its half-width + gutter clear
+    // of the previous label's right extent.
+    for (let i = 1; i < placed.length; i++) {
+      const prev = placed[i - 1]
+      const prevHalf = estWidth(prev.text) / 2
+      const curHalf = estWidth(placed[i].text) / 2
+      const minX = prev.x + prevHalf + GUTTER + curHalf
+      if (placed[i].x < minX) placed[i].x = minX
+    }
+    // Backward pass: if decluttering pushed the last label past the right
+    // edge, walk back left so nothing clips off-canvas.
+    for (let i = placed.length - 1; i >= 0; i--) {
+      const half = estWidth(placed[i].text) / 2
+      const maxX = i === placed.length - 1 ? rightEdge - half : placed[i].x
+      if (placed[i].x > maxX) placed[i].x = maxX
+      if (i > 0) {
+        const curHalf = estWidth(placed[i].text) / 2
+        const prevHalf = estWidth(placed[i - 1].text) / 2
+        const maxPrev = placed[i].x - curHalf - GUTTER - prevHalf
+        if (placed[i - 1].x > maxPrev) placed[i - 1].x = maxPrev
+      }
+    }
+
+    placed.forEach((l) => {
+      // Tick stays at the true segment center; if the label was nudged, draw
+      // a short angled leader so the label still visibly belongs to its slice.
       segG
         .append('line')
-        .attr('x1', cx)
-        .attr('x2', cx)
-        .attr('y1', bandY + bandH)
-        .attr('y2', bandY + bandH + 8)
+        .attr('x1', l.cx)
+        .attr('x2', l.cx)
+        .attr('y1', tickTop)
+        .attr('y2', tickBottom)
         .attr('stroke', 'rgba(255,255,255,0.4)')
         .attr('stroke-width', 1)
+      if (Math.abs(l.x - l.cx) > 1) {
+        segG
+          .append('line')
+          .attr('x1', l.cx)
+          .attr('x2', l.x)
+          .attr('y1', tickBottom)
+          .attr('y2', labelY - 9)
+          .attr('stroke', 'rgba(255,255,255,0.25)')
+          .attr('stroke-width', 1)
+      }
       segG
         .append('text')
-        .attr('x', cx)
-        .attr('y', bandY + bandH + 20)
+        .attr('x', l.x)
+        .attr('y', labelY)
         .attr('text-anchor', 'middle')
         .attr('fill', 'rgba(255,255,255,0.85)')
         .attr('font-family', 'Encode Sans, system-ui, sans-serif')
         .attr('font-size', 10)
         .attr('font-weight', 600)
         .attr('font-variant-numeric', 'tabular-nums')
-        .text(
-          `${PARTNER_LABEL[s.partnerGroup] ?? s.partnerGroup} ` +
-            `${Math.round(s.pct)}%`
-        )
-    }
-  })
+        .text(l.text)
+    })
+  }
 
   // Two-hop caption (D4 / SCOUT §4) — the line that makes a single bar honest
   // about the ASEAN → China → West chain, plus the growth context.
