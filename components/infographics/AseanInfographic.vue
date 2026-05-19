@@ -25,7 +25,7 @@ const activeMinerals = computed(() =>
 )
 
 // Layer = which lens is on the same active country. "trade" = all goods;
-// "green" = critical minerals only. Layer 2 data lands next pass.
+// "green" = critical minerals only. Both layers are wired (BF-58).
 type Layer = 'trade' | 'green'
 const layer = ref<Layer>('trade')
 
@@ -102,9 +102,9 @@ function onActiveSlugUpdate(next: string | null) {
     </header>
 
     <!-- Bottom dock: two cards side-by-side. Each card is a CardFlip with two
-         faces — front = "Trade" layer, back = "Green Transition" layer. The
-         layer tab in the title block flips both cards in unison. Back-face
-         data is placeholder until the minerals layer is wired. -->
+         faces — front = "Trade" layer, back = "Green Transition" /
+         critical-minerals layer. The layer tab in the title block flips both
+         cards in unison. Both faces are wired to real data (BF-58). -->
     <div v-if="activeProfile" class="asean-infographic__dock">
       <div class="asean-infographic__dock-bars">
         <CardFlip :flipped="layer === 'green'">
