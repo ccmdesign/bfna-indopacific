@@ -4,8 +4,14 @@ import { profileBySlug, PROFILES } from '~/data/asean/country-profiles'
 import { tradeStackedBySlug } from '~/data/asean/trade-stacked'
 import { MINERALS_BY_SLUG } from '~/data/asean/minerals.generated'
 
-// Active country state. Default = Indonesia.
-const activeSlug = ref<string | null>('indonesia')
+// Active country state. Idle (null) = fullscreen map, no selection; clicking a
+// country docks the map to the top-left quadrant (see AseanMap re-zoom).
+const activeSlug = ref<string | null>(null)
+
+// Title + chart dock are deferred to the quadrant-content spec
+// (docs/plans/2026-05-22-001-feat-asean-map-quadrant-dock-spec.md). The three
+// freed quadrants stay empty for now; flip to re-enable the legacy overlays.
+const SHOW_LEGACY_PANELS = false
 
 const activeProfile = computed(() =>
   activeSlug.value ? profileBySlug(activeSlug.value) : undefined
@@ -42,15 +48,18 @@ function onActiveSlugUpdate(next: string | null) {
 
 <template>
   <div class="asean-infographic">
-    <AseanMap
-      :active-slug="activeSlug"
-      @update:active-slug="onActiveSlugUpdate"
-    />
+    <!-- Map docks into the top-left quadrant when a country is active. -->
+    <div class="asean-infographic__map" :class="{ 'is-docked': !!activeSlug }">
+      <AseanMap
+        :active-slug="activeSlug"
+        @update:active-slug="onActiveSlugUpdate"
+      />
+    </div>
 
     <!-- Top-right text block. Sits directly on the dark map surface — no card
          chrome. Contains flag + country title, layer tabs, hero stat with
          tagline, and the narrative paragraph. -->
-    <header v-if="activeProfile" class="asean-infographic__title">
+    <header v-if="activeProfile && SHOW_LEGACY_PANELS" class="asean-infographic__title">
       <div class="asean-infographic__title-id">
         <img
           :src="activeProfile.flagUrl"
@@ -105,7 +114,7 @@ function onActiveSlugUpdate(next: string | null) {
          faces — front = "Trade" layer, back = "Green Transition" /
          critical-minerals layer. The layer tab in the title block flips both
          cards in unison. Both faces are wired to real data (BF-58). -->
-    <div v-if="activeProfile" class="asean-infographic__dock">
+    <div v-if="activeProfile && SHOW_LEGACY_PANELS" class="asean-infographic__dock">
       <div class="asean-infographic__dock-bars">
         <CardFlip :flipped="layer === 'green'">
           <template #front>
@@ -178,6 +187,30 @@ function onActiveSlugUpdate(next: string | null) {
   width: 100svw;
   height: 100svh;
   z-index: 10;
+}
+
+/* Map wrapper: fullscreen when idle, top-left quadrant when a country is docked.
+   AseanMap's root is width/height:100%, so it follows this box. */
+.asean-infographic__map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100svw;
+  height: 100svh;
+  transition:
+    width 600ms cubic-bezier(0.4, 0, 0.2, 1),
+    height 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.asean-infographic__map.is-docked {
+  width: 50svw;
+  height: 50svh;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asean-infographic__map {
+    transition: none;
+  }
 }
 
 /* --- Top-right title block (no card) --- */

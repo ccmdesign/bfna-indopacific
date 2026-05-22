@@ -91,9 +91,25 @@ const interactiveFeatures = computed(() =>
   renderedFeatures.filter(f => f.properties.tier === 'inScope' || f.properties.tier === 'stretch')
 )
 
-const frameTransform = computed(() =>
-  `translate(${props.frameTx},${props.frameTy}) scale(${props.frameScale})`
-)
+// Zoom factor when a country is docked into the top-left quadrant (tunable).
+const DOCK_ZOOM = 2.2
+
+// Frame applied as a CSS transform (property, not SVG attribute) so it can be
+// CSS-transitioned. Idle = the calibrated default frame from props; docked =
+// re-zoom so the active country's centroid sits at the viewBox center.
+const frameStyle = computed(() => {
+  const f = activeFeature.value
+  if (!f) {
+    return {
+      transform: `translate(${props.frameTx}px, ${props.frameTy}px) scale(${props.frameScale})`
+    }
+  }
+  const Z = DOCK_ZOOM
+  const [cx, cy] = f.centroid
+  return {
+    transform: `translate(${r2(VB_W / 2 - Z * cx)}px, ${r2(VB_H / 2 - Z * cy)}px) scale(${Z})`
+  }
+})
 
 const hoverSlug = ref<string | null>(null)
 const internalActiveSlug = ref<string | null>(null)
@@ -206,7 +222,7 @@ function onClick(slug: string) {
       </defs>
 
       <!-- Frame transform applies to entire locked plate as a single unit -->
-      <g :transform="frameTransform">
+      <g class="asean-map__plate" :style="frameStyle">
         <!-- Locked plate: image + svg paths share calibrated geographic bounds -->
         <image
           :href="PLATE.imageHref"
@@ -319,6 +335,14 @@ function onClick(slug: string) {
   height: 100%;
 }
 
+/* Locked plate (bg raster + vectors): re-zooms when a country is docked.
+   transform-box/origin make CSS px == viewBox user units, anchored at origin. */
+.asean-map__plate {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  transition: transform 600ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .asean-map__country {
   cursor: pointer;
 }
@@ -428,6 +452,9 @@ function onClick(slug: string) {
 
 @media (prefers-reduced-motion: reduce) {
   .asean-map__fill {
+    transition: none;
+  }
+  .asean-map__plate {
     transition: none;
   }
 }
