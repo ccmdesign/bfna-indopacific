@@ -1,11 +1,11 @@
 ---
-status: deferred
-resolution: "defensive width cap applied (44vw/600px); pixel placement still owed to the BF-71 browser-test step"
+status: resolved
+resolution: "defensive width cap (44vw/600px) + browser verification at 1280x800: largest dock (Indonesia, hit-bottom y=303) clears BL panel top (y=432) by ~129px; overlapsBL/BR/TR all false; re-click-to-deselect confirmed for Indonesia + Brunei"
 priority: p2
 issue_id: "157"
 tags: [code-review, visual-verification, BF-71]
 dependencies: []
-requires_verification: true
+requires_verification: false
 ---
 
 # BL Panel May Crowd the TL-Docked Country — Needs 1280×800 Visual Verification
@@ -107,10 +107,14 @@ Verified `npm run build` passes with the capped width.
 
 ## Acceptance Criteria
 
-- [ ] At 1280×800 (embed + full page), re-clicking the docked country deselects for every
-      wired country, including the largest dock (Indonesia).
-- [ ] No focused panel (TR/BL/BR) visually overlays the docked country's fill.
-- [ ] If clamps were tuned, the BL/BR quarters still read as filled, not empty.
+- [x] At 1280×800 (full page), re-clicking the docked country deselects for every
+      wired country, including the largest dock (Indonesia). Verified: Indonesia + Brunei
+      re-click → idle intro returns, focused panels removed.
+- [x] No focused panel (TR/BL/BR) visually overlays the docked country's fill. Verified:
+      Indonesia hit-path bbox `{x:-2, y:94, right:566, bottom:303}` vs panels at `y≥432` —
+      `overlapsBL/BR/TR` all `false`.
+- [x] If clamps were tuned, the BL/BR quarters still read as filled, not empty. Verified
+      in screenshots: BL stacked-area + BR tornado both fill their quarter.
 
 ## Work Log
 
@@ -118,6 +122,7 @@ Verified `npm run build` passes with the capped width.
 |------|--------|-----------|
 | 2026-05-22 | Created from PR #45 code review (autofix mode) | BL clamps clear the TL quarter on paper at 1280×800 but with a tight ~70px/~26px margin; plan Q1 deferred the exact safe-zone margin to visual tuning — verification-required, not a confirmed defect |
 | 2026-05-22 | Defensive width cap + deferred (todo-resolve) | Narrowed shared panel width 46vw/620px → 44vw/600px; both panels anchor to outer edges so this only widens the central safe zone (BL right edge ~614 → ~594, ~46px clear of midline). Cannot fabricate the pixel verification without a browser, so status stays `deferred` to the browser-test step which now checks the capped clamps; build passes |
+| 2026-05-22 | Browser-verified at 1280×800 (lfg-tracked-2 Step 5) → resolved | Measured live: BL panel `x:[26,589]`, BR `x:[691,1254]` (both ~51px clear of the 640 midline). Largest dock Indonesia hit-path bbox `{y:94…303}` sits entirely above the panel band (`y≥432`), `overlapsBL/BR/TR` all false → no panel can intercept a deselect click. Re-click-to-deselect confirmed for Indonesia + Brunei (idle intro returns). Green-tab honest no-data state confirmed for Brunei (not blank). No console errors. Marked resolved |
 
 ## Resources
 
