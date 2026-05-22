@@ -33,11 +33,20 @@ const props = withDefaults(defineProps<{
    * read `@select` for one-shot click events.
    */
   activeSlug?: string | null
+  /**
+   * Suppress the in-map active-country name label. The active overlay (glow +
+   * fill) still renders; only the text label is hidden. Used by the focused
+   * infographic layout where the docked country sits in the top-left quadrant
+   * and its rightward label would collide with the TR identity panel. Hover
+   * labels are unaffected. Default false preserves standalone-map behavior.
+   */
+  suppressActiveLabel?: boolean
 }>(), {
   frameTx: -1224,
   frameTy: -482,
   frameScale: 1.701,
-  activeSlug: null
+  activeSlug: null,
+  suppressActiveLabel: false
 })
 
 const emit = defineEmits<{
@@ -297,6 +306,7 @@ function onClick(slug: string) {
               class="asean-map__active-fill"
             />
             <text
+              v-if="!suppressActiveLabel"
               :x="activeFeature.labelX"
               :y="activeFeature.labelY"
               class="asean-map__label asean-map__label--active"
