@@ -5,13 +5,10 @@ import { tradeStackedBySlug } from '~/data/asean/trade-stacked'
 import { MINERALS_BY_SLUG } from '~/data/asean/minerals.generated'
 
 // Active country state. Idle (null) = fullscreen map, no selection; clicking a
-// country docks the map to the top-left quadrant (see AseanMap re-zoom).
+// country docks the map to the top-left quadrant (see AseanMap re-zoom). The
+// other three quadrants then fill with this country's content panels (TR
+// identity, BL stacked area, BR tornado bars).
 const activeSlug = ref<string | null>(null)
-
-// Title + chart dock are deferred to the quadrant-content spec
-// (docs/plans/2026-05-22-001-feat-asean-map-quadrant-dock-spec.md). The three
-// freed quadrants stay empty for now; flip to re-enable the legacy overlays.
-const SHOW_LEGACY_PANELS = false
 
 const activeProfile = computed(() =>
   activeSlug.value ? profileBySlug(activeSlug.value) : undefined
@@ -53,6 +50,7 @@ function onActiveSlugUpdate(next: string | null) {
          the other three quadrants on top of the map. -->
     <AseanMap
       :active-slug="activeSlug"
+      :suppress-active-label="true"
       @update:active-slug="onActiveSlugUpdate"
     />
 
@@ -77,95 +75,73 @@ function onActiveSlugUpdate(next: string | null) {
       </header>
     </Transition>
 
-    <!-- Top-right text block. Sits directly on the dark map surface — no card
+    <!-- TR identity panel. Sits directly on the dark map surface — no card
          chrome. Contains flag + country title, layer tabs, hero stat with
-         tagline, and the narrative paragraph. -->
-    <header v-if="activeProfile && SHOW_LEGACY_PANELS" class="asean-infographic__title">
-      <div class="asean-infographic__title-id">
-        <img
-          :src="activeProfile.flagUrl"
-          :alt="`Flag of ${activeProfile.name}`"
-          class="asean-infographic__title-flag"
-          width="64"
-          height="44"
-          loading="lazy"
-        />
-        <h1 class="asean-infographic__title-name">{{ activeProfile.name }}</h1>
-      </div>
+         tagline, and the narrative paragraph. Lives in the top-right quadrant,
+         kept clear of the TL-docked country (see CSS clamps). -->
+    <Transition name="panel-rise">
+      <header v-if="activeProfile" class="asean-infographic__title">
+        <div class="asean-infographic__title-id">
+          <img
+            :src="activeProfile.flagUrl"
+            :alt="`Flag of ${activeProfile.name}`"
+            class="asean-infographic__title-flag"
+            width="64"
+            height="44"
+            loading="lazy"
+          />
+          <h1 class="asean-infographic__title-name">{{ activeProfile.name }}</h1>
+        </div>
 
-      <!-- Layer tabs: switch the lens on the same active country. The two
-           layers differ in data (all goods vs critical minerals) but reuse
-           the same dock components below. -->
-      <nav class="asean-infographic__tabs" role="tablist" aria-label="Active layer">
-        <button
-          type="button"
-          role="tab"
-          class="asean-infographic__tab"
-          :class="{ 'is-active': layer === 'trade' }"
-          :aria-selected="layer === 'trade'"
-          @click="layer = 'trade'"
-        >
-          Trade
-        </button>
-        <button
-          type="button"
-          role="tab"
-          class="asean-infographic__tab"
-          :class="{ 'is-active': layer === 'green' }"
-          :aria-selected="layer === 'green'"
-          @click="layer = 'green'"
-        >
-          Green Transition
-        </button>
-      </nav>
+        <!-- Layer toggle: switch the lens on the same active country. The two
+             layers differ in data (all goods vs critical minerals) but reuse
+             the same dock components below. This is a layer toggle (one state
+             driving both bottom panels), not a tab/tabpanel relationship, so
+             it's expressed as an `aria-pressed` toggle group rather than the
+             WAI-ARIA tabs pattern (which would require aria-controls + matching
+             role="tabpanel" panels + roving arrow-key navigation). -->
+        <div class="asean-infographic__tabs" role="group" aria-label="Active layer">
+          <button
+            type="button"
+            class="asean-infographic__tab"
+            :class="{ 'is-active': layer === 'trade' }"
+            :aria-pressed="layer === 'trade'"
+            @click="layer = 'trade'"
+          >
+            Trade
+          </button>
+          <button
+            type="button"
+            class="asean-infographic__tab"
+            :class="{ 'is-active': layer === 'green' }"
+            :aria-pressed="layer === 'green'"
+            @click="layer = 'green'"
+          >
+            Green Transition
+          </button>
+        </div>
 
-      <div class="asean-infographic__title-hero">
-        <span class="asean-infographic__title-hero-value">
-          {{ activeProfile.hero.value }}
-        </span>
-        <span class="asean-infographic__title-hero-label">
-          {{ activeProfile.hero.label }}
-        </span>
-      </div>
+        <div class="asean-infographic__title-hero">
+          <span class="asean-infographic__title-hero-value">
+            {{ activeProfile.hero.value }}
+          </span>
+          <span class="asean-infographic__title-hero-label">
+            {{ activeProfile.hero.label }}
+          </span>
+        </div>
 
-      <p class="asean-infographic__title-paragraph">{{ activeProfile.paragraph }}</p>
-    </header>
+        <p class="asean-infographic__title-paragraph">{{ activeProfile.paragraph }}</p>
+      </header>
+    </Transition>
 
-    <!-- Bottom dock: two cards side-by-side. Each card is a CardFlip with two
-         faces — front = "Trade" layer, back = "Green Transition" /
-         critical-minerals layer. The layer tab in the title block flips both
-         cards in unison. Both faces are wired to real data (BF-58). -->
-    <div v-if="activeProfile && SHOW_LEGACY_PANELS" class="asean-infographic__dock">
-      <div class="asean-infographic__dock-bars">
-        <CardFlip :flipped="layer === 'green'">
-          <template #front>
-            <CountryChartCard
-              eyebrow="Indicative composition"
-              title="Top exports & imports"
-              meta="USD billions"
-              source="indicative — not individually sourced"
-            >
-              <CountryTradeBalanceBars :profile="activeProfile" :height="220" />
-            </CountryChartCard>
-          </template>
-          <template #back>
-            <CountryChartCard
-              eyebrow="Critical minerals · 2025"
-              title="Share of world mine production"
-              meta="% of world · USGS MCS2026"
-              source="USGS MCS2026"
-            >
-              <CountryMineralShareBars
-                v-if="activeMinerals"
-                :data="activeMinerals"
-                :height="220"
-              />
-            </CountryChartCard>
-          </template>
-        </CardFlip>
-      </div>
-
-      <div v-if="activeTradeStacked" class="asean-infographic__dock-chart">
+    <!-- BL panel — bottom-left quadrant. Stacked area: trade flows with the US,
+         China, and the EU since 2010 (front) / mineral flows by destination
+         (back). CardFlip flips in unison with BR via the shared `layer` ref. -->
+    <Transition name="panel-rise">
+      <div
+        v-if="activeProfile && activeTradeStacked"
+        class="asean-infographic__panel asean-infographic__panel-bl"
+      >
         <CardFlip :flipped="layer === 'green'">
           <template #front>
             <CountryChartCard
@@ -197,7 +173,45 @@ function onActiveSlugUpdate(next: string | null) {
           </template>
         </CardFlip>
       </div>
-    </div>
+    </Transition>
+
+    <!-- BR panel — bottom-right quadrant. Tornado bars: indicative top exports &
+         imports composition (front) / share of world mine production (back).
+         CardFlip flips in unison with BL via the shared `layer` ref. The
+         "indicative — not individually sourced" line is honest by design. -->
+    <Transition name="panel-rise">
+      <div
+        v-if="activeProfile"
+        class="asean-infographic__panel asean-infographic__panel-br"
+      >
+        <CardFlip :flipped="layer === 'green'">
+          <template #front>
+            <CountryChartCard
+              eyebrow="Indicative composition"
+              title="Top exports & imports"
+              meta="USD billions"
+              source="indicative — not individually sourced"
+            >
+              <CountryTradeBalanceBars :profile="activeProfile" :height="220" />
+            </CountryChartCard>
+          </template>
+          <template #back>
+            <CountryChartCard
+              eyebrow="Critical minerals · 2025"
+              title="Share of world mine production"
+              meta="% of world · USGS MCS2026"
+              source="USGS MCS2026"
+            >
+              <CountryMineralShareBars
+                v-if="activeMinerals"
+                :data="activeMinerals"
+                :height="220"
+              />
+            </CountryChartCard>
+          </template>
+        </CardFlip>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -285,7 +299,11 @@ function onActiveSlugUpdate(next: string | null) {
   }
 }
 
-/* --- Top-right title block (no card) --- */
+/* --- TR identity panel (no card) --- */
+/* Top-right quarter only: left edge stays right of the vertical midline so it
+   never crosses into the TL-docked country. Max-height keeps it in the top
+   half. The panel itself does not capture clicks (pointer-events: none) so the
+   bare map behind it stays selectable; only the tabs opt back in to `auto`. */
 .asean-infographic__title {
   position: absolute;
   top: clamp(20px, 3vh, 40px);
@@ -294,10 +312,12 @@ function onActiveSlugUpdate(next: string | null) {
   flex-direction: column;
   gap: 18px;
   width: clamp(360px, 36vw, 560px);
+  max-height: 46svh;
   z-index: 20;
   color: rgba(255, 255, 255, 0.92);
   font-family: 'Encode Sans', sans-serif;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+  pointer-events: none;
 }
 
 .asean-infographic__title-id {
@@ -335,6 +355,9 @@ function onActiveSlugUpdate(next: string | null) {
   border-radius: 8px;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  /* Opt back in: the TR panel is pointer-events:none so bare map stays
+     clickable, but the layer tabs must be clickable. */
+  pointer-events: auto;
 }
 
 .asean-infographic__tab {
@@ -405,32 +428,73 @@ function onActiveSlugUpdate(next: string | null) {
   color: rgba(255, 255, 255, 0.78);
 }
 
-/* --- Bottom dock: two cards --- */
-.asean-infographic__dock {
+/* --- Bottom quadrant panels (BL + BR) --- */
+/* Each panel is an independently-positioned CardFlip in its own bottom quarter,
+   leaving the TL quarter (the docked country) and a margin around it free of
+   pointer-capturing surfaces so re-click-to-deselect always lands on the map.
+   The explicit min-height gives the 3D flip wrapper a measured frame —
+   CardFlip uses absolutely-positioned faces, so its parent must be sized. */
+.asean-infographic__panel {
   position: absolute;
-  left: clamp(16px, 2vw, 32px);
-  right: clamp(16px, 2vw, 32px);
   bottom: clamp(48px, 6vh, 72px);
-  display: grid;
-  grid-template-columns: 65fr 35fr;
-  gap: clamp(12px, 1.4vw, 24px);
+  /* Capped at 44vw / 600px (was 46vw / 620px) so each panel's inner edge keeps
+     a guaranteed clearance from the vertical midline. This widens the central
+     safe zone around the TL-docked country (defensive — gotcha R9/D2), since
+     both BL and BR are pointer-events:auto surfaces that must never overlap the
+     re-clickable docked country. Final pixel placement is still confirmed at
+     1280×800 in the browser-test step (see todos/157). */
+  width: min(44vw, 600px);
+  min-height: 320px;
+  display: flex;
+  align-items: stretch;
   z-index: 20;
   pointer-events: auto;
 }
 
-.asean-infographic__dock-bars,
-.asean-infographic__dock-chart {
+.asean-infographic__panel > * {
+  flex: 1;
   min-width: 0;
-  /* Explicit height so the 3D flip wrapper has a frame to rotate inside —
-     CardFlip uses absolutely-positioned faces, so its parent needs to give
-     it a measured size. */
-  min-height: 340px;
-  display: flex;
-  align-items: stretch;
 }
 
-.asean-infographic__dock-bars > *,
-.asean-infographic__dock-chart > * {
-  flex: 1;
+/* BL: bottom-left quarter. Top edge sits well below the TL-docked country. */
+.asean-infographic__panel-bl {
+  left: clamp(16px, 2vw, 32px);
+}
+
+/* BR: bottom-right quarter, mirror of BL. */
+.asean-infographic__panel-br {
+  right: clamp(16px, 2vw, 32px);
+}
+
+/* --- Focused-panel choreography (R6/D4) --- */
+/* Panels rise + fade in slightly after the 600 ms map re-zoom starts, so the
+   eye follows the map first, then the content lands as the country settles into
+   TL. On leave they fade out faster (no slide) before/while the map zooms back. */
+.panel-rise-enter-active {
+  transition: opacity 380ms ease, transform 380ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition-delay: 150ms;
+}
+.panel-rise-leave-active {
+  transition: opacity 240ms ease;
+}
+.panel-rise-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+.panel-rise-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Instant appear/disappear: no slide, no fade duration. CardFlip cross-fades
+     internally under reduced motion (handled in CardFlip.vue). */
+  .panel-rise-enter-active,
+  .panel-rise-leave-active {
+    transition: none;
+    transition-delay: 0ms;
+  }
+  .panel-rise-enter-from {
+    transform: none;
+  }
 }
 </style>
