@@ -10,11 +10,11 @@ import type { CountryTier } from '~/data/asean/country-tiers'
 // The image is equirectangular (plate carrée): lon→x, lat→y are linear.
 // =============================================================================
 const PLATE = {
-  imageHref: '/assets/map-asean-2x.webp',
-  west: 23.27,
-  east: 155.55,
-  north: 43.61,
-  south: -31.33
+  imageHref: '/assets/map-asean-wide-2x.webp',
+  west: 5,
+  east: 185,
+  north: 55,
+  south: -46.25
 } as const
 
 // =============================================================================
@@ -34,9 +34,9 @@ const props = withDefaults(defineProps<{
    */
   activeSlug?: string | null
 }>(), {
-  frameTx: -893,
-  frameTy: -270,
-  frameScale: 1.25,
+  frameTx: -1224,
+  frameTy: -482,
+  frameScale: 1.701,
   activeSlug: null
 })
 
