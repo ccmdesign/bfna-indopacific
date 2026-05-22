@@ -56,6 +56,10 @@ function onActiveSlugUpdate(next: string | null) {
       @update:active-slug="onActiveSlugUpdate"
     />
 
+    <!-- Edge fades: blend the map into the dark background along the bottom and
+         right edges (75%→100%). Non-interactive so country clicks pass through. -->
+    <div class="asean-infographic__edge-fade" aria-hidden="true" />
+
     <!-- Idle intro: top-right quadrant. Infographic title + subtitle + blurb,
          shown only when no country is selected. -->
     <Transition name="intro-fade">
@@ -204,6 +208,18 @@ function onActiveSlugUpdate(next: string | null) {
   width: 100svw;
   height: 100svh;
   z-index: 10;
+}
+
+/* Edge fades: map blends into the dark background at the bottom + right edges.
+   Two stacked gradients, transparent until 75%, dark blue at the edge. */
+.asean-infographic__edge-fade {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, transparent 75%, #022640f2 100%),
+    linear-gradient(to right, transparent 75%, #022640f2 100%);
 }
 
 /* Idle intro — top-right quadrant. Sits on the dark map, no card chrome. */
