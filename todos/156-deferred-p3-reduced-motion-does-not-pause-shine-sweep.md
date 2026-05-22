@@ -1,5 +1,5 @@
 ---
-status: pending
+status: deferred
 priority: p3
 issue_id: "156"
 tags: [code-review, accessibility, BF-68]
@@ -7,6 +7,8 @@ dependencies: []
 ---
 
 # Reduced Motion Does Not Pause the ASEAN Map Shine Sweep
+
+> **DEFERRED:** Out of scope for BF-68 (purely the fill→border visual conversion); the SMIL-driven sweep pause is a separate behavior change and warrants its own accessibility ticket.
 
 ## Problem Statement
 
@@ -79,6 +81,7 @@ a single resume policy.
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-05-22 | Created from PR #44 code review (autofix mode) | Pre-existing + plan-deferred; SMIL sweep is unaffected by CSS `transition: none`; recurring repo pattern |
+| 2026-05-22 | Marked DEFERRED during todo-resolve | Out of scope for BF-68 (fill→border visual conversion only); reduced-motion SMIL pause is a separate behavior change — needs its own ticket |
 
 ## Resources
 
