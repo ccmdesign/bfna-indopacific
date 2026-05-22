@@ -245,13 +245,13 @@ function onClick(slug: string) {
           pointer-events="none"
         />
 
-        <!-- Masked reveal layer: subtle sweeping highlight of all countries -->
-        <g class="asean-map__reveal" mask="url(#reveal-mask)">
+        <!-- Masked reveal layer: diagonal sweep tracing country BORDERS only -->
+        <g class="asean-map__reveal" mask="url(#reveal-mask)" filter="url(#country-glow)">
           <path
             v-for="f in interactiveFeatures"
             :key="'r' + f.id"
             :d="f.d"
-            class="asean-map__fill"
+            class="asean-map__border"
           />
         </g>
 
@@ -365,11 +365,13 @@ function onClick(slug: string) {
   outline: none;
 }
 
-/* Sweep-revealed paths (visual only, no events) */
-.asean-map__fill {
-  fill: rgba(255, 255, 255, 0.55);
+/* Sweep-revealed BORDERS (visual only, no events). The diagonal mask sweep
+   illuminates the country outlines only — interiors stay transparent so the
+   base raster shows through. */
+.asean-map__border {
+  fill: none;
   stroke: rgba(255, 255, 255, 0.85);
-  stroke-width: 1;
+  stroke-width: 1.4;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
@@ -464,7 +466,7 @@ function onClick(slug: string) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .asean-map__fill {
+  .asean-map__border {
     transition: none;
   }
   .asean-map__plate {
