@@ -56,6 +56,23 @@ function onActiveSlugUpdate(next: string | null) {
       @update:active-slug="onActiveSlugUpdate"
     />
 
+    <!-- Idle intro: top-right quadrant. Infographic title + subtitle + blurb,
+         shown only when no country is selected. -->
+    <Transition name="intro-fade">
+      <header v-if="!activeSlug" class="asean-infographic__intro">
+        <h1 class="asean-infographic__intro-title">ASEAN: Pivot of the Indo-Pacific</h1>
+        <p class="asean-infographic__intro-subtitle">
+          How Southeast Asia's economies balance the United States, China, and the EU
+        </p>
+        <p class="asean-infographic__intro-blurb">
+          An interactive map of ASEAN member states and their economic, strategic, and
+          resource ties to the three great powers. Select a country to explore its trade
+          balance, its trade flows with the US, China, and the EU since 2010, and its
+          critical-mineral leverage.
+        </p>
+      </header>
+    </Transition>
+
     <!-- Top-right text block. Sits directly on the dark map surface — no card
          chrome. Contains flag + country title, layer tabs, hero stat with
          tagline, and the narrative paragraph. -->
@@ -187,6 +204,69 @@ function onActiveSlugUpdate(next: string | null) {
   width: 100svw;
   height: 100svh;
   z-index: 10;
+}
+
+/* Idle intro — top-right quadrant. Sits on the dark map, no card chrome. */
+.asean-infographic__intro {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50svw;
+  max-height: 50svh;
+  box-sizing: border-box;
+  padding: clamp(28px, 5vh, 64px) clamp(24px, 3vw, 56px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  z-index: 20;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: 'Encode Sans', sans-serif;
+  text-align: right;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+}
+
+.asean-infographic__intro-title {
+  margin: 0;
+  font-size: clamp(2.2rem, 3.4vw, 3.8rem);
+  font-weight: 600;
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.asean-infographic__intro-subtitle {
+  margin: 0;
+  font-size: clamp(1rem, 1.4vw, 1.4rem);
+  font-weight: 400;
+  line-height: 1.3;
+  color: hsl(218, 70%, 88%);
+}
+
+.asean-infographic__intro-blurb {
+  margin: 4px 0 0;
+  max-width: 46ch;
+  align-self: flex-end;
+  font-size: clamp(0.85rem, 1vw, 1rem);
+  font-weight: 400;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.intro-fade-enter-active,
+.intro-fade-leave-active {
+  transition: opacity 400ms ease;
+}
+.intro-fade-enter-from,
+.intro-fade-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-fade-enter-active,
+  .intro-fade-leave-active {
+    transition: none;
+  }
 }
 
 /* --- Top-right title block (no card) --- */
