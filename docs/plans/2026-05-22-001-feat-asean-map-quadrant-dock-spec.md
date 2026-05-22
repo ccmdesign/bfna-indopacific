@@ -88,22 +88,22 @@ returns the map to its default fullscreen frame.
 A single transitioned change: the **frame transform**. The map element keeps its
 fullscreen box; only the framing of the plate moves.
 
-- Drive the plate transform so the selected country's centroid lands at the **center of
-  the top-left quadrant** in viewBox units — `(VB_W/4, VB_H/4) = (480, 270)` — not the
-  viewBox center.
-  - The group maps a point `p` to `Z · p + (tx, ty)`.
-  - To place `centroid` at the TL-quadrant center:
+- Scale so the selected country's **bounding box fits the top-left quadrant**
+  (`VB_W/2 × VB_H/2 = 960 × 540`), then center that bbox at the quadrant center
+  `(VB_W/4, VB_H/4) = (480, 270)`. This gives a per-country zoom — wide countries
+  (Indonesia) zoom out, compact ones (Vietnam, Singapore) zoom in — so each "occupies"
+  the quadrant rather than sprawling at a fixed scale.
+  - From each feature's bbox `{cx, cy, w, h}` (precomputed on `renderedFeatures[].bbox`):
     ```
-    Z   = DOCK_ZOOM                 // target zoom, e.g. 2.0–2.5 (tune)
-    tx  = 480 - Z · centroid.x      // VB_W/4
-    ty  = 270 - Z · centroid.y      // VB_H/4
+    fit = min( (VB_W/2 · PAD) / w, (VB_H/2 · PAD) / h )   // PAD = 0.8 quadrant coverage
+    Z   = clamp(fit, MIN_DOCK_ZOOM, MAX_DOCK_ZOOM)         // 1.2 … 4
+    tx  = 480 - Z · cx                                     // VB_W/4
+    ty  = 270 - Z · cy                                     // VB_H/4
     ```
-  - `centroid` per feature is already computed in viewBox units
-    (`renderedFeatures[].centroid`, [AseanMap.vue:84](../../components/asean/AseanMap.vue)).
   - Idle frame returns to the prop defaults `(-893, -270, 1.25)`.
 - `preserveAspectRatio="xMidYMid slice"` and the fullscreen box are unchanged. The
-  quarter-point target is in viewBox space; the cover-fit crop shifts the on-screen
-  position slightly from the exact screen quarter-point (acceptable, tunable).
+  quadrant target is in viewBox space; the cover-fit crop shifts the on-screen position
+  slightly from the exact screen quarter (acceptable, tunable).
 
 ### Transitionability note (important)
 
@@ -148,7 +148,8 @@ on SVG `transform-origin`); fall back to a wrapper `<div>`/group if needed.
 
 ## Open questions
 
-- **Zoom factor `Z`** for the focused re-zoom — propose 2.0–2.5, tune visually.
+- **Fit constants** — `QUADRANT_PAD` (0.8), `MIN_DOCK_ZOOM` (1.2), `MAX_DOCK_ZOOM` (4):
+  tune visually. Indonesia currently clamps to the min; lower it for a tighter fit.
 - **TL placement** — exact quarter-point `(480, 270)` in viewBox space, or nudge to
   compensate for the cover-fit crop so it hits the true on-screen quarter-point?
 - **Deselect trigger** — re-click the active country only, or also click empty sea /

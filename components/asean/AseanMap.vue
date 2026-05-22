@@ -82,6 +82,12 @@ const renderedFeatures = features.map((f) => {
     ...f,
     d: roundPath(pathGen(f as any) ?? ''),
     centroid: [r2(c[0]), r2(c[1])] as [number, number],
+    bbox: {
+      cx: r2((b[0][0] + b[1][0]) / 2),
+      cy: r2((b[0][1] + b[1][1]) / 2),
+      w: r2(b[1][0] - b[0][0]),
+      h: r2(b[1][1] - b[0][1])
+    },
     labelX: r2(b[1][0] + 16),
     labelY: r2((b[0][1] + b[1][1]) / 2)
   }
@@ -91,13 +97,17 @@ const interactiveFeatures = computed(() =>
   renderedFeatures.filter(f => f.properties.tier === 'inScope' || f.properties.tier === 'stretch')
 )
 
-// Zoom factor when a country is docked into the top-left quadrant (tunable).
-const DOCK_ZOOM = 2.2
+// Fit the active country's bounding box into the top-left quadrant: PAD = how
+// much of the quadrant the country may fill; MIN/MAX clamp keeps wide countries
+// from zooming out too far and tiny ones from over-zooming. (Tunable.)
+const QUADRANT_PAD = 0.8
+const MIN_DOCK_ZOOM = 1.2
+const MAX_DOCK_ZOOM = 4
 
 // Frame applied as a CSS transform (property, not SVG attribute) so it can be
-// CSS-transitioned. Idle = the calibrated default frame from props; docked =
-// re-zoom so the active country's centroid sits in the top-left quadrant. The
-// map stays fullscreen — only the framing moves, leaving the other three
+// CSS-transitioned. Idle = the calibrated default frame from props; active =
+// scale so the country's bbox fits the top-left quadrant, then center it there.
+// The map stays fullscreen — only the framing moves, leaving the other three
 // quadrants for chart overlays.
 const frameStyle = computed(() => {
   const f = activeFeature.value
@@ -106,10 +116,11 @@ const frameStyle = computed(() => {
       transform: `translate(${props.frameTx}px, ${props.frameTy}px) scale(${props.frameScale})`
     }
   }
-  const Z = DOCK_ZOOM
-  const [cx, cy] = f.centroid
+  const { cx, cy, w, h } = f.bbox
+  const fit = Math.min(((VB_W / 2) * QUADRANT_PAD) / w, ((VB_H / 2) * QUADRANT_PAD) / h)
+  const Z = Math.max(MIN_DOCK_ZOOM, Math.min(MAX_DOCK_ZOOM, fit))
   return {
-    transform: `translate(${r2(VB_W / 4 - Z * cx)}px, ${r2(VB_H / 4 - Z * cy)}px) scale(${Z})`
+    transform: `translate(${r2(VB_W / 4 - Z * cx)}px, ${r2(VB_H / 4 - Z * cy)}px) scale(${r2(Z)})`
   }
 })
 
@@ -234,13 +245,13 @@ function onClick(slug: string) {
           pointer-events="none"
         />
 
-        <!-- Masked reveal layer: sweeping shine that travels along country borders -->
-        <g class="asean-map__reveal" mask="url(#reveal-mask)" filter="url(#country-glow)">
+        <!-- Masked reveal layer: subtle sweeping highlight of all countries -->
+        <g class="asean-map__reveal" mask="url(#reveal-mask)">
           <path
             v-for="f in interactiveFeatures"
             :key="'r' + f.id"
             :d="f.d"
-            class="asean-map__border"
+            class="asean-map__fill"
           />
         </g>
 
@@ -354,12 +365,11 @@ function onClick(slug: string) {
   outline: none;
 }
 
-/* Sweep-revealed borders: shine travels along the stroke, no fill (visual only) */
-.asean-map__border {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.95);
-  stroke-width: 1.6;
-  stroke-linejoin: round;
+/* Sweep-revealed paths (visual only, no events) */
+.asean-map__fill {
+  fill: rgba(255, 255, 255, 0.55);
+  stroke: rgba(255, 255, 255, 0.85);
+  stroke-width: 1;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }
