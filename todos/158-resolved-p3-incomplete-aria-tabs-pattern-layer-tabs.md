@@ -1,5 +1,6 @@
 ---
-status: pending
+status: resolved
+resolution: "Option B applied — layer control re-expressed as an aria-pressed toggle group"
 priority: p3
 issue_id: "158"
 tags: [code-review, accessibility, BF-71]
@@ -76,9 +77,26 @@ review brief explicitly calls out tabs role/aria.
 ## Recommended Action
 
 Option B is arguably the better fit (it's a layer toggle, not a tab/tabpanel relationship),
-but either is fine. Schedule as its own small a11y ticket alongside the other repo-wide
-accessibility residuals (`todos/037-…aria-label`, `todos/127-…aria-announcement`); do not
-fold into BF-71, which is a re-layout of pre-existing markup.
+but either is fine.
+
+## Resolution (2026-05-22)
+
+**Applied Option B** in `components/infographics/AseanInfographic.vue`. The layer control
+genuinely is a single-state toggle (one `layer` ref drives both bottom panels in unison),
+not a tab/tabpanel relationship, so re-expressing it as a labelled `aria-pressed` toggle
+group is the honest, idiomatic fix and avoids the unmet tabs-pattern obligations
+(`aria-controls`, matching `role="tabpanel"` panels, roving arrow-key navigation):
+
+- `<nav role="tablist">` → `<div role="group">` (kept `aria-label="Active layer"`).
+- Each button: dropped `role="tab"` + `:aria-selected`, added `:aria-pressed` reflecting
+  the active `layer`. (`type="button"` retained.)
+- No CSS / no visual change to the tab chrome — the `.asean-infographic__tabs` /
+  `.asean-infographic__tab` styles and `is-active` class are untouched.
+
+Verified `npm run build` passes. Acceptance criteria met:
+- [x] Control re-expressed as a labelled `aria-pressed` toggle group.
+- [x] `aria-pressed` continues to reflect the active `layer`.
+- [x] No visual change to the tab chrome.
 
 ## Technical Details
 
@@ -97,6 +115,7 @@ fold into BF-71, which is a re-layout of pre-existing markup.
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-05-22 | Created from PR #45 code review (autofix mode) | Tabs ARIA pattern is incomplete (no aria-controls / tabpanel / arrow-keys); confirmed pre-existing in dev via `git show dev:…`, only re-homed by BF-71 — not a regression, out of scope for safe-autofix |
+| 2026-05-22 | Resolved via Option B (todo-resolve) | Re-expressed the layer control as an `aria-pressed` toggle group (`role="group"` + `aria-pressed`) rather than completing the tabs pattern — it's a single-state layer toggle, not document tabs, so this is the honest fit and a low-risk in-place change with no visual delta; build passes |
 
 ## Resources
 

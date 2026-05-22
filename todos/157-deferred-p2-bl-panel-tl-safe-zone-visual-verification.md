@@ -1,9 +1,11 @@
 ---
-status: pending
+status: deferred
+resolution: "defensive width cap applied (44vw/600px); pixel placement still owed to the BF-71 browser-test step"
 priority: p2
 issue_id: "157"
 tags: [code-review, visual-verification, BF-71]
 dependencies: []
+requires_verification: true
 ---
 
 # BL Panel May Crowd the TL-Docked Country — Needs 1280×800 Visual Verification
@@ -78,6 +80,25 @@ Option A during the BF-71 browser-test step (plan Step 6 / R12): explicitly veri
 re-click-to-deselect on the largest-docking country at 1280×800. Only adjust clamps if a
 real overlap is observed.
 
+## Resolution (2026-05-22) — defensive cap applied, visual verification still deferred
+
+Applied **Option B as a low-risk defensive hedge** (not a substitute for the visual check):
+in `components/infographics/AseanInfographic.vue`, `.asean-infographic__panel` `width` was
+narrowed from `min(46vw, 620px)` to `min(44vw, 600px)`. Both BL and BR share this width and
+are anchored to their respective outer edges (`left`/`right: clamp(16px, 2vw, 32px)`), so a
+narrower width strictly pulls each panel's *inner* edge further from the vertical midline —
+it can only widen the central safe zone around the TL-docked country, never shrink it. At
+1280×800 the BL right edge moves from ~614 to ~594 (~46px clear of the 640 midline, up from
+~26px). No other clamp touched; AseanMap `QUADRANT_PAD` / `frameStyle` untouched (R11).
+
+This **does not close the todo** — the exact pixel margin around the docked country (plan
+Q1) and re-click-to-deselect across all wired countries still require a browser at 1280×800.
+Status is `deferred` to the BF-71 browser-test step, which now verifies against the capped
+clamps. If the browser shows comfortable clearance, this can be marked resolved; if overlap
+still appears for the largest dock (Indonesia), nudge `bottom`/`min-height` further.
+
+Verified `npm run build` passes with the capped width.
+
 ## Technical Details
 
 - **Affected files:** `components/infographics/AseanInfographic.vue`
@@ -96,6 +117,7 @@ real overlap is observed.
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-05-22 | Created from PR #45 code review (autofix mode) | BL clamps clear the TL quarter on paper at 1280×800 but with a tight ~70px/~26px margin; plan Q1 deferred the exact safe-zone margin to visual tuning — verification-required, not a confirmed defect |
+| 2026-05-22 | Defensive width cap + deferred (todo-resolve) | Narrowed shared panel width 46vw/620px → 44vw/600px; both panels anchor to outer edges so this only widens the central safe zone (BL right edge ~614 → ~594, ~46px clear of midline). Cannot fabricate the pixel verification without a browser, so status stays `deferred` to the browser-test step which now checks the capped clamps; build passes |
 
 ## Resources
 

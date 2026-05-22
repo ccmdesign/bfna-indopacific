@@ -93,31 +93,33 @@ function onActiveSlugUpdate(next: string | null) {
           <h1 class="asean-infographic__title-name">{{ activeProfile.name }}</h1>
         </div>
 
-        <!-- Layer tabs: switch the lens on the same active country. The two
+        <!-- Layer toggle: switch the lens on the same active country. The two
              layers differ in data (all goods vs critical minerals) but reuse
-             the same dock components below. -->
-        <nav class="asean-infographic__tabs" role="tablist" aria-label="Active layer">
+             the same dock components below. This is a layer toggle (one state
+             driving both bottom panels), not a tab/tabpanel relationship, so
+             it's expressed as an `aria-pressed` toggle group rather than the
+             WAI-ARIA tabs pattern (which would require aria-controls + matching
+             role="tabpanel" panels + roving arrow-key navigation). -->
+        <div class="asean-infographic__tabs" role="group" aria-label="Active layer">
           <button
             type="button"
-            role="tab"
             class="asean-infographic__tab"
             :class="{ 'is-active': layer === 'trade' }"
-            :aria-selected="layer === 'trade'"
+            :aria-pressed="layer === 'trade'"
             @click="layer = 'trade'"
           >
             Trade
           </button>
           <button
             type="button"
-            role="tab"
             class="asean-infographic__tab"
             :class="{ 'is-active': layer === 'green' }"
-            :aria-selected="layer === 'green'"
+            :aria-pressed="layer === 'green'"
             @click="layer = 'green'"
           >
             Green Transition
           </button>
-        </nav>
+        </div>
 
         <div class="asean-infographic__title-hero">
           <span class="asean-infographic__title-hero-value">
@@ -435,7 +437,13 @@ function onActiveSlugUpdate(next: string | null) {
 .asean-infographic__panel {
   position: absolute;
   bottom: clamp(48px, 6vh, 72px);
-  width: min(46vw, 620px);
+  /* Capped at 44vw / 600px (was 46vw / 620px) so each panel's inner edge keeps
+     a guaranteed clearance from the vertical midline. This widens the central
+     safe zone around the TL-docked country (defensive — gotcha R9/D2), since
+     both BL and BR are pointer-events:auto surfaces that must never overlap the
+     re-clickable docked country. Final pixel placement is still confirmed at
+     1280×800 in the browser-test step (see todos/157). */
+  width: min(44vw, 600px);
   min-height: 320px;
   display: flex;
   align-items: stretch;
