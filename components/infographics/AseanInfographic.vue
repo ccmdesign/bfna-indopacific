@@ -48,13 +48,13 @@ function onActiveSlugUpdate(next: string | null) {
 
 <template>
   <div class="asean-infographic">
-    <!-- Map docks into the top-left quadrant when a country is active. -->
-    <div class="asean-infographic__map" :class="{ 'is-docked': !!activeSlug }">
-      <AseanMap
-        :active-slug="activeSlug"
-        @update:active-slug="onActiveSlugUpdate"
-      />
-    </div>
+    <!-- Map stays fullscreen across all quadrants; selecting a country re-frames
+         it into the top-left quadrant (see AseanMap re-zoom). Charts will overlay
+         the other three quadrants on top of the map. -->
+    <AseanMap
+      :active-slug="activeSlug"
+      @update:active-slug="onActiveSlugUpdate"
+    />
 
     <!-- Top-right text block. Sits directly on the dark map surface — no card
          chrome. Contains flag + country title, layer tabs, hero stat with
@@ -187,30 +187,6 @@ function onActiveSlugUpdate(next: string | null) {
   width: 100svw;
   height: 100svh;
   z-index: 10;
-}
-
-/* Map wrapper: fullscreen when idle, top-left quadrant when a country is docked.
-   AseanMap's root is width/height:100%, so it follows this box. */
-.asean-infographic__map {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100svw;
-  height: 100svh;
-  transition:
-    width 600ms cubic-bezier(0.4, 0, 0.2, 1),
-    height 600ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.asean-infographic__map.is-docked {
-  width: 50svw;
-  height: 50svh;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .asean-infographic__map {
-    transition: none;
-  }
 }
 
 /* --- Top-right title block (no card) --- */

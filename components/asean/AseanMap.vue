@@ -96,7 +96,9 @@ const DOCK_ZOOM = 2.2
 
 // Frame applied as a CSS transform (property, not SVG attribute) so it can be
 // CSS-transitioned. Idle = the calibrated default frame from props; docked =
-// re-zoom so the active country's centroid sits at the viewBox center.
+// re-zoom so the active country's centroid sits in the top-left quadrant. The
+// map stays fullscreen — only the framing moves, leaving the other three
+// quadrants for chart overlays.
 const frameStyle = computed(() => {
   const f = activeFeature.value
   if (!f) {
@@ -107,7 +109,7 @@ const frameStyle = computed(() => {
   const Z = DOCK_ZOOM
   const [cx, cy] = f.centroid
   return {
-    transform: `translate(${r2(VB_W / 2 - Z * cx)}px, ${r2(VB_H / 2 - Z * cy)}px) scale(${Z})`
+    transform: `translate(${r2(VB_W / 4 - Z * cx)}px, ${r2(VB_H / 4 - Z * cy)}px) scale(${Z})`
   }
 })
 
@@ -232,13 +234,13 @@ function onClick(slug: string) {
           pointer-events="none"
         />
 
-        <!-- Masked reveal layer: subtle sweeping highlight of all countries -->
-        <g class="asean-map__reveal" mask="url(#reveal-mask)">
+        <!-- Masked reveal layer: sweeping shine that travels along country borders -->
+        <g class="asean-map__reveal" mask="url(#reveal-mask)" filter="url(#country-glow)">
           <path
             v-for="f in interactiveFeatures"
             :key="'r' + f.id"
             :d="f.d"
-            class="asean-map__fill"
+            class="asean-map__border"
           />
         </g>
 
@@ -352,11 +354,12 @@ function onClick(slug: string) {
   outline: none;
 }
 
-/* Sweep-revealed paths (visual only, no events) */
-.asean-map__fill {
-  fill: rgba(255, 255, 255, 0.55);
-  stroke: rgba(255, 255, 255, 0.85);
-  stroke-width: 1;
+/* Sweep-revealed borders: shine travels along the stroke, no fill (visual only) */
+.asean-map__border {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.95);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
 }

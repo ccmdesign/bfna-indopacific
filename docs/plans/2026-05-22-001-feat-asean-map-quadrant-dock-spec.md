@@ -10,24 +10,27 @@ area: components/infographics/AseanInfographic.vue, components/asean/AseanMap.vu
 
 ## Summary
 
-On the ASEAN infographic, selecting a country transitions the whole map (background
-raster **and** country vectors, as one unit) from a fullscreen layout into the
-**top-left quadrant** of the viewport, while simultaneously re-zooming so the
-selected country is framed inside that quadrant. This opens the other three
-quadrants for content. Deselecting returns the map to fullscreen.
+On the ASEAN infographic, the map (background raster **and** country vectors, as one
+unit) **stays fullscreen across all four quadrants** at all times — it is never cropped
+or shrunk. Selecting a country re-zooms/re-frames the map so the selected country is
+positioned in the **top-left quadrant**, leaving the other three quadrants as map
+backdrop for chart overlays (rendered on top of the map, separate spec). Deselecting
+returns the map to its default fullscreen frame.
 
 ## Scope
 
 **In scope**
-- Idle (no selection) = fullscreen map.
-- Country click = map docks to top-left quadrant + re-zooms onto the clicked country.
-- Re-click / deselect = map un-docks back to fullscreen.
-- Country-to-country switch while docked = map stays docked, re-zooms to the new country.
+- Idle (no selection) = fullscreen map at the default frame.
+- Country click = map re-frames (zoom + pan) so the clicked country sits in the
+  top-left quadrant. Map remains fullscreen — no crop, no container resize.
+- Re-click / deselect = map returns to the default fullscreen frame.
+- Country-to-country switch = map re-frames to the new country's TL position.
 - CSS-transition choreography + reduced-motion handling.
 
 **Out of scope (separate spec)**
-- What fills the top-right, bottom-left, and bottom-right quadrants (charts,
-  identity block, etc.). For this spec the three freed quadrants stay **empty**.
+- What fills the top-right, bottom-left, and bottom-right quadrants — charts overlaid
+  on top of the fullscreen map. For this spec those three quadrants stay **empty**
+  (bare map backdrop).
 - Relocating the existing title block and bottom dock into quadrants. The current
   overlays are deferred along with quadrant content (see Integration note).
 - Mobile / portrait layout (see Open Questions).
@@ -55,17 +58,17 @@ quadrants for content. Deselecting returns the map to fullscreen.
 
 1. **Idle** — no country selected (`activeSlug = null`). Map fills the viewport at
    the default frame (whole ASEAN region visible). Invites exploration.
-2. **Docked** — a country is selected. Map occupies the top-left quadrant
-   (~50svw × 50svh) and is re-zoomed so the selected country sits centered and
-   enlarged within that quadrant. The other three quadrants are empty.
+2. **Focused** — a country is selected. Map is **still fullscreen** but re-zoomed so
+   the selected country sits in the top-left quadrant; the rest of the map fills the
+   other three quadrants as backdrop (where chart overlays will land).
 
 ### Transitions
 
 | From | Trigger | To | Motion |
 |---|---|---|---|
-| Idle | click country | Docked (that country) | map shrinks to TL quadrant + re-zooms in |
-| Docked | click same country (or deselect) | Idle | map expands to fullscreen + frame resets to default |
-| Docked (A) | click country B | Docked (B) | map stays in TL, frame pans/zooms A → B |
+| Idle | click country | Focused (that country) | map zooms in + pans country into TL quadrant |
+| Focused | click same country (or deselect) | Idle | frame resets to default fullscreen view |
+| Focused (A) | click country B | Focused (B) | frame pans/zooms A → B, both in TL quadrant |
 
 ### Defaults change
 
@@ -74,32 +77,33 @@ quadrants for content. Deselecting returns the map to fullscreen.
 
 ## Layout model
 
-- Conceptual 2×2 grid over the viewport:
-  - **TL** = map (docked state).
-  - **TR / BL / BR** = empty (reserved; out of scope).
-- Quadrant size: top-left = 50svw × 50svh (subject to tuning — see Open Questions).
+- The map element is **always fullscreen** (`inset: 0`, all four quadrants). It is never
+  resized or cropped to a quadrant.
+- Conceptual 2×2 grid is purely a *framing* target:
+  - **TL** = where the selected country is positioned within the fullscreen map.
+  - **TR / BL / BR** = map backdrop; chart overlays sit on top of them (separate spec).
 
 ## Mechanics (grounded in current code)
 
-Two independent, simultaneously-transitioned changes:
+A single transitioned change: the **frame transform**. The map element keeps its
+fullscreen box; only the framing of the plate moves.
 
-1. **Dock (container box).** Animate the map's outer box from fullscreen
-   (`inset: 0`) to the top-left quadrant (`top:0; left:0; width:50svw; height:50svh`).
-   Because the SVG keeps `preserveAspectRatio="slice"`, it cover-crops within the
-   smaller box automatically — no viewBox change needed.
-
-2. **Re-zoom (frame transform).** Drive `frameTx / frameTy / frameScale` so the
-   selected country's centroid lands at the viewBox center.
-   - The group maps a point `p` to `frameScale · p + (frameTx, frameTy)`.
-   - To center `centroid` at viewBox center `C = (960, 540)`:
-     ```
-     frameScale = Z                       // target zoom, e.g. 2.0–2.5 (tune)
-     frameTx    = 960 - Z · centroid.x
-     frameTy    = 540 - Z · centroid.y
-     ```
-   - `centroid` per feature is already computed in viewBox units
-     (`renderedFeatures[].centroid`, [AseanMap.vue:84](../../components/asean/AseanMap.vue)).
-   - Idle frame returns to the prop defaults `(-893, -270, 1.25)`.
+- Drive the plate transform so the selected country's centroid lands at the **center of
+  the top-left quadrant** in viewBox units — `(VB_W/4, VB_H/4) = (480, 270)` — not the
+  viewBox center.
+  - The group maps a point `p` to `Z · p + (tx, ty)`.
+  - To place `centroid` at the TL-quadrant center:
+    ```
+    Z   = DOCK_ZOOM                 // target zoom, e.g. 2.0–2.5 (tune)
+    tx  = 480 - Z · centroid.x      // VB_W/4
+    ty  = 270 - Z · centroid.y      // VB_H/4
+    ```
+  - `centroid` per feature is already computed in viewBox units
+    (`renderedFeatures[].centroid`, [AseanMap.vue:84](../../components/asean/AseanMap.vue)).
+  - Idle frame returns to the prop defaults `(-893, -270, 1.25)`.
+- `preserveAspectRatio="xMidYMid slice"` and the fullscreen box are unchanged. The
+  quarter-point target is in viewBox space; the cover-fit crop shifts the on-screen
+  position slightly from the exact screen quarter-point (acceptable, tunable).
 
 ### Transitionability note (important)
 
@@ -112,41 +116,41 @@ on SVG `transform-origin`); fall back to a wrapper `<div>`/group if needed.
 ## Animation
 
 - **Tech:** CSS transitions only (no GSAP).
-- **Duration:** ~600 ms, single shared easing (e.g. `cubic-bezier(0.4, 0, 0.2, 1)`),
-  so the dock (box) and re-zoom (frame) read as one coordinated motion.
+- **Duration:** ~600 ms, easing `cubic-bezier(0.4, 0, 0.2, 1)` on the plate's
+  `transform` property.
 - **Reduced motion:** under `prefers-reduced-motion: reduce`, apply the end state
   instantly (no transition). The component already has a reduced-motion block to extend.
 
 ## Constraints / gotchas
 
-- **Do not edit `PLATE` calibration.** Docking is container size + frame transform only.
+- **Do not edit `PLATE` calibration.** Re-framing is a frame transform only.
   Geography must stay aligned with the vectors.
-- Frame transform must move to a CSS `transform` property for the re-zoom to transition
-  (see note above).
+- Frame transform must live on a CSS `transform` property (not the SVG attribute) for
+  the re-zoom to transition (see note above).
 - **Integration:** the existing title block + bottom dock currently render on selection
-  and would overlay the docked TL map. They belong to the deferred quadrant-content spec.
-  For this spec, hide them while docked (or leave idle-only) so the empty-quadrant demo
-  is clean.
-- Hover/active overlays and the sweep mask must keep working at the docked (zoomed) scale;
+  and would clutter the focused view. They belong to the deferred quadrant-content spec.
+  For this spec, hide them so the bare focused map is clean.
+- Hover/active overlays and the sweep mask must keep working at the zoomed scale;
   `vector-effect: non-scaling-stroke` already guards stroke widths.
 
 ## Acceptance criteria
 
 1. On load: fullscreen map, **no** country active.
-2. Click a country: map animates into the top-left quadrant (~50svw × 50svh) and
-   re-zooms to center that country; the other three quadrants are empty.
-3. Click the active country again (or trigger deselect): map animates back to
-   fullscreen and resets to the default frame (idle).
-4. Click a different country while docked: map stays docked and re-zooms from the old
-   country to the new one.
+2. Click a country: map stays fullscreen and re-zooms/pans so that country sits in the
+   top-left quadrant; the rest of the map fills the other three quadrants.
+3. Click the active country again (or trigger deselect): map returns to the default
+   fullscreen frame (idle).
+4. Click a different country: map re-frames from the old country to the new one (both
+   land in the TL quadrant).
 5. `prefers-reduced-motion: reduce`: all of the above resolve instantly, no animation.
-6. Country vectors stay registered to the background raster throughout (calibration intact).
+6. Map is never cropped or shrunk; country vectors stay registered to the background
+   raster throughout (calibration intact).
 
 ## Open questions
 
-- **Zoom factor `Z`** for the docked re-zoom — propose 2.0–2.5, tune visually.
-- **Quadrant size** — strict 50/50, or map slightly smaller than a true quarter?
+- **Zoom factor `Z`** for the focused re-zoom — propose 2.0–2.5, tune visually.
+- **TL placement** — exact quarter-point `(480, 270)` in viewBox space, or nudge to
+  compensate for the cover-fit crop so it hits the true on-screen quarter-point?
 - **Deselect trigger** — re-click the active country only, or also click empty sea /
   add an explicit close affordance?
-- **Mobile / portrait** — quadrants won't fit small screens; stack, or keep fullscreen
-  map with a different disclosure? (defer)
+- **Mobile / portrait** — focused framing on small screens; defer.
