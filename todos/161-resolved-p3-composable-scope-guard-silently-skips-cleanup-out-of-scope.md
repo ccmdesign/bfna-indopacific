@@ -1,5 +1,6 @@
 ---
-status: pending
+status: resolved
+resolution: "Option A — documented the scope/cleanup contract on both useTypewriter and useScramble (doc block + inline comment at the guard); guard kept"
 priority: p3
 issue_id: "161"
 tags: [code-review, quality, vue, composables, BF-72]
@@ -65,17 +66,35 @@ current usage.
 
 - **Affected files:** `composables/useTypewriter.ts`, `composables/useScramble.ts`
 
+## Resolution (2026-05-22) — Option A (document the contract, keep the guard)
+
+Kept the `if (getCurrentScope())` guard (defensible at the composable top level — calling outside a
+scope is genuinely possible) and made the silent-failure contract explicit on both composables:
+
+- Added an `IMPORTANT` paragraph to each JSDoc block (`useTypewriter`, `useScramble`) stating the
+  composable must be called within a component `setup` or active effect scope; outside one, the
+  guard short-circuits and the caller MUST own teardown via the returned `stop()`, else the
+  `setInterval` / `requestAnimationFrame` leaks.
+- Added an inline comment at the guard site in both files noting the skip is intentional and
+  pointing back to the doc-block contract.
+
+Option B (drop the guard so Vue dev-warns) was not taken — the dev-only warning adds noise for any
+caller that intentionally manages cleanup via `stop()`, and documenting the contract is sufficient
+given both current callers (`AseanMap.vue`, `AseanInfographic.vue`) are in setup scope. No code
+behavior change. `npm run build` re-run after the change — passes.
+
 ## Acceptance Criteria
 
-- [ ] The scope/cleanup contract is documented on both composables, OR the guard is removed so
-      out-of-scope misuse warns.
-- [ ] `npm run build` passes.
+- [x] The scope/cleanup contract is documented on both composables (doc block + inline guard
+      comment); guard kept (Option A).
+- [x] `npm run build` passes.
 
 ## Work Log
 
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-05-22 | Created from PR #46 code review (autofix mode) | Top-level `getCurrentScope()` guard is defensible (unlike the redundant in-`onMounted` case in #107) but turns out-of-scope misuse into a silent timer/rAF leak. No live bug — both current callers are in setup scope. Advisory. |
+| 2026-05-22 | Resolved via Option A (document) | Documented the scope/cleanup contract in both composables' JSDoc + an inline comment at the guard; kept the guard. Chose docs over dropping the guard (Option B) to avoid dev-warning noise for callers that own cleanup via stop(). Build green. |
 
 ## Resources
 

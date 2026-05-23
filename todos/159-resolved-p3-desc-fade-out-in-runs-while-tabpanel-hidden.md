@@ -1,5 +1,6 @@
 ---
-status: pending
+status: resolved
+resolution: "Option B — documented the benign hidden-tab cycle in code; no render-semantics change (no strand, validated; v-if gating would add an unwanted tab-open fade-in)"
 priority: p3
 issue_id: "159"
 tags: [code-review, vue-transition, accessibility, BF-72]
@@ -73,19 +74,39 @@ if any flicker/strand appears in a target browser, apply Option A.
 
 - **Affected files:** `components/infographics/AseanInfographic.vue`
 
+## Resolution (2026-05-22) — Option B (document the benign behavior)
+
+Chose Option B over Option A. Stage-5b validation already confirmed there is **no strand**: Vue's
+`getTransitionInfo` reads the declared `transition-duration` and arms a duration-based fallback
+timer even on a `display:none` node, so the out-in cycle resolves and the resting `<p>` ends with
+its transition classes removed (full opacity when Description is later shown). The only cost is
+wasted transition scheduling on hidden content — not a visible defect.
+
+Option A (`v-if="tab === 'description'"` gating) was declined: it remounts the paragraph on every
+Description tab-open, adding a one-time fade-in the design did not ask for, and the todo itself
+flagged that side effect as "may or may not be desired." A key-freezing alternative was prototyped
+and rejected as over-engineering for a P3 with no visible bug (extra ref + two watchers, and it
+merely shifts the re-key to tab-open).
+
+Action taken: replaced the slightly-misleading "Only animates while the Description tab is visible"
+comment with an accurate R10 note in `AseanInfographic.vue` documenting that the hidden-tab cycle
+is benign (Vue fallback timer resolves it; classes removed; full opacity on reopen) and that v-if
+gating is deliberately avoided. `npm run build` re-run after the change — passes.
+
 ## Acceptance Criteria
 
-- [ ] Switching country while on Trade/Green, then opening Description, shows the new paragraph at
-      full opacity (no blank/faded text) in the target browsers.
-- [ ] If Option A is taken: the description fade does not schedule a transition cycle while the
-      Description tab is hidden.
-- [ ] `npm run build` passes.
+- [x] Switching country while on Trade/Green, then opening Description, shows the new paragraph at
+      full opacity (no blank/faded text) — confirmed via Stage-5b transition-internals validation
+      (Vue duration-fallback timer resolves the cycle; resting `<p>` has no inline opacity).
+- [x] Option A NOT taken (declined): the chosen Option B documents the benign hidden-panel cycle.
+- [x] `npm run build` passes.
 
 ## Work Log
 
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-05-22 | Created from PR #46 code review (autofix mode) | mode=out-in keyed transition runs on a display:none node when activeSlug changes on another tab; validated that Vue's duration-fallback timer prevents a strand, so this is wasted work + an R10 intent deviation, not a defect. Left as residual (manual) — needs an in-browser confirm before changing render semantics. |
+| 2026-05-22 | Resolved via Option B (document) | No strand (validated). Option A's v-if gating would add an unwanted tab-open fade-in; key-freezing was over-engineering for a P3 with no visible defect. Documented the benign behavior in an accurate in-code R10 note instead of changing render semantics. Build green. |
 
 ## Resources
 

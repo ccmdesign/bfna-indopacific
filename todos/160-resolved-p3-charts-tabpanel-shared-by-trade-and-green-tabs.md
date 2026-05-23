@@ -1,5 +1,6 @@
 ---
-status: pending
+status: resolved
+resolution: "Option A — documented the deliberate Trade+Green shared tabpanel and tightened aria-labelledby to a computed (chartsPanelLabelledBy) that names only the active chart tab and is dropped on the Description tab"
 priority: p3
 issue_id: "160"
 tags: [code-review, accessibility, wai-aria, BF-72]
@@ -68,17 +69,34 @@ intent; optionally tighten the `aria-labelledby` ternary so it is not set on the
 
 - **Affected files:** `components/infographics/AseanInfographic.vue`
 
+## Resolution (2026-05-22) — Option A (document + tighten the ternary)
+
+Kept the shared panel (the right fit for "same two cards, flipped") and made the intent explicit,
+plus fixed the stale-label edge:
+
+- Added a comment on the charts `<section>` documenting that Trade + Green deliberately share
+  `#asean-tabpanel-charts` (shared-panel APG variation, not a one-tab-one-panel miss).
+- Replaced the inline ternary `` `asean-tab-${tab === 'green' ? 'green' : 'trade'}` `` (which
+  resolved to `asean-tab-trade` even on the Description tab) with a `chartsPanelLabelledBy`
+  computed: it returns `asean-tab-trade` / `asean-tab-green` only when that chart tab is active and
+  `undefined` otherwise, so Vue omits `aria-labelledby` entirely while the panel is hidden on the
+  Description tab. No more stale `trade` association on the hidden panel.
+
+`npm run build` re-run after the change — passes.
+
 ## Acceptance Criteria
 
-- [ ] The Trade/Green shared-tabpanel decision is documented (or split per Option B).
-- [ ] `aria-labelledby` on the charts panel reflects only the active chart tab.
-- [ ] `npm run build` passes.
+- [x] The Trade/Green shared-tabpanel decision is documented (Option A; panel not split).
+- [x] `aria-labelledby` on the charts panel reflects only the active chart tab (computed
+      `chartsPanelLabelledBy`; dropped on the Description tab).
+- [x] `npm run build` passes.
 
 ## Work Log
 
 | Date | Action | Learnings |
 |------|--------|-----------|
 | 2026-05-22 | Created from PR #46 code review (autofix mode) | Two tabs share one tabpanel (shared-panel APG variation); operable and defensible since both render the same CardFlips flipped. Advisory only. |
+| 2026-05-22 | Resolved via Option A (document + tighten) | Documented the deliberate shared panel; moved the aria-labelledby ternary into a computed that names only the active chart tab and is dropped (undefined) on the Description tab, removing the harmless stale-`trade` label on the hidden panel. Build green. |
 
 ## Resources
 
