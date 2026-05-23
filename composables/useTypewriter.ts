@@ -77,6 +77,17 @@ export function useTypewriter(options: UseTypewriterOptions = {}) {
     isTyping.value = false
   }
 
+  /**
+   * Show `text` immediately with no animation (and cancel any in-flight one).
+   * Used to seed the settled value on first open / non-switch states, where
+   * the typewriter must NOT animate.
+   */
+  function set(text: string) {
+    clearTimer()
+    displayText.value = text
+    isTyping.value = false
+  }
+
   if (getCurrentScope()) {
     onScopeDispose(clearTimer)
   }
@@ -86,5 +97,6 @@ export function useTypewriter(options: UseTypewriterOptions = {}) {
     isTyping: readonly(isTyping),
     play,
     stop,
+    set,
   }
 }

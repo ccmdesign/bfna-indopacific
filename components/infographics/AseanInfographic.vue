@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 import { profileBySlug, PROFILES } from '~/data/asean/country-profiles'
 import { tradeStackedBySlug } from '~/data/asean/trade-stacked'
@@ -90,6 +90,41 @@ function onActiveSlugUpdate(next: string | null) {
     activeSlug.value = next
   }
 }
+
+// --- Country-switch choreography (BF-72 U4) ---------------------------------
+// The sidebar name + hero number render from these composables' displayText so
+// a country switch can retype the name and scramble the number in place. The
+// paragraph cross-fade (U5) is declarative on the same `activeSlug` key, and
+// the map re-zoom (600 ms) reacts to `activeSlug` inside AseanMap — so all
+// switch effects start together at t=0 (R11), driven by the one watcher below.
+const { displayText: typedName, isTyping, play: playName, set: setName } = useTypewriter()
+const { displayText: heroValue, play: playHero, set: setHero } = useScramble()
+
+// Single orchestrator (immediate, so first open seeds the settled values).
+// - country<->country switch (prev && next && prev !== next): play() the name
+//   typewriter + hero scramble concurrently at t=0 (R11). Reduced-motion is
+//   handled inside each composable (instant final string).
+// - first open (!prev) / re-seed: set() the settled strings with no animation
+//   so the existing panel-rise entrance is unchanged (R6).
+// - deselect (!next): nothing to render; leave the last strings in place for
+//   the panel-rise leave (the sidebar unmounts).
+watch(
+  activeSlug,
+  (next, prev) => {
+    if (!next) return
+    const profile = profileBySlug(next)
+    if (!profile) return
+    if (prev && prev !== next) {
+      playName(profile.name)
+      playHero(profile.hero.value)
+      // (a) flag flip + (d) paragraph fade are added in U5.
+    } else {
+      setName(profile.name)
+      setHero(profile.hero.value)
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <template>
@@ -142,7 +177,8 @@ function onActiveSlugUpdate(next: string | null) {
               height="44"
               loading="lazy"
             />
-            <h1 class="asean-infographic__title-name">{{ activeProfile.name }}</h1>
+            <h1 class="asean-infographic__title-name">{{ typedName
+              }}<span v-if="isTyping" class="asean-infographic__title-caret" aria-hidden="true">▌</span></h1>
           </div>
 
           <!-- Real WAI-ARIA tablist (Description | Trade | Green Transition).
@@ -185,7 +221,7 @@ function onActiveSlugUpdate(next: string | null) {
         >
           <div class="asean-infographic__title-hero">
             <span class="asean-infographic__title-hero-value">
-              {{ activeProfile.hero.value }}
+              {{ heroValue }}
             </span>
             <span class="asean-infographic__title-hero-label">
               {{ activeProfile.hero.label }}
@@ -410,6 +446,20 @@ function onActiveSlugUpdate(next: string | null) {
   line-height: 1;
   letter-spacing: -0.015em;
   color: #fff;
+}
+
+/* Blinking caret shown while the name typewriter is running (BF-72 U4).
+   Mirrors the AseanMap hover-label caret. Reduced-motion: the typewriter
+   short-circuits in useTypewriter so the caret never renders. */
+.asean-infographic__title-caret {
+  margin-left: 0.06em;
+  color: hsl(218, 70%, 88%);
+  animation: title-caret-blink 600ms steps(1) infinite;
+}
+
+@keyframes title-caret-blink {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
 }
 
 .asean-infographic__tabs {

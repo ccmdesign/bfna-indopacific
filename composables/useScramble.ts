@@ -102,6 +102,17 @@ export function useScramble(options: UseScrambleOptions = {}) {
     isScrambling.value = false
   }
 
+  /**
+   * Show `value` immediately with no scramble (and cancel any in-flight one).
+   * Used to seed the settled value on first open / non-switch states, where
+   * the number must NOT churn.
+   */
+  function set(value: string) {
+    cancelRaf()
+    displayText.value = value
+    isScrambling.value = false
+  }
+
   if (getCurrentScope()) {
     onScopeDispose(cancelRaf)
   }
@@ -111,5 +122,6 @@ export function useScramble(options: UseScrambleOptions = {}) {
     isScrambling: readonly(isScrambling),
     play,
     stop,
+    set,
   }
 }
