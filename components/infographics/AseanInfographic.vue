@@ -218,7 +218,10 @@ watch(
                  flips the same direction. CardFlip cross-fades under reduced
                  motion (R12). First open shows flagFront with no flip. -->
             <div class="asean-infographic__title-flag">
-              <CardFlip :flipped="flagFlipped">
+              <!-- duration-ms bound to FLAG_FLIP_MS so the rotate and the
+                   post-settle normalize timeout (flipFlagTo) stay in lockstep,
+                   independent of CardFlip's internal default (BF-72 review). -->
+              <CardFlip :flipped="flagFlipped" :duration-ms="FLAG_FLIP_MS">
                 <template #front>
                   <img
                     :src="flagFront"
