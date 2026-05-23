@@ -437,13 +437,14 @@ watch(() => props.data, draw, { deep: true })
   height: auto;
 }
 
+/* Honest "non-data" state: sized to its text, not the 200px data floor, so it
+   reads as the lighter non-data card it is (shorter than the Trade data card). */
 .mineral-flow--empty {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 12px;
-  padding: 28px 8px;
-  min-height: 200px;
+  gap: 8px;
+  padding: 12px 8px;
+  min-height: 0;
 }
 
 .mineral-flow__empty-lede {
