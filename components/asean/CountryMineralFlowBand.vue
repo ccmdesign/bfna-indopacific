@@ -146,7 +146,7 @@ function draw() {
     .attr('letter-spacing', '0.04em')
     .text(`${props.data.iso3} NICKEL EXPORTS → BY DESTINATION · 2024`)
 
-  svg
+  const totalLabel = svg
     .append('text')
     .attr('x', width - margin.right)
     .attr('y', margin.top - 8)
@@ -156,7 +156,22 @@ function draw() {
     .attr('font-size', 11)
     .attr('font-weight', 700)
     .attr('font-variant-numeric', 'tabular-nums')
-    .text(fmtUsd(total))
+  if (reduce) {
+    totalLabel.text(fmtUsd(total))
+  } else {
+    totalLabel
+      .text(fmtUsd(0))
+      .transition()
+      .duration(620)
+      .ease(d3.easeCubicOut)
+      .tween('text', function () {
+        const node = this as SVGTextElement
+        const i = d3.interpolateNumber(0, total)
+        return (t) => {
+          node.textContent = fmtUsd(i(t))
+        }
+      })
+  }
 
   let cursor = margin.left
   const segG = svg.append('g')
@@ -167,7 +182,8 @@ function draw() {
   // The leader tick stays at the true segment center; only the text nudges.
   interface BelowLabel {
     cx: number // true segment center — tick anchor (never moves)
-    text: string
+    text: string // final text — used for declutter width measurement
+    textAt: (t: number) => string // count-up text by progress
   }
   const belowLabels: BelowLabel[] = []
 
@@ -220,7 +236,9 @@ function draw() {
         .attr('font-size', 12)
         .attr('font-weight', 700)
         .text(PARTNER_LABEL[s.partnerGroup] ?? s.partnerGroup)
-      segG
+      const insideAt = (t: number) =>
+        `${Math.round(s.pct * t)}% · ${fmtUsd(s.valueUsdM * t)}`
+      const insideLabel = segG
         .append('text')
         .attr('x', cx)
         .attr('y', bandY + bandH / 2 + 13)
@@ -231,15 +249,29 @@ function draw() {
         .attr('font-size', 11)
         .attr('font-weight', 600)
         .attr('font-variant-numeric', 'tabular-nums')
-        .text(`${Math.round(s.pct)}% · ${fmtUsd(s.valueUsdM)}`)
+      if (reduce) {
+        insideLabel.text(insideAt(1))
+      } else {
+        insideLabel
+          .text(insideAt(0))
+          .transition()
+          .duration(620)
+          .ease(d3.easeCubicOut)
+          .tween('text', function () {
+            const node = this as SVGTextElement
+            return (t) => {
+              node.textContent = insideAt(t)
+            }
+          })
+      }
     } else {
       // Defer: collected and rendered after the loop so adjacent narrow
       // segments' labels can be decluttered as a group.
+      const partner = PARTNER_LABEL[s.partnerGroup] ?? s.partnerGroup
       belowLabels.push({
         cx,
-        text:
-          `${PARTNER_LABEL[s.partnerGroup] ?? s.partnerGroup} ` +
-          `${Math.round(s.pct)}%`
+        text: `${partner} ${Math.round(s.pct)}%`,
+        textAt: (t: number) => `${partner} ${Math.round(s.pct * t)}%`
       })
     }
   })
@@ -304,7 +336,7 @@ function draw() {
           .attr('stroke', 'rgba(255,255,255,0.25)')
           .attr('stroke-width', 1)
       }
-      segG
+      const belowLabel = segG
         .append('text')
         .attr('x', l.x)
         .attr('y', labelY)
@@ -314,7 +346,21 @@ function draw() {
         .attr('font-size', 10)
         .attr('font-weight', 600)
         .attr('font-variant-numeric', 'tabular-nums')
-        .text(l.text)
+      if (reduce) {
+        belowLabel.text(l.textAt(1))
+      } else {
+        belowLabel
+          .text(l.textAt(0))
+          .transition()
+          .duration(620)
+          .ease(d3.easeCubicOut)
+          .tween('text', function () {
+            const node = this as SVGTextElement
+            return (t) => {
+              node.textContent = l.textAt(t)
+            }
+          })
+      }
     })
   }
 

@@ -50,6 +50,16 @@ function fmtUsdB(v: number): string {
   return `$${(abs * 1000).toFixed(0)}M`
 }
 
+const GROW_MS = 600
+
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
+}
+
 function draw() {
   if (!chartContainer.value) return
   chartContainer.value.innerHTML = ''
@@ -129,25 +139,45 @@ function draw() {
       .attr('stroke-width', 1)
   }
 
+  const reduce = prefersReducedMotion()
   const barG = svg.append('g').selectAll('g').data(bars).join('g')
 
-  barG
+  // Bars grow outward from the center column toward their tip. Exports keep
+  // their left edge pinned at rightEdge and widen right; imports keep their
+  // right edge pinned at leftEdge and widen left (so x animates with width).
+  const finalX = (d: BarDatum) => (d.value >= 0 ? rightEdge : xImport(d.raw))
+  const finalW = (d: BarDatum) =>
+    d.value >= 0 ? xExport(d.raw) - rightEdge : leftEdge - xImport(d.raw)
+  const startX = (d: BarDatum) => (d.value >= 0 ? rightEdge : leftEdge)
+
+  const rects = barG
     .append('rect')
-    .attr('x', (d) => (d.value >= 0 ? rightEdge : xImport(d.raw)))
     .attr('y', (d) => y(d.label) ?? 0)
-    .attr('width', (d) =>
-      d.value >= 0 ? xExport(d.raw) - rightEdge : leftEdge - xImport(d.raw)
-    )
     .attr('height', y.bandwidth())
     .attr('fill', (d) => (d.kind === 'export' ? EXPORT_COLOR : IMPORT_COLOR))
     .attr('rx', 2)
-    .append('title')
-    .text((d) => `${d.label}: ${fmtUsdB(d.raw)} (${d.kind})`)
+  rects.append('title').text((d) => `${d.label}: ${fmtUsdB(d.raw)} (${d.kind})`)
 
-  // Value label parked just outside the bar's outer tip
-  barG
+  if (reduce) {
+    rects.attr('x', finalX).attr('width', finalW)
+  } else {
+    rects
+      .attr('x', startX)
+      .attr('width', 0)
+      .transition()
+      .duration(GROW_MS)
+      .ease(d3.easeCubicOut)
+      .attr('x', finalX)
+      .attr('width', finalW)
+  }
+
+  // Value label rides the bar tip while its number counts up 0 → raw in sync.
+  const finalLabelX = (d: BarDatum) =>
+    d.value >= 0 ? xExport(d.raw) + 6 : xImport(d.raw) - 6
+  const startLabelX = (d: BarDatum) => (d.value >= 0 ? rightEdge + 6 : leftEdge - 6)
+
+  const valueLabels = barG
     .append('text')
-    .attr('x', (d) => (d.value >= 0 ? xExport(d.raw) + 6 : xImport(d.raw) - 6))
     .attr('y', (d) => (y(d.label) ?? 0) + y.bandwidth() / 2)
     .attr('text-anchor', (d) => (d.value >= 0 ? 'start' : 'end'))
     .attr('dominant-baseline', 'central')
@@ -156,7 +186,25 @@ function draw() {
     .attr('font-size', 11)
     .attr('font-weight', 700)
     .attr('font-variant-numeric', 'tabular-nums')
-    .text((d) => fmtUsdB(d.raw))
+
+  if (reduce) {
+    valueLabels.attr('x', finalLabelX).text((d) => fmtUsdB(d.raw))
+  } else {
+    valueLabels
+      .attr('x', startLabelX)
+      .text((d) => fmtUsdB(0))
+      .transition()
+      .duration(GROW_MS)
+      .ease(d3.easeCubicOut)
+      .attr('x', finalLabelX)
+      .tween('text', function (d) {
+        const node = this as SVGTextElement
+        const i = d3.interpolateNumber(0, d.raw)
+        return (t) => {
+          node.textContent = fmtUsdB(i(t))
+        }
+      })
+  }
 
   // Commodity label, centered in the auto-sized column
   barG

@@ -157,7 +157,11 @@ function draw() {
     const barW = Math.max(2, x(d.sharePct))
     const inside = barW > 120
     const labelX = inside ? margin.left + barW - 8 : margin.left + barW + 8
-    g.append('text')
+    // Both numbers count up 0 → value scaled by the same t as the bar grow.
+    const labelAt = (t: number) =>
+      `${fmtShare(d.sharePct * t)} · ${fmtProduction({ ...d, production: d.production * t })}`
+    const label = g
+      .append('text')
       .attr('x', labelX)
       .attr('y', y.bandwidth() / 2)
       .attr('dy', '0.34em')
@@ -167,7 +171,21 @@ function draw() {
       .attr('font-size', 11)
       .attr('font-weight', 700)
       .attr('font-variant-numeric', 'tabular-nums')
-      .text(`${fmtShare(d.sharePct)} · ${fmtProduction(d)}`)
+    if (reduce) {
+      label.text(labelAt(1))
+    } else {
+      label
+        .text(labelAt(0))
+        .transition()
+        .duration(560)
+        .ease(d3.easeCubicOut)
+        .tween('text', function () {
+          const node = this as SVGTextElement
+          return (t) => {
+            node.textContent = labelAt(t)
+          }
+        })
+    }
   })
 
   // Axis caption: what the length means + the rest-of-world reading.

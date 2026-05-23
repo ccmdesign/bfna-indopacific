@@ -48,6 +48,16 @@ const PARTNER_LABEL: Record<string, string> = {
 const chartContainer = ref<HTMLElement | null>(null)
 let resizeObserver: ResizeObserver | null = null
 
+const GROW_MS = 600
+
+function prefersReducedMotion(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    typeof window.matchMedia === 'function' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
+}
+
 function draw() {
   if (!chartContainer.value) return
   chartContainer.value.innerHTML = ''
@@ -92,12 +102,16 @@ function draw() {
     .nice()
     .range([height - margin.bottom, margin.top])
 
-  const area = d3
-    .area<d3.SeriesPoint<SeriesPoint>>()
-    .x((d) => x(d.data.year))
-    .y0((d) => y(d[0]))
-    .y1((d) => y(d[1]))
-    .curve(d3.curveMonotoneX)
+  // Area generator parameterised by progress t (0 → 1): both stacked edges are
+  // scaled by t, so at t=0 the whole stack collapses onto the baseline and at
+  // t=1 it sits at its real values — the area grows up out of the x-axis.
+  const areaAt = (t: number) =>
+    d3
+      .area<d3.SeriesPoint<SeriesPoint>>()
+      .x((d) => x(d.data.year))
+      .y0((d) => y(d[0] * t))
+      .y1((d) => y(d[1] * t))
+      .curve(d3.curveMonotoneX)
 
   const svg = d3
     .select(chartContainer.value)
@@ -123,17 +137,30 @@ function draw() {
     .attr('stroke-width', 1)
 
   // Stacked areas
-  svg
+  const reduce = prefersReducedMotion()
+  const areas = svg
     .append('g')
     .selectAll('path')
     .data(stackedSeries)
     .join('path')
-    .attr('d', area)
     .attr('fill', (d) => PARTNER_COLOR[d.key] ?? 'rgba(255,255,255,0.2)')
     .attr('fill-opacity', 0.85)
     .attr('stroke', (d) => PARTNER_COLOR[d.key] ?? 'rgba(255,255,255,0.2)')
     .attr('stroke-width', 0.5)
     .attr('stroke-opacity', 0.6)
+
+  if (reduce) {
+    areas.attr('d', (d) => areaAt(1)(d))
+  } else {
+    areas
+      .attr('d', (d) => areaAt(0)(d))
+      .transition()
+      .duration(GROW_MS)
+      .ease(d3.easeCubicOut)
+      .attrTween('d', function (d) {
+        return (t) => areaAt(t)(d) as string
+      })
+  }
 
   // Right-edge partner labels at last data point
   const labelG = svg.append('g').attr('class', 'stacked-area__labels')
@@ -182,9 +209,10 @@ function draw() {
     .attr('letter-spacing', '0.05em')
     .text((d) => String(d))
 
-  // Y axis — value at top tick, USD label
+  // Y axis — value at top tick, USD label (counts up in sync with the area)
   const yTopTick = yTicks[yTicks.length - 1]
-  svg
+  const fmtTopTick = (v: number) => `$${(v / 1000).toFixed(0)}B`
+  const topTick = svg
     .append('text')
     .attr('x', margin.left)
     .attr('y', y(yTopTick) - 4)
@@ -193,7 +221,23 @@ function draw() {
     .attr('font-size', 10)
     .attr('font-weight', 600)
     .attr('letter-spacing', '0.05em')
-    .text(`$${(yTopTick / 1000).toFixed(0)}B`)
+
+  if (reduce) {
+    topTick.text(fmtTopTick(yTopTick))
+  } else {
+    topTick
+      .text(fmtTopTick(0))
+      .transition()
+      .duration(GROW_MS)
+      .ease(d3.easeCubicOut)
+      .tween('text', function () {
+        const node = this as SVGTextElement
+        const i = d3.interpolateNumber(0, yTopTick)
+        return (t) => {
+          node.textContent = fmtTopTick(i(t))
+        }
+      })
+  }
 }
 
 onMounted(() => {

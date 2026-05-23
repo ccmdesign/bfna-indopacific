@@ -357,7 +357,11 @@ watch(
                   meta="USD billions"
                   source="indicative — not individually sourced"
                 >
-                  <CountryTradeBalanceBars :profile="activeProfile" :height="200" />
+                  <CountryTradeBalanceBars
+                    :key="`${activeSlug}-${tab}`"
+                    :profile="activeProfile"
+                    :height="200"
+                  />
                 </CountryChartCard>
               </template>
               <template #back>
@@ -369,6 +373,7 @@ watch(
                 >
                   <CountryMineralShareBars
                     v-if="activeMinerals"
+                    :key="`${activeSlug}-${tab}`"
                     :data="activeMinerals"
                     :height="200"
                   />
@@ -389,6 +394,7 @@ watch(
                   :source="activeTradeStacked.source"
                 >
                   <CountryStackedArea
+                    :key="`${activeSlug}-${tab}`"
                     :data="activeTradeStacked"
                     :partners="CHART_PARTNERS"
                     :height="200"
@@ -404,6 +410,7 @@ watch(
                 >
                   <CountryMineralFlowBand
                     v-if="activeMinerals"
+                    :key="`${activeSlug}-${tab}`"
                     :data="activeMinerals"
                     :height="200"
                   />
