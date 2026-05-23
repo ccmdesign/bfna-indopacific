@@ -53,6 +53,17 @@ function selectTab(next: Tab) {
   tab.value = next
 }
 
+// Trade + Green deliberately share ONE tabpanel (#asean-tabpanel-charts): both
+// render the same two CardFlips flipped in unison, so a shared-panel APG
+// variation is the right fit rather than duplicating the markup into two
+// panels. Its `aria-labelledby` must name the *active* chart tab — and must be
+// dropped entirely when neither chart tab is active (Description tab), so the
+// hidden charts panel is never stale-labelled by the Trade tab. Returning
+// undefined makes Vue omit the attribute.
+const chartsPanelLabelledBy = computed(() =>
+  tab.value === 'trade' || tab.value === 'green' ? `asean-tab-${tab.value}` : undefined
+)
+
 function focusTab(index: number) {
   const clamped = (index + TAB_ORDER.length) % TAB_ORDER.length
   const next = TAB_ORDER[clamped]
@@ -298,8 +309,21 @@ watch(
 
           <!-- Description paragraph cross-fade (BF-72 U5/R10): keyed on
                activeSlug so a country switch fades the old text out then the
-               new in (~500 ms). Only animates while the Description tab is
-               visible. Reduced-motion is handled in the desc-fade @media. -->
+               new in (~500 ms). Reduced-motion is handled in the desc-fade @media.
+
+               R10 NOTE — hidden-tab behavior: this <p> sits inside the v-show
+               Description section, so when activeSlug changes while the user is
+               on Trade/Green the keyed node re-keys and Vue schedules an out-in
+               cycle on a display:none element. This is benign, NOT a strand:
+               transitionend never fires on a hidden node, but Vue's
+               getTransitionInfo still reads the declared transition-duration and
+               sets a duration-based fallback timer, so the cycle resolves and
+               the resting <p> ends with its transition classes removed (no
+               inline opacity). Reopening Description therefore shows the new
+               paragraph at full opacity. The only cost is wasted scheduling on
+               hidden content; gating with v-if would add a one-time fade-in on
+               every tab-open, which we deliberately avoid. (Validated in PR #46
+               review; see todos/159.) -->
           <Transition name="desc-fade" mode="out-in">
             <p
               :key="activeSlug"
@@ -310,12 +334,16 @@ watch(
 
         <!-- Trade / Green tabpanel: the two chart cards. Shown for trade|green,
              hidden on the Description tab. Both CardFlips flip in unison via
-             :flipped="tab === 'green'" — the Trade<->Green flip is unchanged. -->
+             :flipped="tab === 'green'" — the Trade<->Green flip is unchanged.
+             Trade + Green INTENTIONALLY share this single tabpanel (same two
+             cards flipped) — a documented shared-panel APG variation, not a
+             one-tab-one-panel miss. aria-labelledby names whichever chart tab
+             is active and is dropped on the Description tab (chartsPanelLabelledBy). -->
         <section
           v-show="tab === 'trade' || tab === 'green'"
           id="asean-tabpanel-charts"
           role="tabpanel"
-          :aria-labelledby="`asean-tab-${tab === 'green' ? 'green' : 'trade'}`"
+          :aria-labelledby="chartsPanelLabelledBy"
           class="asean-infographic__tabpanel asean-infographic__tabpanel--charts"
         >
           <!-- Tornado bars: indicative top exports & imports (front) / share of

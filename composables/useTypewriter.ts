@@ -13,6 +13,12 @@ import { ref, readonly, onScopeDispose, getCurrentScope } from 'vue'
  * full string with no timer. Reduced-motion: `play()` sets the full string
  * immediately and leaves `isTyping=false`.
  *
+ * IMPORTANT — must be called within a component `setup` or an active effect
+ * scope: cleanup (clearing the interval) is registered via `onScopeDispose`,
+ * guarded by `getCurrentScope()`. Called outside any scope the guard
+ * short-circuits and no auto-cleanup is registered, so the caller MUST then
+ * own teardown via the returned `stop()`; otherwise the `setInterval` leaks.
+ *
  * Extracted from the original inline typewriter in `AseanMap.vue` with no
  * behavior change (BF-72 U1).
  */
@@ -88,6 +94,10 @@ export function useTypewriter(options: UseTypewriterOptions = {}) {
     isTyping.value = false
   }
 
+  // Auto-cleanup only when there is an effect scope to attach to (the only
+  // current callers are <script setup> components, which always have one).
+  // Outside a scope this is intentionally skipped — see the scope-requirement
+  // note in the doc block above; such callers must call stop() themselves.
   if (getCurrentScope()) {
     onScopeDispose(clearTimer)
   }

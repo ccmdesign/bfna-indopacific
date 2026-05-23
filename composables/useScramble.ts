@@ -12,6 +12,13 @@ import { ref, readonly, onScopeDispose, getCurrentScope } from 'vue'
  * consuming component owns markup. SSR-safe (`import.meta.client` guard);
  * reduced-motion sets the final value immediately. Cleanup via `onScopeDispose`.
  *
+ * IMPORTANT — must be called within a component `setup` or an active effect
+ * scope: cleanup (cancelling the rAF) is registered via `onScopeDispose`,
+ * guarded by `getCurrentScope()`. Called outside any scope the guard
+ * short-circuits and no auto-cleanup is registered, so the caller MUST then
+ * own teardown via the returned `stop()`; otherwise the `requestAnimationFrame`
+ * loop leaks.
+ *
  * Patterns mirror `useParticleFlow.ts` (rAF loop + matchMedia gate) and
  * `useViewport.ts` (SSR + scope-dispose).
  */
@@ -113,6 +120,10 @@ export function useScramble(options: UseScrambleOptions = {}) {
     isScrambling.value = false
   }
 
+  // Auto-cleanup only when there is an effect scope to attach to (the only
+  // current callers are <script setup> components, which always have one).
+  // Outside a scope this is intentionally skipped — see the scope-requirement
+  // note in the doc block above; such callers must call stop() themselves.
   if (getCurrentScope()) {
     onScopeDispose(cancelRaf)
   }
