@@ -241,6 +241,17 @@ function onClick(slug: string) {
         <mask id="reveal-mask" maskUnits="userSpaceOnUse" :x="0" :y="0" :width="VB_W" :height="VB_H">
           <rect :width="VB_W" :height="VB_H" fill="url(#reveal-grad)" />
         </mask>
+
+        <!-- Edge fades, anchored to the image (0,0 = top-left, 1,1 = bottom-right):
+             transparent until 0.75, dark blue (#022640f2) at the edge. -->
+        <linearGradient id="edge-fade-v" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0.75" stop-color="#022640" stop-opacity="0" />
+          <stop offset="1" stop-color="#022640" stop-opacity="0.949" />
+        </linearGradient>
+        <linearGradient id="edge-fade-h" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0.75" stop-color="#022640" stop-opacity="0" />
+          <stop offset="1" stop-color="#022640" stop-opacity="0.949" />
+        </linearGradient>
       </defs>
 
       <!-- Frame transform applies to entire locked plate as a single unit -->
@@ -253,6 +264,10 @@ function onClick(slug: string) {
           preserveAspectRatio="none"
           pointer-events="none"
         />
+
+        <!-- Edge fades over the image, riding with the plate transform. -->
+        <rect :width="VB_W" :height="VB_H" fill="url(#edge-fade-v)" pointer-events="none" />
+        <rect :width="VB_W" :height="VB_H" fill="url(#edge-fade-h)" pointer-events="none" />
 
         <!-- Masked reveal layer: diagonal sweep tracing country BORDERS only -->
         <g class="asean-map__reveal" mask="url(#reveal-mask)" filter="url(#country-glow)">
