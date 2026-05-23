@@ -534,8 +534,8 @@ watch(
   gap: 14px;
 }
 
-/* Flag flip container. CardFlip uses absolutely-positioned faces, so the
-   wrapper needs an explicit box. Sized to the flag's intrinsic 64x44. */
+/* Flag flip container. Fixed to the flag's intrinsic 64x44 so the two flag
+   faces share one footprint and the flip has no layout shift. */
 .asean-infographic__title-flag {
   flex: 0 0 auto;
   width: 64px;
@@ -675,13 +675,13 @@ watch(
 }
 
 /* --- Chart panels stacked in the sidebar --- */
-/* Each panel is a CardFlip frame stacked in the sidebar column. CardFlip uses
-   absolutely-positioned faces, so the parent needs a measured height. The cards
-   opt back into pointer events (chart hover/tooltips) while the surrounding
-   sidebar stays click-through to the map. */
+/* Each panel is a CardFlip frame stacked in the sidebar column. CardFlip now
+   grid-stacks its faces and sizes to the taller face's intrinsic height, so the
+   panel needs no explicit height — it sizes to its card. The cards opt back into
+   pointer events (chart hover/tooltips) while the surrounding sidebar stays
+   click-through to the map. */
 .asean-infographic__panel {
   flex: 0 0 auto;
-  min-height: clamp(240px, 30vh, 300px);
   display: flex;
   align-items: stretch;
   pointer-events: auto;
