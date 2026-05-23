@@ -162,37 +162,18 @@ watchEffect(() => {
   else svg.unpauseAnimations()
 })
 
-// Typewriter effect for hovered country name
-const typedName = ref('')
-const isTyping = ref(false)
-let typeTimer: ReturnType<typeof setInterval> | null = null
-
-function clearTypeTimer() {
-  if (typeTimer) {
-    clearInterval(typeTimer)
-    typeTimer = null
-  }
-}
+// Typewriter effect for hovered country name. The timing engine + caret state
+// live in useTypewriter (BF-72 U1); this component owns only the <text>/<tspan>
+// markup. Visible cadence (~40 ms/char) and caret semantics are unchanged.
+const { displayText: typedName, isTyping, play: playType, stop: stopType } = useTypewriter()
 
 watch(hoveredFeature, (f) => {
-  clearTypeTimer()
-  typedName.value = ''
-  isTyping.value = false
-  if (!f) return
-  const name = f.properties.name
-  let i = 0
-  isTyping.value = true
-  typeTimer = setInterval(() => {
-    i++
-    typedName.value = name.slice(0, i)
-    if (i >= name.length) {
-      clearTypeTimer()
-      isTyping.value = false
-    }
-  }, 40)
+  if (!f) {
+    stopType()
+    return
+  }
+  playType(f.properties.name)
 })
-
-onUnmounted(() => clearTypeTimer())
 
 function onClick(slug: string) {
   const country = COUNTRIES[slug]
