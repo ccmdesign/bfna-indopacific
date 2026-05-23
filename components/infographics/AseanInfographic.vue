@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref, watch, onScopeDispose } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 import { profileBySlug, PROFILES } from '~/data/asean/country-profiles'
 import { tradeStackedBySlug } from '~/data/asean/trade-stacked'
@@ -100,6 +100,42 @@ function onActiveSlugUpdate(next: string | null) {
 const { displayText: typedName, isTyping, play: playName, set: setName } = useTypewriter()
 const { displayText: heroValue, play: playHero, set: setHero } = useScramble()
 
+// --- Flag 3D flip (BF-72 U5) ------------------------------------------------
+// CardFlip shows `front` when flagFlipped=false, `back` when true. To keep
+// every switch flipping the SAME visual direction (R7), a switch sets
+// flagBack = incoming flag and flagFlipped = true; after the ~700 ms rotate
+// settles we normalize (flagFront = incoming, flagFlipped = false) without
+// animating — the snap is invisible because the front already shows the
+// incoming flag mid-rotate. Held in component state + a cleared-on-retrigger
+// settle timeout. CardFlip's reduced-motion cross-fade satisfies R12 here.
+const FLAG_FLIP_MS = 700
+const flagFront = ref('')
+const flagBack = ref('')
+const flagFlipped = ref(false)
+let flagSettleTimer: ReturnType<typeof setTimeout> | null = null
+
+function clearFlagSettle() {
+  if (flagSettleTimer) {
+    clearTimeout(flagSettleTimer)
+    flagSettleTimer = null
+  }
+}
+
+function flipFlagTo(nextUrl: string) {
+  clearFlagSettle()
+  flagBack.value = nextUrl
+  flagFlipped.value = true
+  flagSettleTimer = setTimeout(() => {
+    // Normalize: front becomes the now-visible incoming flag, reset to unflipped
+    // so the next switch again rotates front -> back in the same direction.
+    flagFront.value = nextUrl
+    flagFlipped.value = false
+    flagSettleTimer = null
+  }, FLAG_FLIP_MS)
+}
+
+onScopeDispose(clearFlagSettle)
+
 // Single orchestrator (immediate, so first open seeds the settled values).
 // - country<->country switch (prev && next && prev !== next): play() the name
 //   typewriter + hero scramble concurrently at t=0 (R11). Reduced-motion is
@@ -115,10 +151,17 @@ watch(
     const profile = profileBySlug(next)
     if (!profile) return
     if (prev && prev !== next) {
+      // (a) flag flips, (b) name retypes, (c) hero scrambles — all at t=0
+      // (R11). (d) the paragraph cross-fade is declarative via <Transition>
+      // keyed on activeSlug, so it starts at the same instant.
+      flipFlagTo(profile.flagUrl)
       playName(profile.name)
       playHero(profile.hero.value)
-      // (a) flag flip + (d) paragraph fade are added in U5.
     } else {
+      // First open / re-seed: settle every effect with no animation (R6).
+      clearFlagSettle()
+      flagFront.value = profile.flagUrl
+      flagFlipped.value = false
       setName(profile.name)
       setHero(profile.hero.value)
     }
@@ -169,14 +212,36 @@ watch(
              always-visible and animate on country switch (U4/U5). -->
         <header class="asean-infographic__title">
           <div class="asean-infographic__title-id">
-            <img
-              :src="activeProfile.flagUrl"
-              :alt="`Flag of ${activeProfile.name}`"
-              class="asean-infographic__title-flag"
-              width="64"
-              height="44"
-              loading="lazy"
-            />
+            <!-- Flag 3D flip (BF-72 U5): on a country switch the outgoing flag
+                 (front) rotates to the incoming flag (back), reusing CardFlip.
+                 Faces are normalized after the rotate settles so each switch
+                 flips the same direction. CardFlip cross-fades under reduced
+                 motion (R12). First open shows flagFront with no flip. -->
+            <div class="asean-infographic__title-flag">
+              <CardFlip :flipped="flagFlipped">
+                <template #front>
+                  <img
+                    :src="flagFront"
+                    :alt="`Flag of ${activeProfile.name}`"
+                    class="asean-infographic__title-flag-img"
+                    width="64"
+                    height="44"
+                    loading="lazy"
+                  />
+                </template>
+                <template #back>
+                  <img
+                    :src="flagBack"
+                    alt=""
+                    aria-hidden="true"
+                    class="asean-infographic__title-flag-img"
+                    width="64"
+                    height="44"
+                    loading="lazy"
+                  />
+                </template>
+              </CardFlip>
+            </div>
             <h1 class="asean-infographic__title-name">{{ typedName
               }}<span v-if="isTyping" class="asean-infographic__title-caret" aria-hidden="true">▌</span></h1>
           </div>
@@ -228,7 +293,16 @@ watch(
             </span>
           </div>
 
-          <p class="asean-infographic__title-paragraph">{{ activeProfile.paragraph }}</p>
+          <!-- Description paragraph cross-fade (BF-72 U5/R10): keyed on
+               activeSlug so a country switch fades the old text out then the
+               new in (~500 ms). Only animates while the Description tab is
+               visible. Reduced-motion is handled in the desc-fade @media. -->
+          <Transition name="desc-fade" mode="out-in">
+            <p
+              :key="activeSlug"
+              class="asean-infographic__title-paragraph"
+            >{{ activeProfile.paragraph }}</p>
+          </Transition>
         </section>
 
         <!-- Trade / Green tabpanel: the two chart cards. Shown for trade|green,
@@ -429,9 +503,17 @@ watch(
   gap: 14px;
 }
 
+/* Flag flip container. CardFlip uses absolutely-positioned faces, so the
+   wrapper needs an explicit box. Sized to the flag's intrinsic 64x44. */
 .asean-infographic__title-flag {
+  flex: 0 0 auto;
   width: 64px;
-  height: auto;
+  height: 44px;
+}
+
+.asean-infographic__title-flag-img {
+  width: 64px;
+  height: 44px;
   border-radius: 4px;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.15),
@@ -608,6 +690,29 @@ watch(
   }
   .panel-rise-enter-from {
     transform: none;
+  }
+}
+
+/* --- Description paragraph cross-fade (BF-72 U5/R10) --- */
+/* out-in: the old paragraph fades out (~250ms), then the new fades in (~250ms),
+   keyed on activeSlug — reads as a ~500ms cross-fade in sync with the other
+   switch effects. Opacity-only so it never shifts layout. */
+.desc-fade-enter-active {
+  transition: opacity 250ms ease;
+}
+.desc-fade-leave-active {
+  transition: opacity 250ms ease;
+}
+.desc-fade-enter-from,
+.desc-fade-leave-to {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Mirror panel-rise: no fade duration, instant swap. */
+  .desc-fade-enter-active,
+  .desc-fade-leave-active {
+    transition: none;
   }
 }
 </style>
