@@ -73,16 +73,18 @@ export default defineNuxtConfig({
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;600&display=swap' },
         { rel: 'stylesheet', href: '/styles.css' }
       ],
-      // ccm-feedback visual review widget — loaded on every deploy (dev + production).
-      // Reviewers pin comments on real DOM elements and export JSON.
-      // Mobile (<768px) is hidden by design, so public-traffic impact is desktop-only.
-      script: [
-        {
-          src: 'https://ccm-feedback-582.netlify.app/w.js',
-          'data-project': 'bfna-indopacific',
-          defer: true
-        }
-      ]
+      // ccm-feedback visual review widget — loaded on dev/branch/preview deploys only,
+      // never on production. Production is a single-URL SPA-fallback heavy site and the
+      // widget's DOM/URL anchoring collides across infographic routes, so keep it off prod.
+      script: isProductionBuild
+        ? []
+        : [
+            {
+              src: 'https://ccm-feedback-582.netlify.app/w.js',
+              'data-project': 'bfna-indopacific',
+              defer: true
+            }
+          ]
     }
   },
   css: ['~/assets/styles.css']
