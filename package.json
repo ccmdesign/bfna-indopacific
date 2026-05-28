@@ -5,6 +5,9 @@
   "scripts": {
     "build": "nuxt build",
     "dev": "nuxt dev",
+    "gen:country-hero": "node scripts/build-asean-country-hero.mjs",
+    "gen:minerals": "node scripts/build-asean-minerals.mjs",
+    "gen:trade-stacked": "node scripts/build-asean-trade-stacked.mjs",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
@@ -14,12 +17,14 @@
     "gsap": "^3.14.2",
     "nuxt": "^4.0.0",
     "nuxt-gtag": "^4.0.0",
+    "topojson-client": "^3.1.0",
     "vue": "latest",
     "vue-router": "latest"
   },
   "devDependencies": {
     "@nuxt/devtools": "latest",
     "@types/d3": "^7.4.3",
-    "tweakpane": "^4.0.5"
+    "tweakpane": "^4.0.5",
+    "world-atlas": "^2.0.2"
   }
 }

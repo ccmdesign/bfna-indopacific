@@ -1,5 +1,17 @@
 import { publishedInfographics, draftInfographics } from './data/infographics'
 
+// Netlify CONTEXT: 'production' for main, 'branch-deploy' for other branches, 'deploy-preview' for PRs.
+// Treat anything that isn't an explicit production build as a preview environment so drafts get prerendered.
+const isProductionBuild = process.env.CONTEXT === 'production'
+
+const infographicsToPrerender = isProductionBuild
+  ? publishedInfographics
+  : [...publishedInfographics, ...draftInfographics]
+
+const infographicsToExcludeFromPrerender = isProductionBuild
+  ? draftInfographics
+  : []
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
@@ -14,7 +26,7 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'static',
     prerender: {
-      routes: publishedInfographics.flatMap((i) => [
+      routes: infographicsToPrerender.flatMap((i) => [
         `/embed/${i.slug}`,
         `/infographics/${i.slug}`
       ]),
@@ -22,13 +34,14 @@ export default defineNuxtConfig({
     }
   },
 
-  // Exclude /test/* pages and draft infographics from prerendering -- dev/preview only.
+  // Exclude /test/* pages and draft infographics (production only) from prerendering.
+  // On dev/branch/preview builds, drafts are prerendered so reviewers can see them.
   routeRules: {
     '/test/embeds': { prerender: false },
     '/test/hormuz': { prerender: false },
     '/test/hormuz/**': { prerender: false },
     ...Object.fromEntries(
-      draftInfographics.flatMap((i) => [
+      infographicsToExcludeFromPrerender.flatMap((i) => [
         [`/embed/${i.slug}`, { prerender: false }],
         [`/infographics/${i.slug}`, { prerender: false }],
         [`/infographics/${i.slug}/**`, { prerender: false }]
@@ -41,6 +54,7 @@ export default defineNuxtConfig({
   components: [
     { path: '~/components/infographics', pathPrefix: false },
     { path: '~/components/straits', pathPrefix: false },
+    { path: '~/components/asean', pathPrefix: false },
     '~/components'
   ],
 
@@ -58,6 +72,16 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;600&display=swap' },
         { rel: 'stylesheet', href: '/styles.css' }
+      ],
+      // ccm-feedback visual review widget — loaded on every deploy (dev + production).
+      // Reviewers pin comments on real DOM elements and export JSON.
+      // Mobile (<768px) is hidden by design, so public-traffic impact is desktop-only.
+      script: [
+        {
+          src: 'https://ccm-feedback-582.netlify.app/w.js',
+          'data-project': 'bfna-indopacific',
+          defer: true
+        }
       ]
     }
   },
