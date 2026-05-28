@@ -72,7 +72,18 @@ export default defineNuxtConfig({
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
         { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Encode+Sans:wght@400;600&display=swap' },
         { rel: 'stylesheet', href: '/styles.css' }
-      ]
+      ],
+      // ccm-feedback visual review widget — loaded on dev/branch/preview deploys only,
+      // never on production. Reviewers pin comments on real DOM elements and export JSON.
+      script: isProductionBuild
+        ? []
+        : [
+            {
+              src: 'https://ccm-feedback-582.netlify.app/w.js',
+              'data-project': 'bfna-indopacific',
+              defer: true
+            }
+          ]
     }
   },
   css: ['~/assets/styles.css']
