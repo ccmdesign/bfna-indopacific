@@ -344,7 +344,7 @@ function onClick(slug: string) {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  background: #020a14;
+  background: #01243e;
 }
 
 .asean-map__svg {
