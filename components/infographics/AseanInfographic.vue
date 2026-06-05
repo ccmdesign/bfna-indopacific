@@ -196,7 +196,7 @@ watch(
          shown only when no country is selected. -->
     <Transition name="intro-fade">
       <header v-if="!activeSlug" class="asean-infographic__intro">
-        <h1 class="asean-infographic__intro-title">ASEAN: Pivot of the Indo-Pacific</h1>
+        <h1 class="asean-infographic__intro-title">ASEAN<span class="asean-infographic__intro-title-sub">Pivot of the Indo-Pacific</span></h1>
         <p class="asean-infographic__intro-subtitle">
           How Southeast Asia's economies balance the United States, China, and the EU
         </p>
@@ -453,13 +453,25 @@ watch(
   pointer-events: none;
 }
 
+/* Tier 1: "ASEAN" — largest, boldest. */
 .asean-infographic__intro-title {
   margin: 0;
-  font-size: clamp(2.2rem, 3.4vw, 3.8rem);
-  font-weight: 600;
-  line-height: 1.04;
+  font-size: clamp(2.6rem, 4.2vw, 4.6rem);
+  font-weight: 700;
+  line-height: 1.02;
   letter-spacing: -0.02em;
   color: #fff;
+}
+
+/* Tier 2: "Pivot of the Indo-Pacific" — line break, smaller than ASEAN,
+   larger than the subtitle. */
+.asean-infographic__intro-title-sub {
+  display: block;
+  margin-top: 0.1em;
+  font-size: clamp(1.3rem, 2vw, 2.1rem);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .asean-infographic__intro-subtitle {

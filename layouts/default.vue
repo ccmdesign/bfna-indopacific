@@ -38,18 +38,21 @@ const suppressRotateOverlay = computed(() => route.meta.suppressRotateOverlay ==
     <slot />
 
     <footer>
-      <a v-if="footerSource"
-         :href="footerSource.url"
-         target="_blank"
-         rel="noopener noreferrer"
-         class="source-link">
-        {{ footerSource.label }}
-      </a>
-      <EmbedCodeButton
-        v-if="embedSlug"
-        :slug="embedSlug"
-        :title="embedTitle"
-      />
+      <div class="footer-meta">
+        <a v-if="footerSource"
+           :href="footerSource.url"
+           target="_blank"
+           rel="noopener noreferrer"
+           class="source-link">
+          {{ footerSource.label }}
+        </a>
+        <span v-if="footerSource && embedSlug" class="footer-sep" aria-hidden="true">|</span>
+        <EmbedCodeButton
+          v-if="embedSlug"
+          :slug="embedSlug"
+          :title="embedTitle"
+        />
+      </div>
       <img src="@/assets/images/bfna.svg" alt="BFNA Logo" class="bfna-logo-footer" />
     </footer>
   </div>
@@ -140,6 +143,18 @@ footer img {
 .back-link-nav a:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.7);
   outline-offset: 2px;
+}
+
+.footer-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.footer-sep {
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.3);
+  user-select: none;
 }
 
 .source-link {
