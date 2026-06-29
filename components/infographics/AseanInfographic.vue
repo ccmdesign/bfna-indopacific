@@ -11,6 +11,30 @@ import { MINERALS_BY_SLUG } from '~/data/asean/minerals.generated'
 // identity, BL stacked area, BR tornado bars).
 const activeSlug = ref<string | null>(null)
 
+// --- Floating legend (BF-76 A1/A2) ------------------------------------------
+// The left-edge legend lets the user dock any country (esp. tiny ones) by name
+// and hover-highlight it on the map. We own its hover slug here and feed it into
+// AseanMap as `externalHoverSlug` (direct map hover still wins). The legend
+// collapses to a pill when it would overlap land: when a country is docked the
+// map reframes into the top-left quadrant (overlapping the left edge), and on
+// narrow viewports there isn't room — so shouldCollapse fires on either. A
+// user-initiated expand overrides until the next dock (the activeSlug watch
+// resets it). No land-geometry detection — a viewport/threshold heuristic per
+// the brief.
+const legendHoverSlug = ref<string | null>(null)
+const userExpanded = ref(false)
+const { isMobile } = useViewport()
+
+const shouldCollapse = computed(
+  () => (activeSlug.value !== null || isMobile.value) && !userExpanded.value
+)
+
+// A new dock re-collapses the legend (so each selection starts from the
+// collapsed pill rather than leaving a land-overlapping list open).
+watch(activeSlug, () => {
+  userExpanded.value = false
+})
+
 const activeProfile = computed(() =>
   activeSlug.value ? profileBySlug(activeSlug.value) : undefined
 )
@@ -188,8 +212,21 @@ watch(
          the other three quadrants on top of the map. -->
     <AseanMap
       :active-slug="activeSlug"
+      :external-hover-slug="legendHoverSlug"
       :suppress-active-label="true"
       @update:active-slug="onActiveSlugUpdate"
+    />
+
+    <!-- Floating country legend (BF-76 A1/A2): left-edge over the ocean. Lists
+         all 11 countries (incl. the hard-to-click ones) + an Overview entry to
+         return to the full map. Collapses to a pill when it would overlap land. -->
+    <AseanLegend
+      :active-slug="activeSlug"
+      :collapsed="shouldCollapse"
+      @select="onActiveSlugUpdate"
+      @overview="onActiveSlugUpdate(null)"
+      @hover="legendHoverSlug = $event"
+      @expand="userExpanded = true"
     />
 
     <!-- Idle intro: top-right quadrant. Infographic title + subtitle + blurb,
@@ -222,6 +259,19 @@ watch(
              Description tabpanel below (BF-72 U3/R4). Flag + name stay
              always-visible and animate on country switch (U4/U5). -->
         <header class="asean-infographic__title">
+          <!-- Back to full map (BF-76 A2): nulls activeSlug, which restores the
+               idle calibrated frame in AseanMap. Mirrors the legend's Overview
+               entry as a discoverable in-panel control. -->
+          <button
+            type="button"
+            class="asean-infographic__back"
+            aria-label="Back to full map"
+            @click="onActiveSlugUpdate(null)"
+          >
+            <span class="asean-infographic__back-glyph" aria-hidden="true">←</span>
+            Full map
+          </button>
+
           <div class="asean-infographic__title-id">
             <!-- Flag 3D flip (BF-72 U5): on a country switch the outgoing flag
                  (front) rotates to the incoming flag (back), reusing CardFlip.
@@ -545,6 +595,52 @@ watch(
   color: rgba(255, 255, 255, 0.92);
   font-family: 'Encode Sans', sans-serif;
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
+}
+
+/* Back-to-full-map control (BF-76 A2). Glass pill matching the layer tabs.
+   Self-aligned so it sits above the identity block; opts pointer events back in
+   since the surrounding sidebar is click-through to the map. */
+.asean-infographic__back {
+  appearance: none;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(2, 38, 64, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: rgba(255, 255, 255, 0.85);
+  font-family: 'Encode Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  pointer-events: auto;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.asean-infographic__back:hover {
+  background: rgba(2, 38, 64, 0.7);
+  color: #fff;
+}
+
+.asean-infographic__back:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.5);
+  outline-offset: 1px;
+}
+
+.asean-infographic__back-glyph {
+  font-size: 14px;
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asean-infographic__back {
+    transition: none;
+  }
 }
 
 .asean-infographic__title-id {

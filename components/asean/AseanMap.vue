@@ -43,12 +43,22 @@ const props = withDefaults(defineProps<{
    * labels are unaffected. Default false preserves standalone-map behavior.
    */
   suppressActiveLabel?: boolean
+  /**
+   * Externally-driven hover slug (BF-76 A1). Lets a parent (the floating
+   * legend) highlight a country on the map, reusing the existing hover overlay
+   * + typewriter label. Direct map hover takes precedence — when the pointer is
+   * over a country on the map, that internal hover wins over this prop, so the
+   * legend never overrides what the user is pointing at. Default null = no
+   * external hover.
+   */
+  externalHoverSlug?: string | null
 }>(), {
   frameTx: -1237,
   frameTy: -335,
   frameScale: 2.0,
   activeSlug: null,
-  suppressActiveLabel: false
+  suppressActiveLabel: false,
+  externalHoverSlug: null
 })
 
 const emit = defineEmits<{
@@ -144,9 +154,15 @@ const activeSlug = computed<string | null>(() =>
   props.activeSlug ?? internalActiveSlug.value
 )
 
+// Resolve hover slug: direct map hover wins over the external (legend) hover so
+// pointing at a country on the map is never overridden by a legend highlight.
+const resolvedHoverSlug = computed<string | null>(() =>
+  hoverSlug.value ?? props.externalHoverSlug
+)
+
 const hoveredFeature = computed(() =>
-  hoverSlug.value
-    ? interactiveFeatures.value.find(f => f.properties.slug === hoverSlug.value) ?? null
+  resolvedHoverSlug.value
+    ? interactiveFeatures.value.find(f => f.properties.slug === resolvedHoverSlug.value) ?? null
     : null
 )
 
@@ -159,7 +175,7 @@ const activeFeature = computed(() =>
 watchEffect(() => {
   const svg = svgEl.value
   if (!svg) return
-  const shouldPause = hoverSlug.value !== null || activeSlug.value !== null
+  const shouldPause = resolvedHoverSlug.value !== null || activeSlug.value !== null
   if (shouldPause) svg.pauseAnimations()
   else svg.unpauseAnimations()
 })
