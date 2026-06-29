@@ -35,6 +35,17 @@ watch(activeSlug, () => {
   userExpanded.value = false
 })
 
+// Clear legendHoverSlug whenever the legend list collapses. The list (v-else)
+// unmounts on collapse before its rows can fire @mouseleave/@blur, so without
+// this the last-hovered slug stays set and paints a ghost hover glow +
+// typewriter label on the map with the pointer nowhere near it — most visibly
+// after Overview/Back nulls activeSlug (the map hover-layer gate
+// slug !== activeSlug passes again at activeSlug=null). Covers the dock,
+// Overview/Back, and viewport-shrink collapse paths in one rule.
+watch(shouldCollapse, (collapsed) => {
+  if (collapsed) legendHoverSlug.value = null
+})
+
 const activeProfile = computed(() =>
   activeSlug.value ? profileBySlug(activeSlug.value) : undefined
 )
