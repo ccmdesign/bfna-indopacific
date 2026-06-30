@@ -1,5 +1,5 @@
 // Generate data/asean/minerals.generated.ts — the ASEAN critical-minerals
-// "Green Transition" layer — from two canonical wrangled cuts:
+// "Critical Minerals" layer — from two canonical wrangled cuts:
 //   _data/wrangled/asean-minerals-production.csv  (USGS MCS2026, 186 rows,
 //     4 quoted rows: KOR,"Korea, Republic of",…)
 //   _data/wrangled/asean-minerals-flows.csv       (BACI HS07 V202601, 8845
@@ -502,7 +502,7 @@ const topProducerBlocks = aseanWide.topProducers
   .map((p) => `  { name: '${esc(p.name)}', mineral: '${esc(p.mineral)}' }`)
   .join(',\n')
 
-const out = `// ASEAN critical-minerals "Green Transition" layer — per-active-country
+const out = `// ASEAN critical-minerals "Critical Minerals" layer — per-active-country
 // world-share production (Card A) + two-hop nickel-flow split (Card B) +
 // the ASEAN-wide concentration context.
 //

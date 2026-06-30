@@ -1,4 +1,4 @@
-// ASEAN critical-minerals "Green Transition" layer — per-active-country
+// ASEAN critical-minerals "Critical Minerals" layer — per-active-country
 // world-share production (Card A) + two-hop nickel-flow split (Card B) +
 // the ASEAN-wide concentration context.
 //

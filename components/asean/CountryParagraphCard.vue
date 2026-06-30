@@ -11,7 +11,7 @@ defineProps<{
 <template>
   <article class="paragraph-card" aria-label="Active country narrative">
     <p class="paragraph-card__eyebrow">{{ eyebrow ?? 'Position' }}</p>
-    <p class="paragraph-card__body">{{ profile.paragraph }}</p>
+    <p class="paragraph-card__body">{{ profile.paragraphs.description }}</p>
   </article>
 </template>
 

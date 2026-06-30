@@ -28,7 +28,7 @@ export interface StackedAreaData {
 }
 
 const BASE_PARTNERS = ['CHN', 'USA', 'EU']
-const BASE_SOURCE = 'BACI HS07 V202601'
+const BASE_SOURCE = 'BACI HS07 V202601, 2024'
 
 export const tradeStackedBySlug: Record<string, StackedAreaData> = {
   indonesia: {
