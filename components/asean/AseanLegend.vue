@@ -75,19 +75,10 @@ function onLeave() {
       Legend
     </button>
 
-    <!-- Expanded: Overview entry pinned on top, then all 11 country rows. -->
+    <!-- Expanded: stacked country names, styled like the top reel (Encode Sans
+         Condensed, thin, dim with hover-brighten). Right-aligned to read as one
+         column under the right-aligned intro. -->
     <nav v-else class="asean-legend__menu" aria-label="ASEAN countries">
-      <button
-        type="button"
-        class="asean-legend__row asean-legend__row--overview"
-        :class="{ 'is-active': activeSlug === null }"
-        :aria-current="activeSlug === null ? 'true' : undefined"
-        @click="emit('overview')"
-      >
-        <span class="asean-legend__flag" aria-hidden="true">⌂</span>
-        <span class="asean-legend__name">Overview · Full map</span>
-      </button>
-
       <ul class="asean-legend__list">
         <li v-for="row in rows" :key="row.slug">
           <button
@@ -102,10 +93,7 @@ function onLeave() {
             @mouseleave="onLeave"
             @focus="onEnter(row)"
             @blur="onLeave"
-          >
-            <span class="asean-legend__flag" aria-hidden="true">{{ row.flag }}</span>
-            <span class="asean-legend__name">{{ row.name }}</span>
-          </button>
+          >{{ row.name }}</button>
         </li>
       </ul>
     </nav>
@@ -137,19 +125,14 @@ function onLeave() {
   left: clamp(12px, 1.5vw, 28px);
 }
 
+/* Stacked list, no card chrome — names sit directly on the map (reel style),
+   right-aligned, with a text-shadow for legibility. */
 .asean-legend__menu {
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding: 6px;
+  align-items: flex-end;
   max-height: 56svh;
   overflow-y: auto;
-  background: rgba(2, 38, 64, 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 .asean-legend__list {
@@ -158,77 +141,52 @@ function onLeave() {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  align-items: flex-end;
+  gap: clamp(2px, 0.6vh, 8px);
 }
 
+/* Mirrors AseanCountrySwitcher: Encode Sans Condensed, thin, dim with
+   hover-brighten. No background / pill chrome. */
 .asean-legend__row {
   appearance: none;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 12px 7px 10px;
   border: none;
   background: transparent;
-  border-radius: 6px;
-  color: rgba(255, 255, 255, 0.78);
-  font-family: inherit;
-  /* Match the intro description blurb size (BFNA: bump from 13px). */
-  font-size: clamp(0.85rem, 1vw, 1rem);
-  font-weight: 400;
+  padding: 2px 0;
+  font-family: 'Encode Sans Condensed', 'Encode Sans', sans-serif;
+  font-weight: 300;
+  font-size: clamp(20px, 1.8vw, 28px);
+  line-height: 1.15;
   letter-spacing: 0.01em;
-  text-align: left;
+  text-align: right;
+  color: rgba(255, 255, 255, 0.5);
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: color 0.2s ease;
 }
 
 .asean-legend__row:hover {
   color: rgba(255, 255, 255, 0.95);
-  background: rgba(255, 255, 255, 0.06);
 }
 
 .asean-legend__row.is-active {
-  background: hsla(218, 60%, 58%, 0.25);
-  color: hsl(218, 70%, 88%);
-  font-weight: 500;
+  color: #fff;
+  font-weight: 400;
 }
 
 .asean-legend__row:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.5);
-  outline-offset: 1px;
-}
-
-.asean-legend__row--overview {
-  margin-bottom: 2px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 500;
+  outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* Inert rows: visible but not interactive (no profile yet — A3 / BF-79–80). */
 .asean-legend__row.is-inert {
-  opacity: 0.4;
+  opacity: 0.3;
   cursor: default;
 }
 
 .asean-legend__row.is-inert:hover {
-  background: transparent;
-  color: rgba(255, 255, 255, 0.78);
-}
-
-.asean-legend__flag {
-  flex: 0 0 auto;
-  width: 1.4em;
-  text-align: center;
-  font-size: 15px;
-  line-height: 1;
-}
-
-.asean-legend__name {
-  flex: 1 1 auto;
-  min-width: 0;
+  color: rgba(255, 255, 255, 0.5);
 }
 
 /* Collapsed pill */

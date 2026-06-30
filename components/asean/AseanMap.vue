@@ -201,6 +201,18 @@ function onClick(slug: string) {
   emit('update:activeSlug', next)
   emit('select', slug)
 }
+
+// Clicking the map outside any country deselects → back to the idle full map.
+// Country clicks bubble here too, so ignore any click that originated inside a
+// country group (its own handler runs); everything else (the ocean / raster,
+// which is the svg root itself) deselects.
+function onSvgClick(e: MouseEvent) {
+  const t = e.target as Element | null
+  if (t?.closest?.('.asean-map__country')) return
+  if (activeSlug.value === null) return
+  internalActiveSlug.value = null
+  emit('update:activeSlug', null)
+}
 </script>
 
 <template>
@@ -210,6 +222,7 @@ function onClick(slug: string) {
       class="asean-map__svg"
       :viewBox="`0 0 ${VB_W} ${VB_H}`"
       preserveAspectRatio="xMidYMid slice"
+      @click="onSvgClick"
     >
       <defs>
         <filter id="country-glow" x="-50%" y="-50%" width="200%" height="200%">

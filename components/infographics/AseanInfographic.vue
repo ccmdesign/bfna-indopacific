@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch, onScopeDispose } from 'vue'
+import { computed, ref, watch } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 import { profileBySlug, PROFILES } from '~/data/asean/country-profiles'
 import { tradeStackedBySlug } from '~/data/asean/trade-stacked'
@@ -137,59 +137,39 @@ function onActiveSlugUpdate(next: string | null) {
   }
 }
 
-// --- Country-switch choreography (BF-72 U4) ---------------------------------
-// The sidebar name + hero number render from these composables' displayText so
-// a country switch can retype the name and scramble the number in place. The
-// paragraph cross-fade (U5) is declarative on the same `activeSlug` key, and
-// the map re-zoom (600 ms) reacts to `activeSlug` inside AseanMap — so all
-// switch effects start together at t=0 (R11), driven by the one watcher below.
-const { displayText: typedName, isTyping, play: playName, set: setName } = useTypewriter()
+// --- Country-switch choreography --------------------------------------------
+// The country-name carousel (AseanCountrySwitcher) owns the name transition
+// (slide), replacing the old name typewriter. On a switch the hero number
+// scrambles, the large flag panel flips, and the paragraph cross-fade stays
+// declarative on the `activeSlug` key — all in sync with the map re-zoom.
 const { displayText: heroValue, play: playHero, set: setHero } = useScramble()
 
-// --- Flag 3D flip (BF-72 U5) ------------------------------------------------
-// CardFlip shows `front` when flagFlipped=false, `back` when true. To keep
-// every switch flipping the SAME visual direction (R7), a switch sets
-// flagBack = incoming flag and flagFlipped = true; after the ~700 ms rotate
-// settles we normalize (flagFront = incoming, flagFlipped = false) without
-// animating — the snap is invisible because the front already shows the
-// incoming flag mid-rotate. Held in component state + a cleared-on-retrigger
-// settle timeout. CardFlip's reduced-motion cross-fade satisfies R12 here.
+// --- Flag 3D flip (reactivated, now a large panel beside the tabs/hero) ------
+// CardFlip shows `front` when flagFlipped=false, `back` when true. Each switch is
+// ONE 180° rotation: drop the incoming flag onto the currently-hidden face, then
+// flip to it. No snap back to a "home" orientation (that snap was a second
+// animated rotation — the double-spin), so the direction simply alternates each
+// switch. CardFlip cross-fades under reduced motion. First open shows flagFront.
 const FLAG_FLIP_MS = 700
 const flagFront = ref('')
 const flagBack = ref('')
 const flagFlipped = ref(false)
-let flagSettleTimer: ReturnType<typeof setTimeout> | null = null
 
-function clearFlagSettle() {
-  if (flagSettleTimer) {
-    clearTimeout(flagSettleTimer)
-    flagSettleTimer = null
+function flipFlagTo(nextUrl: string) {
+  if (flagFlipped.value) {
+    flagFront.value = nextUrl
+    flagFlipped.value = false
+  } else {
+    flagBack.value = nextUrl
+    flagFlipped.value = true
   }
 }
 
-function flipFlagTo(nextUrl: string) {
-  clearFlagSettle()
-  flagBack.value = nextUrl
-  flagFlipped.value = true
-  flagSettleTimer = setTimeout(() => {
-    // Normalize: front becomes the now-visible incoming flag, reset to unflipped
-    // so the next switch again rotates front -> back in the same direction.
-    flagFront.value = nextUrl
-    flagFlipped.value = false
-    flagSettleTimer = null
-  }, FLAG_FLIP_MS)
-}
-
-onScopeDispose(clearFlagSettle)
-
 // Single orchestrator (immediate, so first open seeds the settled values).
-// - country<->country switch (prev && next && prev !== next): play() the name
-//   typewriter + hero scramble concurrently at t=0 (R11). Reduced-motion is
-//   handled inside each composable (instant final string).
-// - first open (!prev) / re-seed: set() the settled strings with no animation
-//   so the existing panel-rise entrance is unchanged (R6).
-// - deselect (!next): nothing to render; leave the last strings in place for
-//   the panel-rise leave (the sidebar unmounts).
+// - country<->country switch: scramble the hero number + flip the flag (paragraph
+//   cross-fade is declarative via <Transition> keyed on activeSlug, in sync).
+// - first open / re-seed: set the hero + flag with no animation (panel-rise
+//   entrance unchanged). - deselect (!next): leave values for the leave anim.
 watch(
   activeSlug,
   (next, prev) => {
@@ -197,19 +177,12 @@ watch(
     const profile = profileBySlug(next)
     if (!profile) return
     if (prev && prev !== next) {
-      // (a) flag flips, (b) name retypes, (c) hero scrambles — all at t=0
-      // (R11). (d) the paragraph cross-fade is declarative via <Transition>
-      // keyed on activeSlug, so it starts at the same instant.
-      flipFlagTo(profile.flagUrl)
-      playName(profile.name)
       playHero(profile.hero.value)
+      flipFlagTo(profile.flagUrl)
     } else {
-      // First open / re-seed: settle every effect with no animation (R6).
-      clearFlagSettle()
+      setHero(profile.hero.value)
       flagFront.value = profile.flagUrl
       flagFlipped.value = false
-      setName(profile.name)
-      setHero(profile.hero.value)
     }
   },
   { immediate: true }
@@ -231,7 +204,11 @@ watch(
     <!-- Floating country legend (BF-76 A1/A2): left-edge over the ocean. Lists
          all 11 countries (incl. the hard-to-click ones) + an Overview entry to
          return to the full map. Collapses to a pill when it would overlap land. -->
+    <!-- Idle-only: once a country is docked, switching happens via the top
+         country-title carousel, so the vertical legend would be redundant (and
+         its expanded list overlaps the carousel). Back-to-map is the pill below. -->
     <AseanLegend
+      v-if="!activeProfile"
       :active-slug="activeSlug"
       :collapsed="shouldCollapse"
       @select="onActiveSlugUpdate"
@@ -239,6 +216,31 @@ watch(
       @hover="legendHoverSlug = $event"
       @expand="userExpanded = true"
     />
+
+    <!-- Back to full map (focused state). Nulls activeSlug → restores the idle
+         calibrated frame in AseanMap. Replaces the old in-sidebar back button. -->
+    <Transition name="intro-fade">
+      <button
+        v-if="activeProfile"
+        type="button"
+        class="asean-infographic__backmap"
+        @click="onActiveSlugUpdate(null)"
+      >
+        <span class="asean-infographic__backmap-glyph" aria-hidden="true">←</span>
+        Full map
+      </button>
+    </Transition>
+
+    <!-- Focused-state country switcher (BF-76 follow-up): a horizontal carousel
+         of country titles across the top. The active country is the large title;
+         clicking a neighbour docks it. Replaces the flag + typed-name identity. -->
+    <Transition name="intro-fade">
+      <AseanCountrySwitcher
+        v-if="activeProfile"
+        :active-slug="activeSlug ?? ''"
+        @select="onActiveSlugUpdate"
+      />
+    </Transition>
 
     <!-- Idle intro: top-right quadrant. Infographic title + subtitle + blurb,
          shown only when no country is selected. -->
@@ -269,89 +271,67 @@ watch(
         <!-- Identity: flag + name only. Hero + narrative moved into the
              Description tabpanel below (BF-72 U3/R4). Flag + name stay
              always-visible and animate on country switch (U4/U5). -->
-        <header class="asean-infographic__title">
-          <!-- Back to full map (BF-76 A2): nulls activeSlug, which restores the
-               idle calibrated frame in AseanMap. Mirrors the legend's Overview
-               entry as a discoverable in-panel control. -->
-          <button
-            type="button"
-            class="asean-infographic__back"
-            aria-label="Back to full map"
-            @click="onActiveSlugUpdate(null)"
-          >
-            <span class="asean-infographic__back-glyph" aria-hidden="true">←</span>
-            Full map
-          </button>
+        <!-- Top block: tabs + hero on the left, the large flag panel on the
+             right. The flag is top-aligned with the tabs and spans down past the
+             hero number + sub-heading — the country identity, reactivated and
+             enlarged now that the name lives in the top carousel. -->
+        <div class="asean-infographic__top">
+          <div class="asean-infographic__top-main">
+            <header class="asean-infographic__title">
+              <!-- Real WAI-ARIA tablist (Description | Trade | Green Transition).
+                   Roving tabindex + arrow/Home/End follow the APG model. -->
+              <div
+                class="asean-infographic__tabs"
+                role="tablist"
+                aria-label="Country detail view"
+              >
+                <button
+                  v-for="(t, i) in TAB_ORDER"
+                  :key="t"
+                  :ref="(el) => setTabRef(el, i)"
+                  type="button"
+                  role="tab"
+                  :id="`asean-tab-${t}`"
+                  :aria-controls="`asean-tabpanel-${t === 'description' ? 'description' : 'charts'}`"
+                  :aria-selected="tab === t"
+                  :tabindex="tab === t ? 0 : -1"
+                  class="asean-infographic__tab"
+                  :class="{ 'is-active': tab === t }"
+                  @click="selectTab(t)"
+                  @keydown="onTabKeydown($event, i)"
+                >
+                  {{ t === 'description' ? 'Description' : t === 'trade' ? 'Trade' : 'Green Transition' }}
+                </button>
+              </div>
+            </header>
 
-          <div class="asean-infographic__title-id">
-            <!-- Flag 3D flip (BF-72 U5): on a country switch the outgoing flag
-                 (front) rotates to the incoming flag (back), reusing CardFlip.
-                 Faces are normalized after the rotate settles so each switch
-                 flips the same direction. CardFlip cross-fades under reduced
-                 motion (R12). First open shows flagFront with no flip. -->
-            <div class="asean-infographic__title-flag">
-              <!-- duration-ms bound to FLAG_FLIP_MS so the rotate and the
-                   post-settle normalize timeout (flipFlagTo) stay in lockstep,
-                   independent of CardFlip's internal default (BF-72 review). -->
-              <CardFlip :flipped="flagFlipped" :duration-ms="FLAG_FLIP_MS">
-                <template #front>
-                  <img
-                    :src="flagFront"
-                    :alt="`Flag of ${activeProfile.name}`"
-                    class="asean-infographic__title-flag-img"
-                    width="64"
-                    height="44"
-                    loading="lazy"
-                  />
-                </template>
-                <template #back>
-                  <img
-                    :src="flagBack"
-                    alt=""
-                    aria-hidden="true"
-                    class="asean-infographic__title-flag-img"
-                    width="64"
-                    height="44"
-                    loading="lazy"
-                  />
-                </template>
-              </CardFlip>
+            <!-- Hero big-number + label. Shown only on the Description tab; the
+                 narrative paragraph is the Description tabpanel below. -->
+            <div v-show="tab === 'description'" class="asean-infographic__title-hero">
+              <span class="asean-infographic__title-hero-value">
+                {{ heroValue }}
+              </span>
+              <span class="asean-infographic__title-hero-label">
+                {{ activeProfile.hero.label }}
+              </span>
             </div>
-            <h1 class="asean-infographic__title-name">{{ typedName
-              }}<span v-if="isTyping" class="asean-infographic__title-caret" aria-hidden="true">▌</span></h1>
           </div>
 
-          <!-- Real WAI-ARIA tablist (Description | Trade | Green Transition).
-               Restores tab/tabpanel semantics that BF-71 (84d0274) demoted to
-               an aria-pressed group — deliberate restoration, not a regression
-               (R2). Roving tabindex + arrow/Home/End follow the APG model. -->
-          <div
-            class="asean-infographic__tabs"
-            role="tablist"
-            aria-label="Country detail view"
-          >
-            <button
-              v-for="(t, i) in TAB_ORDER"
-              :key="t"
-              :ref="(el) => setTabRef(el, i)"
-              type="button"
-              role="tab"
-              :id="`asean-tab-${t}`"
-              :aria-controls="`asean-tabpanel-${t === 'description' ? 'description' : 'charts'}`"
-              :aria-selected="tab === t"
-              :tabindex="tab === t ? 0 : -1"
-              class="asean-infographic__tab"
-              :class="{ 'is-active': tab === t }"
-              @click="selectTab(t)"
-              @keydown="onTabKeydown($event, i)"
-            >
-              {{ t === 'description' ? 'Description' : t === 'trade' ? 'Trade' : 'Green Transition' }}
-            </button>
+          <!-- Flag panel (reactivated). Flips on country switch via CardFlip; the
+               faces stretch to the fixed box. Decorative — alt names the country. -->
+          <div class="asean-infographic__flag" aria-hidden="true">
+            <CardFlip :flipped="flagFlipped" :duration-ms="FLAG_FLIP_MS">
+              <template #front>
+                <img :src="flagFront" :alt="`Flag of ${activeProfile.name}`" class="asean-infographic__flag-img" />
+              </template>
+              <template #back>
+                <img :src="flagBack" alt="" class="asean-infographic__flag-img" />
+              </template>
+            </CardFlip>
           </div>
-        </header>
+        </div>
 
-        <!-- Description tabpanel: hero big-number + label + narrative paragraph
-             (moved out of the header per R3/R4). -->
+        <!-- Description tabpanel: the narrative paragraph. -->
         <section
           v-show="tab === 'description'"
           id="asean-tabpanel-description"
@@ -359,15 +339,6 @@ watch(
           aria-labelledby="asean-tab-description"
           class="asean-infographic__tabpanel"
         >
-          <div class="asean-infographic__title-hero">
-            <span class="asean-infographic__title-hero-value">
-              {{ heroValue }}
-            </span>
-            <span class="asean-infographic__title-hero-label">
-              {{ activeProfile.hero.label }}
-            </span>
-          </div>
-
           <!-- Description paragraph cross-fade (BF-72 U5/R10): keyed on
                activeSlug so a country switch fades the old text out then the
                new in (~500 ms). Reduced-motion is handled in the desc-fade @media.
@@ -584,7 +555,8 @@ watch(
      hero + paragraph and the chart panels more room. */
   width: clamp(340px, 34vw, 600px);
   box-sizing: border-box;
-  padding: clamp(20px, 3vh, 40px) clamp(20px, 2vw, 32px);
+  /* Top padding clears the country-title carousel pinned across the top. */
+  padding: clamp(104px, 15vh, 150px) clamp(20px, 2vw, 32px) clamp(20px, 3vh, 40px);
   display: flex;
   flex-direction: column;
   gap: clamp(14px, 2vh, 24px);
@@ -598,34 +570,27 @@ watch(
   );
 }
 
-/* Identity block inside the sidebar (no card chrome). */
-.asean-infographic__title {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  color: rgba(255, 255, 255, 0.92);
-  font-family: 'Encode Sans', sans-serif;
-  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
-}
-
-/* Back-to-full-map control (BF-76 A2). Glass pill matching the layer tabs.
-   Self-aligned so it sits above the identity block; opts pointer events back in
-   since the surrounding sidebar is click-through to the map. */
-.asean-infographic__back {
+/* Back-to-full-map control (focused state). Glass pill bottom-left over the
+   ocean, clear of the right-hand sidebar. Matches the idle Legend pill. */
+.asean-infographic__backmap {
+  position: absolute;
+  bottom: clamp(16px, 4vh, 40px);
+  left: clamp(12px, 1.5vw, 28px);
+  z-index: 25;
   appearance: none;
-  align-self: flex-start;
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 12px 6px 10px;
+  padding: 9px 16px 9px 13px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   background: rgba(2, 38, 64, 0.5);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  color: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.9);
   font-family: 'Encode Sans', sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.02em;
   cursor: pointer;
@@ -633,72 +598,68 @@ watch(
   transition: background 0.15s ease, color 0.15s ease;
 }
 
-.asean-infographic__back:hover {
+.asean-infographic__backmap:hover {
   background: rgba(2, 38, 64, 0.7);
   color: #fff;
 }
 
-.asean-infographic__back:focus-visible {
+.asean-infographic__backmap:focus-visible {
   outline: 2px solid rgba(255, 255, 255, 0.5);
   outline-offset: 1px;
 }
 
-.asean-infographic__back-glyph {
-  font-size: 14px;
+.asean-infographic__backmap-glyph {
+  font-size: 15px;
   line-height: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .asean-infographic__back {
+  .asean-infographic__backmap {
     transition: none;
   }
 }
 
-.asean-infographic__title-id {
+/* Top block: tabs + hero (left) beside the flag panel (right). align-items
+   flex-start so the flag's top lines up with the tabs' top. */
+.asean-infographic__top {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: clamp(12px, 1.5vw, 24px);
 }
 
-/* Flag flip container. Fixed to the flag's intrinsic 64x44 so the two flag
-   faces share one footprint and the flip has no layout shift. */
-.asean-infographic__title-flag {
+.asean-infographic__top-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(14px, 2vh, 24px);
+}
+
+/* Flag panel (reactivated): right of the tabs/hero, top-aligned. Decorative
+   (pointer-events off so the map stays clickable). No explicit size — fits to
+   the flag image's natural dimensions. */
+.asean-infographic__flag {
   flex: 0 0 auto;
-  width: 64px;
-  height: 44px;
+  pointer-events: none;
 }
 
-.asean-infographic__title-flag-img {
-  width: 64px;
-  height: 44px;
-  border-radius: 4px;
+.asean-infographic__flag-img {
+  display: block;
+  border-radius: 6px;
   box-shadow:
     0 0 0 1px rgba(255, 255, 255, 0.15),
-    0 4px 12px rgba(0, 0, 0, 0.4);
-  object-fit: cover;
+    0 6px 18px rgba(0, 0, 0, 0.45);
 }
 
-.asean-infographic__title-name {
-  margin: 0;
-  font-size: clamp(2.2rem, 3.2vw, 3.6rem);
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: -0.015em;
-  color: #fff;
-}
-
-/* Blinking caret shown while the name typewriter is running (BF-72 U4).
-   Mirrors the AseanMap hover-label caret. Reduced-motion: the typewriter
-   short-circuits in useTypewriter so the caret never renders. */
-.asean-infographic__title-caret {
-  margin-left: 0.06em;
-  color: hsl(218, 70%, 88%);
-  animation: title-caret-blink 600ms steps(1) infinite;
-}
-
-@keyframes title-caret-blink {
-  0%, 50% { opacity: 1; }
-  50.01%, 100% { opacity: 0; }
+/* Header inside the sidebar (no card chrome). Holds only the tablist. */
+.asean-infographic__title {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  color: rgba(255, 255, 255, 0.92);
+  font-family: 'Encode Sans', sans-serif;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
 }
 
 .asean-infographic__tabs {
