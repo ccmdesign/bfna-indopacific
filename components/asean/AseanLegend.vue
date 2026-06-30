@@ -61,7 +61,7 @@ function onLeave() {
 </script>
 
 <template>
-  <div class="asean-legend">
+  <div class="asean-legend" :class="{ 'asean-legend--collapsed': collapsed }">
     <!-- Collapsed: a single pill that reopens the list (Overview lives inside
          the reopened list, one click away per BF-76). -->
     <button
@@ -118,12 +118,23 @@ function onLeave() {
    (mirrors .asean-infographic__tabs). */
 .asean-legend {
   position: absolute;
-  top: 50%;
-  left: clamp(12px, 1.5vw, 28px);
-  transform: translateY(-50%);
+  /* Idle: docked under the top-right intro (title + description) so the right
+     edge reads as one column — title -> subtitle -> blurb -> country list.
+     top clears the intro band; right matches the intro's right padding. */
+  top: clamp(220px, 36svh, 420px);
+  right: clamp(24px, 3vw, 56px);
   z-index: 25;
   pointer-events: auto;
   font-family: 'Encode Sans', sans-serif;
+}
+
+/* Collapsed pill (shows when a country is docked): anchor bottom-left, clear of
+   the right-hand focused sidebar that owns the right edge in that state. */
+.asean-legend--collapsed {
+  top: auto;
+  right: auto;
+  bottom: clamp(16px, 4vh, 40px);
+  left: clamp(12px, 1.5vw, 28px);
 }
 
 .asean-legend__menu {
@@ -131,7 +142,7 @@ function onLeave() {
   flex-direction: column;
   gap: 2px;
   padding: 6px;
-  max-height: 80svh;
+  max-height: 56svh;
   overflow-y: auto;
   background: rgba(2, 38, 64, 0.5);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -162,7 +173,8 @@ function onLeave() {
   border-radius: 6px;
   color: rgba(255, 255, 255, 0.78);
   font-family: inherit;
-  font-size: 13px;
+  /* Match the intro description blurb size (BFNA: bump from 13px). */
+  font-size: clamp(0.85rem, 1vw, 1rem);
   font-weight: 400;
   letter-spacing: 0.01em;
   text-align: left;
