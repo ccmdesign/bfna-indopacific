@@ -53,9 +53,9 @@ const props = withDefaults(defineProps<{
    */
   externalHoverSlug?: string | null
 }>(), {
-  frameTx: -1237,
-  frameTy: -335,
-  frameScale: 2.0,
+  frameTx: -962,
+  frameTy: -293,
+  frameScale: 1.75,
   activeSlug: null,
   suppressActiveLabel: false,
   externalHoverSlug: null
