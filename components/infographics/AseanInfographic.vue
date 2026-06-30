@@ -55,7 +55,7 @@ const activeTradeStacked = computed(() =>
 )
 
 // Critical-minerals slice for the active country. Mirrors activeTradeStacked
-// so map selection + layer flip update the green faces exactly like trade.
+// so map selection + layer flip update the minerals faces exactly like trade.
 // MINERALS_BY_SLUG carries a record for every wired slug (the 3 low-data
 // countries carry hasMaterialData:false; the components render the designed
 // honest state, not a blank).
@@ -65,14 +65,16 @@ const activeMinerals = computed(() =>
 
 // Tab = the single source of truth for the focused sidebar view (BF-72 U3).
 // "description" (default) shows the hero number + label + narrative paragraph;
-// "trade" / "green" show the two chart cards, with the Trade<->Green flip
-// preserved via :flipped="tab === 'green'" on both CardFlips.
+// "trade" / "minerals" show the two chart cards, with the Trade<->Minerals flip
+// preserved via :flipped="tab === 'minerals'" on both CardFlips.
 //
 // NOTE: this intentionally REVERSES BF-71 commit 84d0274, which demoted the
 // chart toggle to an aria-pressed group. BF-72 restores a real WAI-ARIA
-// tablist (Description | Trade | Green Transition) by design (R1/R2).
-type Tab = 'description' | 'trade' | 'green'
-const TAB_ORDER: Tab[] = ['description', 'trade', 'green']
+// tablist (Description | Trade | Critical Minerals) by design (R1/R2).
+// BF-81 renamed the third tab value 'green' -> 'minerals' and its label
+// "Green Transition" -> "Critical Minerals".
+type Tab = 'description' | 'trade' | 'minerals'
+const TAB_ORDER: Tab[] = ['description', 'trade', 'minerals']
 const tab = ref<Tab>('description')
 
 const CHART_PARTNERS = ['CHN', 'USA', 'EU']
@@ -88,15 +90,15 @@ function selectTab(next: Tab) {
   tab.value = next
 }
 
-// Trade + Green deliberately share ONE tabpanel (#asean-tabpanel-charts): both
-// render the same two CardFlips flipped in unison, so a shared-panel APG
+// Trade + Minerals deliberately share ONE tabpanel (#asean-tabpanel-charts):
+// both render the same two CardFlips flipped in unison, so a shared-panel APG
 // variation is the right fit rather than duplicating the markup into two
 // panels. Its `aria-labelledby` must name the *active* chart tab — and must be
 // dropped entirely when neither chart tab is active (Description tab), so the
 // hidden charts panel is never stale-labelled by the Trade tab. Returning
 // undefined makes Vue omit the attribute.
 const chartsPanelLabelledBy = computed(() =>
-  tab.value === 'trade' || tab.value === 'green' ? `asean-tab-${tab.value}` : undefined
+  tab.value === 'trade' || tab.value === 'minerals' ? `asean-tab-${tab.value}` : undefined
 )
 
 function focusTab(index: number) {
@@ -261,7 +263,7 @@ watch(
 
     <!-- Focused-state right sidebar. Selecting a country stacks the identity
          (flag + name) and a 3-tab tablist above the active tabpanel: Description
-         (hero + narrative) or the two chart cards (Trade / Green Transition) —
+         (hero + narrative) or the two chart cards (Trade / Critical Minerals) —
          in a single right-hand column. The map keeps the rest of the viewport
          with the country docked top-left. The sidebar is pointer-events:none
          (map stays clickable through it); only the tabs and the chart cards opt
@@ -278,7 +280,7 @@ watch(
         <div class="asean-infographic__top">
           <div class="asean-infographic__top-main">
             <header class="asean-infographic__title">
-              <!-- Real WAI-ARIA tablist (Description | Trade | Green Transition).
+              <!-- Real WAI-ARIA tablist (Description | Trade | Critical Minerals).
                    Roving tabindex + arrow/Home/End follow the APG model. -->
               <div
                 class="asean-infographic__tabs"
@@ -300,7 +302,7 @@ watch(
                   @click="selectTab(t)"
                   @keydown="onTabKeydown($event, i)"
                 >
-                  {{ t === 'description' ? 'Description' : t === 'trade' ? 'Trade' : 'Green Transition' }}
+                  {{ t === 'description' ? 'Description' : t === 'trade' ? 'Trade' : 'Critical Minerals' }}
                 </button>
               </div>
             </header>
@@ -357,31 +359,47 @@ watch(
                every tab-open, which we deliberately avoid. (Validated in PR #46
                review; see todos/159.) -->
           <Transition name="desc-fade" mode="out-in">
-            <p
-              :key="activeSlug"
-              class="asean-infographic__title-paragraph"
-            >{{ activeProfile.paragraph }}</p>
+            <div :key="activeSlug" class="asean-infographic__prose">
+              <p class="asean-infographic__title-paragraph">{{ activeProfile.paragraphs.description }}</p>
+              <p class="asean-infographic__source">Source: {{ activeProfile.sources.description }}</p>
+            </div>
           </Transition>
         </section>
 
-        <!-- Trade / Green tabpanel: the two chart cards. Shown for trade|green,
-             hidden on the Description tab. Both CardFlips flip in unison via
-             :flipped="tab === 'green'" — the Trade<->Green flip is unchanged.
-             Trade + Green INTENTIONALLY share this single tabpanel (same two
-             cards flipped) — a documented shared-panel APG variation, not a
-             one-tab-one-panel miss. aria-labelledby names whichever chart tab
-             is active and is dropped on the Description tab (chartsPanelLabelledBy). -->
+        <!-- Trade / Critical Minerals tabpanel: per-tab prose + the two chart
+             cards. Shown for trade|minerals, hidden on the Description tab. Both
+             CardFlips flip in unison via :flipped="tab === 'minerals'" — the
+             Trade<->Minerals flip is unchanged. Trade + Minerals INTENTIONALLY
+             share this single tabpanel (same two cards flipped) — a documented
+             shared-panel APG variation, not a one-tab-one-panel miss.
+             aria-labelledby names whichever chart tab is active and is dropped on
+             the Description tab (chartsPanelLabelledBy). The per-tab prose is the
+             new element (BF-81) that swaps with the active chart tab. -->
         <section
-          v-show="tab === 'trade' || tab === 'green'"
+          v-show="tab === 'trade' || tab === 'minerals'"
           id="asean-tabpanel-charts"
           role="tabpanel"
           :aria-labelledby="chartsPanelLabelledBy"
           class="asean-infographic__tabpanel asean-infographic__tabpanel--charts"
         >
+          <!-- Per-tab prose (BF-81): Marshall's Trade / Critical Minerals block
+               for the active country, swapping on both country switch and
+               Trade<->Minerals tab change (keyed on activeSlug + tab). -->
+          <Transition name="desc-fade" mode="out-in">
+            <div :key="`${activeSlug}-${tab}`" class="asean-infographic__prose asean-infographic__prose--charts">
+              <p class="asean-infographic__title-paragraph">
+                {{ tab === 'trade' ? activeProfile.paragraphs.trade : activeProfile.paragraphs.minerals }}
+              </p>
+              <p class="asean-infographic__source">
+                Source: {{ tab === 'trade' ? activeProfile.sources.trade : activeProfile.sources.minerals }}
+              </p>
+            </div>
+          </Transition>
+
           <!-- Tornado bars: indicative top exports & imports (front) / share of
                world mine production (back). -->
           <div class="asean-infographic__panel">
-            <CardFlip :flipped="tab === 'green'">
+            <CardFlip :flipped="tab === 'minerals'">
               <template #front>
                 <CountryChartCard
                   eyebrow="Indicative composition"
@@ -401,7 +419,7 @@ watch(
                   eyebrow="Critical minerals · 2025"
                   title="Share of world mine production"
                   meta="% of world · USGS MCS2026"
-                  source="USGS MCS2026"
+                  source="USGS MCS2026, 2025"
                 >
                   <CountryMineralShareBars
                     v-if="activeMinerals"
@@ -417,7 +435,7 @@ watch(
           <!-- Stacked area: trade flows with the US, China, EU since 2010 (front)
                / mineral flows by destination (back). -->
           <div v-if="activeTradeStacked" class="asean-infographic__panel">
-            <CardFlip :flipped="tab === 'green'">
+            <CardFlip :flipped="tab === 'minerals'">
               <template #front>
                 <CountryChartCard
                   eyebrow="Trade flows"
@@ -438,7 +456,7 @@ watch(
                   eyebrow="Mineral flows"
                   title="Where the nickel goes · 2024"
                   meta="USD share by destination"
-                  source="BACI HS07 V202601 (mineral HS6 codes)"
+                  source="BACI HS07 V202601 (mineral HS6 codes), 2024"
                 >
                   <CountryMineralFlowBand
                     v-if="activeMinerals"
@@ -743,6 +761,31 @@ watch(
   font-weight: 300;
   line-height: 1.55;
   color: rgba(255, 255, 255, 0.78);
+}
+
+/* Prose wrapper: paragraph + its source footnote, stacked. Used on all three
+   tabs (BF-81) so the keyed cross-fade animates the pair as one unit. */
+.asean-infographic__prose {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* On the charts tab the prose sits above the two chart cards (the cards opt
+   into pointer events themselves; prose stays click-through to the map). */
+.asean-infographic__prose--charts {
+  margin-bottom: 2px;
+}
+
+/* Per-tab source/year footnote. Mirrors CountryChartCard's chart-card__source
+   (small, low-opacity, letter-spaced) so prose attribution reads consistently
+   with the chart cards in both light and dark. */
+.asean-infographic__source {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.03em;
 }
 
 /* --- Tabpanels --- */
