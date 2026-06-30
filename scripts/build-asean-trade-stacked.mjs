@@ -94,7 +94,7 @@ const SLUG_ORDER = [
 ]
 
 const METRIC = 'trade_goods'
-const SOURCE_STRING = 'BACI HS07 V202601'
+const SOURCE_STRING = 'BACI HS07 V202601, 2024'
 const UNIT_STRING = 'USD millions'
 const METRIC_LABEL = 'Two-way trade'
 const FIRST_YEAR = 2010
