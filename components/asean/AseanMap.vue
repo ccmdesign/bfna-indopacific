@@ -19,7 +19,9 @@ const PLATE = {
 
 // =============================================================================
 // FRAME TRANSFORM — manipulates the locked plate as a single unit.
-// Defaults center Malaysia (~109.5°E, 4.2°N) in the viewBox.
+// Defaults center SE Asia + southern China (~108°E, 14°N) in the viewBox:
+// Myanmar comfortably in frame, Australia mostly out (BF-78 / A4 reframe).
+// First-pass geometry-derived values — confirm in-browser before tweaking.
 // Override via props to re-frame from parent.
 // =============================================================================
 const props = withDefaults(defineProps<{
@@ -42,9 +44,9 @@ const props = withDefaults(defineProps<{
    */
   suppressActiveLabel?: boolean
 }>(), {
-  frameTx: -1224,
-  frameTy: -482,
-  frameScale: 1.701,
+  frameTx: -1237,
+  frameTy: -335,
+  frameScale: 2.0,
   activeSlug: null,
   suppressActiveLabel: false
 })
