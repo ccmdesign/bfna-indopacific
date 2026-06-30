@@ -25,5 +25,6 @@ export const COUNTRY_HERO: Record<string, CountryHero> = {
   brunei: { value: '$2.7B', label: 'Two-way trade with China, 2024' },
   cambodia: { value: '$16B', label: 'Two-way trade with China, 2024' },
   laos: { value: '$7.3B', label: 'Two-way trade with China, 2024' },
-  myanmar: { value: '$13B', label: 'Two-way trade with China, 2024' }
+  myanmar: { value: '$13B', label: 'Two-way trade with China, 2024' },
+  timor_leste: { value: '$0.3B', label: 'Two-way trade with China, 2024' }
 }

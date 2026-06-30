@@ -289,5 +289,31 @@ export const tradeStackedBySlug: Record<string, StackedAreaData> = {
       { year: 2023, CHN: 15637.8, USA: 1104.7, EU: 4760.8 },
       { year: 2024, CHN: 12643.8, USA: 787.6, EU: 4484.8 }
     ]
+  },
+
+  timor_leste: {
+    country: 'TLS',
+    country_name: 'Timor-Leste',
+    metric: 'Two-way trade',
+    unit: 'USD millions',
+    source: BASE_SOURCE,
+    partners: BASE_PARTNERS,
+    series: [
+      { year: 2010, CHN: 43.1, USA: 4.2, EU: 11.4 },
+      { year: 2011, CHN: 72.2, USA: 8, EU: 94.7 },
+      { year: 2012, CHN: 63.2, USA: 1.1, EU: 106.6 },
+      { year: 2013, CHN: 47.8, USA: 1.4, EU: 8.1 },
+      { year: 2014, CHN: 60.4, USA: 1.3, EU: 13.9 },
+      { year: 2015, CHN: 105.3, USA: 5.9, EU: 6.6 },
+      { year: 2016, CHN: 164.6, USA: 7, EU: 7.2 },
+      { year: 2017, CHN: 134.1, USA: 7.9, EU: 18.9 },
+      { year: 2018, CHN: 135.4, USA: 9, EU: 12 },
+      { year: 2019, CHN: 167.5, USA: 9.7, EU: 10 },
+      { year: 2020, CHN: 115.7, USA: 26.1, EU: 6.3 },
+      { year: 2021, CHN: 243.8, USA: 27.7, EU: 11.2 },
+      { year: 2022, CHN: 317.2, USA: 40.6, EU: 28.4 },
+      { year: 2023, CHN: 241, USA: 28.2, EU: 21.9 },
+      { year: 2024, CHN: 266.5, USA: 24.6, EU: 27.7 }
+    ]
   }
 }

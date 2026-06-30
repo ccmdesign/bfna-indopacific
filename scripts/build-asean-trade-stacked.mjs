@@ -47,6 +47,7 @@ const ISO3_TO_SLUG = {
   PHL: 'philippines',
   SGP: 'singapore',
   THA: 'thailand',
+  TLS: 'timor_leste',
   VNM: 'vietnam'
 }
 
@@ -61,6 +62,7 @@ const SLUG_TO_NAME = {
   philippines: 'Philippines',
   singapore: 'Singapore',
   thailand: 'Thailand',
+  timor_leste: 'Timor-Leste',
   vietnam: 'Vietnam'
 }
 
@@ -87,7 +89,8 @@ const SLUG_ORDER = [
   'brunei',
   'cambodia',
   'laos',
-  'myanmar'
+  'myanmar',
+  'timor_leste'
 ]
 
 const METRIC = 'trade_goods'
