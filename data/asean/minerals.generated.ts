@@ -25,8 +25,8 @@
 // total >= $300M. IDN/PHL/VNM/MYS/THA/LAO are material via
 // production; BRN/KHM/SGP carry no production and no material nickel flow and
 // resolve hasMaterialData=false → the designed honest typographic state
-// (NOT a blank or zero chart). Myanmar (MMR / "Burma") has no country slug;
-// its rare-earths figure feeds MINERALS_ASEAN context, not a per-slug card.
+// (NOT a blank or zero chart). Myanmar (MMR / "Burma") is material via its
+// rare-earths + tin world-share production (BF-79).
 //
 // Determinism: fixed slug order (mirrors PROFILES in country-profiles.ts),
 // minerals sorted by world share desc then name, partner groups in fixed
@@ -221,6 +221,20 @@ export const MINERALS_BY_SLUG: Record<string, CountryMinerals> = {
       { partnerGroup: 'KOR', valueUsdM: 0.6, pct: 100 }
     ],
     flowsTotalUsdM: 0.6,
+    flowsGrowthMultiple: 5.9
+  },
+
+  myanmar: {
+    iso3: 'MMR',
+    hasMaterialData: true,
+    production: [
+      { mineral: 'Rare Earths', sharePct: 5.64, production: 22000, unit: 'metric tons' },
+      { mineral: 'Tin', sharePct: 4.14, production: 12000, unit: 'metric tons' }
+    ],
+    flows: [
+      { partnerGroup: 'CHN', valueUsdM: 5.6, pct: 100 }
+    ],
+    flowsTotalUsdM: 5.6,
     flowsGrowthMultiple: 5.9
   }
 }

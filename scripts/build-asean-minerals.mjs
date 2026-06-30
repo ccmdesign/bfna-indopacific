@@ -39,11 +39,11 @@
 // while admitting IDN/PHL; it lives next to the citation constants so the
 // editorial cut is reviewable in one place.
 //
-// MMR (Myanmar / "Burma" in the production file) has no country slug/profile
-// (consistent with BF-56/57). It is excluded from MINERALS_BY_SLUG but its
-// rare-earths + tin figures still feed MINERALS_ASEAN so the editorial story
-// ("Indonesia, the Philippines and Myanmar") stays true. Any ASEAN-region
-// ISO3 outside ISO3_TO_SLUG and not in IGNORE_ISO3 is source drift → exit 1.
+// MMR (Myanmar / "Burma" in the production file) is now a per-slug producer
+// (BF-79): its rare-earths + tin world-share rows populate MINERALS_BY_SLUG
+// (Card A) and still drive the MINERALS_ASEAN concentration story ("Indonesia,
+// the Philippines and Myanmar"). Any ASEAN-region ISO3 outside ISO3_TO_SLUG and
+// not in IGNORE_ISO3 is source drift → exit 1.
 //
 // Anchor reconciliation guard: the Indonesia 2024 nickel-flow rollup MUST
 // reconcile to the indonesia_nickel_exports_2024 anchor
@@ -75,6 +75,7 @@ const ISO3_TO_SLUG = {
   IDN: 'indonesia',
   KHM: 'cambodia',
   LAO: 'laos',
+  MMR: 'myanmar',
   MYS: 'malaysia',
   PHL: 'philippines',
   SGP: 'singapore',
@@ -87,10 +88,10 @@ const SLUG_TO_ISO3 = Object.fromEntries(
 )
 
 // ASEAN-region ISO3 codes that legitimately appear in the sources but have no
-// country slug. MMR (Myanmar; "Burma" in the production file's country_name)
-// is folded into MINERALS_ASEAN context but not the per-slug map. Anything
-// outside ISO3_TO_SLUG and this set is source drift → fail loud.
-const IGNORE_ISO3 = new Set(['MMR'])
+// country slug. Anything outside ISO3_TO_SLUG and this set is source drift →
+// fail loud. (MMR/Myanmar is now a profiled slug — BF-79 — so the set is empty;
+// kept as the seam for any future no-slug ASEAN code.)
+const IGNORE_ISO3 = new Set([])
 
 // Fixed slug emission order. Mirrors the PROFILES key order in
 // country-profiles.ts so the regenerated diff stays stable and reviewable.
@@ -103,7 +104,8 @@ const SLUG_ORDER = [
   'philippines',
   'brunei',
   'cambodia',
-  'laos'
+  'laos',
+  'myanmar'
 ]
 
 // Fixed destination partner-group order for Card B (D4).
@@ -216,8 +218,6 @@ const prodRows = await readCsv(PROD_SOURCE, PROD_HEADER)
 
 // productionBySlug[slug] = [{ mineral, sharePct, production, unit }]
 const productionBySlug = {}
-// MMR (rare-earths / tin) feeds the ASEAN-wide concentration context.
-const mmrContext = []
 
 for (const f of prodRows) {
   if (f.length !== 8) {
@@ -235,18 +235,9 @@ for (const f of prodRows) {
 
   const slug = ISO3_TO_SLUG[iso3]
   if (!slug) {
-    if (IGNORE_ISO3.has(iso3)) {
-      // MMR — collect rare-earths / tin for the ASEAN concentration sentence.
-      mmrContext.push({
-        mineral: f[PCOL.mineral],
-        sharePct: round2(Number(shareRaw)),
-        production: Number(f[PCOL.production]),
-        unit: f[PCOL.unit]
-      })
-      continue
-    }
     // Non-ASEAN producers (AUS, CHN, KOR, etc.) are simply not ASEAN slugs;
     // they are expected in this world dataset and are skipped, not failed.
+    if (IGNORE_ISO3.has(iso3)) continue
     if (!/^[A-Z]{3}$/.test(iso3)) {
       fail(`malformed ISO3 "${iso3}" in production row`)
     }
@@ -426,9 +417,13 @@ const topProducers = [
   { name: 'the Philippines', mineral: 'Nickel' },
   { name: 'Myanmar', mineral: 'Rare Earths' }
 ]
-const mmrRareEarths = mmrContext.find((m) => m.mineral === 'Rare Earths')
+// Myanmar is now a per-slug producer (BF-79); read its rare-earths share from
+// the per-slug production rollup for the ASEAN context + reconciliation guard.
+const mmrRareEarths = (productionBySlug.myanmar ?? []).find(
+  (m) => m.mineral === 'Rare Earths'
+)
 if (!mmrRareEarths) {
-  fail('expected an MMR Rare Earths 2025 production row for ASEAN context')
+  fail('expected a Myanmar Rare Earths 2025 production row for ASEAN context')
 }
 
 // MMR rare-earths reconciliation guard — mirrors the Indonesia nickel-flow
@@ -534,8 +529,8 @@ const out = `// ASEAN critical-minerals "Green Transition" layer — per-active-
 // total >= $${MATERIAL_FLOW_USD_M}M. IDN/PHL/VNM/MYS/THA/LAO are material via
 // production; BRN/KHM/SGP carry no production and no material nickel flow and
 // resolve hasMaterialData=false → the designed honest typographic state
-// (NOT a blank or zero chart). Myanmar (MMR / "Burma") has no country slug;
-// its rare-earths figure feeds MINERALS_ASEAN context, not a per-slug card.
+// (NOT a blank or zero chart). Myanmar (MMR / "Burma") is material via its
+// rare-earths + tin world-share production (BF-79).
 //
 // Determinism: fixed slug order (mirrors PROFILES in country-profiles.ts),
 // minerals sorted by world share desc then name, partner groups in fixed
