@@ -109,7 +109,13 @@ const renderedFeatures = features.map((f) => {
       w: r2(b[1][0] - b[0][0]),
       h: r2(b[1][1] - b[0][1])
     },
-    labelX: r2(b[1][0] + 16),
+    // Label sits to the right of the bbox by default. For a country whose right
+    // edge is far enough east that a right-anchored label would run off the
+    // viewport (currently only Indonesia, with Papua at ~141°E), flip it to the
+    // left of the highlight (anchored at the bbox's west edge, text-anchor end).
+    ...((right) => right > VB_W * 0.72
+      ? { labelX: r2(b[0][0] - 16), labelAnchor: 'end' as const }
+      : { labelX: r2(right), labelAnchor: 'start' as const })(b[1][0] + 16),
     labelY: r2((b[0][1] + b[1][1]) / 2)
   }
 })
@@ -336,6 +342,7 @@ function onSvgClick(e: MouseEvent) {
               v-if="!suppressActiveLabel"
               :x="activeFeature.labelX"
               :y="activeFeature.labelY"
+              :style="{ textAnchor: activeFeature.labelAnchor }"
               class="asean-map__label asean-map__label--active"
             >
               {{ activeFeature.properties.name }}
@@ -358,6 +365,7 @@ function onSvgClick(e: MouseEvent) {
             <text
               :x="hoveredFeature.labelX"
               :y="hoveredFeature.labelY"
+              :style="{ textAnchor: hoveredFeature.labelAnchor }"
               class="asean-map__label"
             >
               {{ typedName }}<tspan v-if="isTyping" class="asean-map__caret">▌</tspan>
