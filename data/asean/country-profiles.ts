@@ -5,12 +5,17 @@
 //   (BACI HS07 V202601) via scripts/build-asean-country-hero.mjs — each
 //   country's two-way goods trade with China for 2024. Do not hand-edit the
 //   hero values here; they are spread from country-hero.generated.ts.
-// - `paragraph` is CURATED prose. Every quantitative or hard-factual claim
-//   traces to a named anchor in _data/wrangled/asean-headline-stats.json or a
-//   _data/sources/*.SCOUT.md figure (anchor cited inline per country). The
-//   anchor inventory is thin and Indonesia-heavy, so paragraphs are uneven
-//   by design — specific numbers where a source exists, honest qualitative
-//   framing where one does not. No invented figures.
+// - `paragraphs` is CURATED prose, one block per tab (description / trade /
+//   minerals), from Marshall Reid + Georgia Kruger's corrected BFNA copy
+//   (_data/sources/marshall-infographic-copy-2026-06-30.md, BF-81). Each block
+//   is trimmed to ~2–3 sentences (Marshall's explicit permission) while keeping
+//   every hard number and named relationship.
+// - `sources` carries the per-tab attribution footnote shown under each
+//   tabpanel's prose. Bilateral-trade / mineral figures keep Marshall's stated
+//   year; figures with no named upstream source are attributed "BFNA research
+//   brief, Jun 2026". World Bank / IMF series are cited where the block leans on
+//   the Key-Facts indicators. Open-flag caveats (Laos trade/GDP is a 2016
+//   figure) are surfaced inline where the figure appears.
 // - `topExports` / `topImports` are UNVERIFIED PLACEHOLDER composition: no
 //   HS-product source exists or is cheaply recoverable. Retained only so the
 //   trade-balance card keeps rendering; NOT regenerated or guessed. See
@@ -24,13 +29,20 @@ export interface TradeItem {
   detail?: string
 }
 
+export interface CountryPanelProse {
+  description: string
+  trade: string
+  minerals: string
+}
+
 export interface CountryProfile {
   slug: string
   name: string
   flagUrl: string
   tagline: string
   hero: { value: string; label: string }
-  paragraph: string
+  paragraphs: CountryPanelProse
+  sources: CountryPanelProse
   topExports: TradeItem[]
   topImports: TradeItem[]
 }
@@ -44,13 +56,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     flagUrl: flag('id'),
     tagline: 'Hedging in absolute terms, drifting in relative ones.',
     hero: COUNTRY_HERO.indonesia,
-    // Anchors: indonesia_china_trade_2024 (generated hero, ~$143B);
-    // indonesia_nickel_exports_2024 ($21.0B total, ~$19.0B to China ≈ 90%);
-    // asean_nickel_exports_growth (5.9×); indonesia_esdm_17_2025_quota_cut
-    // (44.85%). The old "grown four times as fast as the United States'"
-    // claim had no anchor and is removed.
-    paragraph:
-      'Two-way goods trade with China reached roughly $143B in 2024. Of Indonesia’s ~$21B in nickel-product exports that year, about 90% went to China, and ASEAN nickel exports have grown 5.9× since 2010. Jakarta’s October 2025 mining quota cut (≈45%) signals it wants leverage over that flow — hedging in absolute terms while drifting in relative ones.',
+    paragraphs: {
+      description:
+        'Indonesia is the most populous country in Southeast Asia — 287 million people across 17,000 islands — and ASEAN’s largest economy. It holds to a longstanding bebas aktif ("free and active") doctrine, refusing to side with any great-power bloc: it trades predominantly with China while anchoring its security to the U.S. and expanding ties with the EU.',
+      trade:
+        'China is Indonesia’s largest single trade partner, with bilateral trade reaching a record $135.15 billion in 2024. U.S. goods trade totalled an estimated $45.8 billion in 2025 and EU goods trade €27.3 billion ($31.9 billion) in 2024. The top source of foreign direct investment in 2025 was Singapore at $17.4 billion, reflecting deep integration into intra-ASEAN capital flows.',
+      minerals:
+        'In 2024 Indonesia was the world’s largest producer of mined nickel at 62% of global output, plus the second-largest producer of mined tin (19%) and cobalt (12%). It also produces bauxite, copper, ferroalloys and gold. Those reserves and its geographic position make it essential to the clean-energy transition and one of the most strategically consequential countries in the Indo-Pacific.'
+    },
+    sources: {
+      description: 'BFNA research brief, Jun 2026.',
+      trade: 'Bilateral-trade figures: BFNA research brief, Jun 2026 (China 2024, U.S. 2025, EU 2024); FDI: BFNA research brief, Jun 2026.',
+      minerals: 'Mineral production shares: BFNA research brief, Jun 2026 (2024).'
+    },
     // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
     // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
     topExports: [
@@ -76,11 +94,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     flagUrl: flag('th'),
     tagline: 'A long-time US ally drifting toward Beijing’s gravity.',
     hero: COUNTRY_HERO.thailand,
-    // Anchors: only the generated China-trade hero (~$125B, 2024). No
-    // economic anchor in headline-stats for Thailand — paragraph is
-    // qualitative beyond the hero figure; no invented numbers.
-    paragraph:
-      'Bangkok keeps a US treaty alliance and US-anchored defense ties, yet roughly $125B in two-way goods trade with China in 2024 underlines where the economic gravity now sits — autos, machinery, and rubber processing increasingly routed through PRC supply chains. The hedge holds; the gravity has shifted.',
+    paragraphs: {
+      description:
+        'Thailand is an upper-middle-income country and ASEAN’s second-largest economy, growing 2.5% in 2024, and serves as a land bridge linking South Asia, Indochina and maritime Southeast Asia. A U.S. treaty ally that runs regular joint exercises with Washington, it has also held annual military exercises with China since 2005 — a hedging posture, though recent trends suggest a gradual drift toward Beijing.',
+      trade:
+        'Thailand’s economy is modern, industrialized and export-oriented, with China as its largest trading partner in 2025. It maintains deep ties with the U.S., ranking among its top 10 partners, while the EU is its fourth-largest partner at 7.2% of goods trade in 2025. Thailand ranks as the EU’s 25th-largest partner, with bilateral goods trade totalling €44.3 billion.',
+      minerals:
+        'Thailand is rich in tin and tungsten — essential for electric-vehicle production, battery storage and renewable-energy technologies. In 2025 the kingdom signed a Memorandum of Understanding with the U.S. to strengthen cooperation on critical-minerals supply-chain development.'
+    },
+    sources: {
+      description: 'BFNA research brief, Jun 2026.',
+      trade: 'Bilateral-trade and EU-partner figures: BFNA research brief, Jun 2026 (2025).',
+      minerals: 'BFNA research brief, Jun 2026 (2025).'
+    },
     // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
     // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
     topExports: [
@@ -105,12 +131,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     flagUrl: flag('sg'),
     tagline: 'The neutral hub everyone trusts to launder the contradiction.',
     hero: COUNTRY_HERO.singapore,
-    // Anchors: generated China-trade hero (~$95B, 2024 — note BACI does not
-    // strip SGP re-exports, so this overstates final-destination demand,
-    // _data/sources/baci-trade.SCOUT.md §8); singapore_milex_share_gdp_2024
-    // (2.8% of GDP). Hub framing is qualitative.
-    paragraph:
-      'Singapore’s value lies in being the only place where US, Chinese, and European firms all keep their secrets. Two-way goods trade with China was roughly $95B in 2024 (much of it transhipment), while defense spending near 2.8% of GDP stays tightly bound to Washington. The hub posture is the strategy, not a hedge.',
+    paragraphs: {
+      description:
+        'Singapore is one of the world’s great financial centers, leveraging its position at the mouth of the Strait of Malacca to exercise outsized influence on the global economy. Its ports are vital transshipment hubs for ASEAN, and its banks hold billions in U.S., European and Chinese assets. It produces little of its own, but its position, infrastructure and business-friendly governance have propelled it to the top of global economic rankings.',
+      trade:
+        'More than almost any other nation, Singapore relies on international trade. Its long, lucrative trading relationship with China ran upwards of $70 billion in 2025, yet it remains a crucial partner for both the U.S. and EU. In 2025 it was the EU’s 21st-largest goods-trade partner worldwide and the largest Asian investor in the EU.',
+      minerals:
+        'Given its size, Singapore has essentially zero mining capacity, yet it is an essential node in the critical-minerals supply chain. Resources mined across the region flow through its ports in vast quantities — a clearing house for ores and processed goods, much of it onward to China, the U.S. and Europe. It also imports significant volumes of critical minerals to supply its own industries.'
+    },
+    sources: {
+      description: 'BFNA research brief, Jun 2026.',
+      trade: 'Bilateral-trade and EU-partner figures: BFNA research brief, Jun 2026 (2025).',
+      minerals: 'BFNA research brief, Jun 2026.'
+    },
     // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
     // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
     topExports: [
@@ -135,11 +168,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     flagUrl: flag('my'),
     tagline: 'Semiconductor packaging is the new geopolitics.',
     hero: COUNTRY_HERO.malaysia,
-    // Anchors: generated China-trade hero (~$154B, 2024);
-    // lynas_lamp_world_rare_earths_share (Lynas Malaysia LAMP ≈ 12–15% of
-    // global rare-earths processing). Semiconductor framing is qualitative.
-    paragraph:
-      'Penang and Johor have absorbed a wave of fab and back-end relocations as US firms diversify away from Taiwan and China, even as two-way goods trade with China ran to roughly $154B in 2024. The Lynas LAMP refinery alone handles an estimated 12–15% of the world’s rare earths. Kuala Lumpur’s leverage is real, but its supply-chain dependencies pull in different directions.',
+    paragraphs: {
+      description:
+        'One of the region’s most dynamic economies, Malaysia ranks as of 2026 as the world’s 34th-largest economy by nominal GDP and 28th by purchasing power parity. It has benefited from rising foreign investment as U.S. technology firms diversify away from China and Taiwan. It has also carved out a key role in the critical-minerals supply chain — both as a source of raw materials and as a refiner of unprocessed ores.',
+      trade:
+        'Located astride some of the world’s most important trade routes, Malaysia has long ranked among the most trade-dependent economies, a key link in high-tech supply chains for semiconductors and integrated circuits. While the U.S. and Europe have significant ties with Kuala Lumpur, they lag far behind China: in 2024 bilateral trade between China and Malaysia exceeded $154 billion.',
+      minerals:
+        'Lacking Indonesia’s stockpiles, Malaysia has still emerged as a key actor in the critical-mineral economy, producing bauxite, aluminum and nickel — most of it flowing into Chinese markets. It is shifting from intensive mining toward refining and processing: in 2025 the Australian firm Lynas opened the first refinery capable of processing heavy rare earths outside China.'
+    },
+    sources: {
+      description: 'BFNA research brief, Jun 2026.',
+      trade: 'China–Malaysia bilateral trade: BFNA research brief, Jun 2026 (2024).',
+      minerals: 'BFNA research brief, Jun 2026 (Lynas refinery 2025).'
+    },
     // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
     // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
     topExports: [
@@ -164,12 +205,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     flagUrl: flag('vn'),
     tagline: 'The factory floor for the US-China decoupling.',
     hero: COUNTRY_HERO.vietnam,
-    // Anchors: generated China-trade hero (~$253B, 2024 — the largest in
-    // ASEAN); china_dev_finance_to_asean_2010_2021 (VNM $21.2B, the #2
-    // recipient). The old "$100B-plus surplus with the US" figure had no
-    // anchor and is softened to qualitative framing.
-    paragraph:
-      'Vietnam runs a large surplus with the US and a near-equal deficit with China — assembling Chinese components into goods bound for American shelves, with roughly $253B in two-way goods trade with China in 2024, the largest in ASEAN. China also extended an estimated $21B in development finance to Vietnam over 2010–2021. The hedge is structural; the geopolitics is downstream of the bill of materials.',
+    paragraphs: {
+      description:
+        'Vietnam is one of the region’s fastest-growing manufacturing hubs and an emerging alternative to China in global supply chains; as of 2025 it ranked 23rd globally by purchasing power parity, with recorded GDP growth of 7.1%. It shares a 1,297 km land border with China and has seen repeated South China Sea tensions. It holds Comprehensive Strategic Partnerships with both China and the U.S. — a calibrated hedge that maximizes leverage rather than aligning with either side.',
+      trade:
+        'Vietnam is highly dependent on trade, exporting electrical machinery, apparel, textiles and footwear. As of 2025 China is its largest single trade partner at a record $296 billion, but its relationships are diversified: U.S. goods trade totalled an estimated $209.5 billion in 2025 (its 8th-largest partner), and with €76 billion in bilateral goods trade Vietnam is the EU’s largest trading partner within ASEAN.',
+      minerals:
+        'Vietnam holds an estimated 3.5 million metric tons of rare-earth reserves, sixth globally, and is rich in bauxite, tungsten, titanium and manganese. It is the world’s second-largest producer of tungsten (4.1% of output), third in cement (2.3%) and fifth in fluorspar (1.4%), and also produces aluminum, antimony, bismuth, cobalt and graphite.'
+    },
+    sources: {
+      description: 'BFNA research brief, Jun 2026.',
+      trade: 'Bilateral-trade figures: BFNA research brief, Jun 2026 (China 2025, U.S. 2025, EU 2025).',
+      minerals: 'Reserve and production figures: BFNA research brief, Jun 2026.'
+    },
     // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
     // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
     topExports: [
@@ -194,11 +242,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     flagUrl: flag('ph'),
     tagline: 'The treaty ally turning EDCA into reality.',
     hero: COUNTRY_HERO.philippines,
-    // Anchors: generated China-trade hero (~$53B, 2024);
-    // philippines_nickel_2025 (6.92% of world nickel production). EDCA
-    // basing / joint-patrol framing is qualitative — no number invented.
-    paragraph:
-      'Manila has expanded EDCA basing access and joint patrols, even as two-way goods trade with China reached roughly $53B in 2024 and the Philippines supplies about 7% of world nickel production. Defense alignment is unambiguous; economic dependence is not.',
+    paragraphs: {
+      description:
+        'Despite its size and challenging geography, the Philippines has built one of the region’s most vibrant economies, led by a thriving services sector, and ranks as the world’s 35th-largest economy by nominal GDP. While Manila keeps extensive diplomatic and military ties with the U.S., it has built strong economic relations with regional partners, most notably China. With fast-developing infrastructure and growth regularly above 5%, it is poised to become a regional leader — though corruption and inequality remain pressing concerns.',
+      trade:
+        'Much of the Philippines’ recent success has been fuelled by trade. While a large share (~18% in April 2026) of exports flow to the U.S., the country is highly dependent on China for imports, with upwards of 29% of total imports originating in the PRC. Manila has also expanded EU ties, with bilateral goods trade of €17.6 billion in 2025; key exports include semiconductors, integrated circuits and critical minerals.',
+      minerals:
+        'Despite its size, the Philippines plays a growing role in critical-mineral supply chains, with vast and largely untapped reserves of nickel, copper and cobalt. It is now one of the world’s leading nickel exporters, with reserves estimated above $175 billion, most shipped as raw ore to China. The government has debated banning raw-nickel-ore exports to build refining capacity and move up the value chain.'
+    },
+    sources: {
+      description: 'BFNA research brief, Jun 2026.',
+      trade: 'Trade-share and EU figures: BFNA research brief, Jun 2026 (exports Apr 2026, EU 2025).',
+      minerals: 'Reserve and export figures: BFNA research brief, Jun 2026.'
+    },
     // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
     // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
     topExports: [
@@ -223,11 +279,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     flagUrl: flag('bn'),
     tagline: 'A petrostate with one revenue stream and three customers.',
     hero: COUNTRY_HERO.brunei,
-    // Anchors: only the generated China-trade hero (~$2.7B, 2024). No
-    // economic anchor for Brunei — the old "90%+ of exports" figure had no
-    // source and is softened to qualitative ("the overwhelming majority").
-    paragraph:
-      'Hydrocarbons are the overwhelming majority of exports. Two-way goods trade with China was roughly $2.7B in 2024. The hedge is single-resource — keep Japanese, Korean, and Chinese buyers liquid; defense balanced; sovereign wealth diversified abroad. Geopolitics is downstream of the LNG offtake schedule.',
+    paragraphs: {
+      description:
+        'Despite its small size and population, Brunei is an economic powerhouse, trailing only Singapore among Southeast Asian nations on the Human Development Index (60th globally). Its success rests almost entirely on sizable crude-oil and natural-gas reserves, exports of which account for over half of GDP. Since launching the Wawasan Brunei 2035 plan in 2007, the government has sought to diversify into sectors such as mining and financial services.',
+      trade:
+        'With a small internal market, Brunei is exceedingly trade-dependent: oil and gas make up 80% of total exports and 53.5% of GDP, most of it sold to Australia, China and Japan. Beyond hydrocarbons it relies heavily on imports — chiefly from fellow ASEAN states, though China’s footprint has grown. The Chinese-partnered Hengyi Industries petrochemical plant now accounts for upwards of 10% of Brunei’s total exports.',
+      minerals:
+        'With extremely limited landmass and an economy built around oil and gas, Brunei’s current role in the critical-mineral industry is minimal. The government has begun diversifying its energy portfolio and exploring new mineral sources. Mining is unlikely to expand much, but the country is positioned to become an important logistical hub in the regional supply chain.'
+    },
+    sources: {
+      description: 'BFNA research brief, Jun 2026.',
+      trade: 'Export-share and Hengyi figures: BFNA research brief, Jun 2026.',
+      minerals: 'BFNA research brief, Jun 2026.'
+    },
     // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
     // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
     topExports: [
@@ -249,10 +313,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     flagUrl: flag('kh'),
     tagline: 'Garments out, Chinese capital in.',
     hero: COUNTRY_HERO.cambodia,
-    // Anchors: only the generated China-trade hero (~$16B, 2024). No
-    // economic anchor for Cambodia — garment / Ream framing is qualitative.
-    paragraph:
-      'Cambodia exports finished garments to Western markets while Chinese capital underwrites the factories, ports, and grid — two-way goods trade with China was roughly $16B in 2024. The Ream naval base upgrade has formalised what trade and investment already implied.',
+    paragraphs: {
+      description:
+        'Cambodia, one of ASEAN’s smallest nations, has recovered from the COVID-19 pandemic and is experiencing real GDP growth of around 6%. It borders Thailand, Vietnam and Laos and holds direct access to the Gulf of Thailand through the Ream Naval Base, where China — its primary military partner — has secured a strategic foothold. While it leans strongly toward China, it continues to engage both the U.S. and the EU.',
+      trade:
+        'Cambodia’s key sectors are garments, agriculture and a recovering tourism industry. The U.S. is its largest single export destination at ~38% of total exports, with U.S. goods trade estimated at $15.7 billion in 2025 and EU trade at €4.3 billion in 2024. By comparison, China was its largest overall partner in 2025 at a record $19.73 billion, and accounts for 53% of approved FDI ($3.4 billion in 2024).',
+      minerals:
+        'Cambodia produces gold, clay, copper, gemstones and iron ore, but its critical-minerals sector remains largely underdeveloped, contributing only 3% of GDP. Other mineral commodities include limestone, salt, sand and gravel, steel and stone.'
+    },
+    sources: {
+      description: 'BFNA research brief, Jun 2026.',
+      trade: 'Bilateral-trade and FDI figures: BFNA research brief, Jun 2026 (U.S. 2025, EU 2024, China 2025).',
+      minerals: 'BFNA research brief, Jun 2026.'
+    },
     // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
     // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
     topExports: [
@@ -276,12 +349,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     flagUrl: flag('la'),
     tagline: 'A landlocked ledger denominated in Chinese yuan.',
     hero: COUNTRY_HERO.laos,
-    // Anchors: generated China-trade hero (~$7.3B, 2024);
-    // china_dev_finance_to_asean_2010_2021 (LAO $18.6B, the #3 recipient —
-    // larger than its annual two-way trade). Railway/hydropower is
-    // qualitative.
-    paragraph:
-      'The Boten-Vientiane railway didn’t just shorten a freight route — it re-anchored the Lao economy to Yunnan. China extended an estimated $18.6B in development finance over 2010–2021, more than its ~$7.3B in two-way goods trade with Laos in 2024. Hydropower exports follow the same logic: built with PRC capital, sold under PRC offtake.',
+    paragraphs: {
+      description:
+        'Small in size and population (8 million), Laos is the only landlocked country in Southeast Asia — a critical transit corridor bordered by China, Vietnam, Myanmar, Thailand and Cambodia. Its GDP grew 4.1% in 2024, but it is deeply dependent on China for infrastructure. As of 2026 a Chinese state-owned firm holds a 90% stake and 25-year concession over the national grid, and the $6 billion China–Laos Railway gives Beijing a controlling operational stake — making Laos the ASEAN member most structurally dependent on Beijing.',
+      trade:
+        'China is Laos’s dominant trade and investment partner by a commanding margin, with bilateral trade of roughly $6.29 billion in 2024. By comparison, U.S. goods trade totalled an estimated $2.1 billion in 2025 and EU goods trade around €500 million. Beijing’s dominance extends to debt: it owns roughly half of Laos’s $10.5 billion foreign debt.',
+      minerals:
+        'In 2024 Laos was the fourth-largest producer of refined bismuth (3.0% of global output) and the sixth-largest producer of potash (5.1%). As it develops its critical-minerals sector — particularly copper, tin and antimony — its importance is rapidly growing.'
+    },
+    sources: {
+      description: 'BFNA research brief, Jun 2026. (Total trade as % of GDP figure is a 2016 value.)',
+      trade: 'Bilateral-trade and debt figures: BFNA research brief, Jun 2026 (China 2024, U.S. 2025, EU 2025).',
+      minerals: 'BFNA research brief, Jun 2026 (2024).'
+    },
     // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
     // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
     topExports: [
@@ -306,13 +386,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     flagUrl: flag('mm'),
     tagline: 'Small in dollars, decisive in rare earths.',
     hero: COUNTRY_HERO.myanmar,
-    // Anchors: generated China-trade hero (~$13B, 2024);
-    // myanmarRareEarthsSharePct (~5.6% of world rare-earth mine production,
-    // USGS MCS2026, via data/asean/minerals.generated.ts). The post-2021-coup
-    // framing is qualitative (no invented figures). FIRST-PASS prose — flag for
-    // BFNA review.
-    paragraph:
-      'Two-way goods trade with China reached roughly $13B in 2024 — modest in dollar terms, outsized in dependence. Myanmar’s leverage is mineral: it supplies an estimated ~5.6% of world rare-earth mine production, much of it heavy rare earths feeding Chinese separation plants across the border. Since the 2021 coup that reliance on China — for trade, investment and arms — has only deepened, leaving Naypyidaw a partner more of necessity than of choice.',
+    paragraphs: {
+      description:
+        'One of the world’s most ethnically diverse nations, Myanmar has been in near-constant civil war since independence in 1948 and destabilized by repeated military coups, struggling to build a modern economy. Its large population and abundant resources have allowed sporadic bursts of rapid growth, and reforms from 2011 liberalized the economy with significant gains. Those gains were largely reversed after the 2021 coup, as violence and mismanagement drove spiralling inflation and poverty.',
+      trade:
+        'Despite sitting along busy maritime routes, Myanmar conducts most of its trade overland. Since 2021 the ruling junta has been isolated from many partners, including the U.S., which suspended its bilateral Trade and Investment Framework Agreement that March. As a result the government has deepened trade ties with neighbouring China, with bilateral trade reaching $19.4 billion in 2025.',
+      minerals:
+        'Myanmar is among the world’s richest sources of heavy rare-earth elements such as dysprosium and terbium, essential for advanced batteries. As part of its drive to dominate the critical-mineral industry, China has invested heavily in extracting these resources, often damaging local ecosystems. The U.S. and Europe have expressed interest in following suit, but the country’s instability has made inroads difficult.'
+    },
+    sources: {
+      description: 'BFNA research brief, Jun 2026.',
+      trade: 'China bilateral-trade figure: BFNA research brief, Jun 2026 (2025).',
+      minerals: 'BFNA research brief, Jun 2026.'
+    },
     // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
     // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
     topExports: [
