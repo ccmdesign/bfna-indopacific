@@ -52,6 +52,7 @@ const ISO3_TO_SLUG = {
   IDN: 'indonesia',
   KHM: 'cambodia',
   LAO: 'laos',
+  MMR: 'myanmar',
   MYS: 'malaysia',
   PHL: 'philippines',
   SGP: 'singapore',
@@ -61,8 +62,9 @@ const ISO3_TO_SLUG = {
 
 // trade_goods ISO3 codes that legitimately appear in the source but have no
 // profile. Anything outside ISO3_TO_SLUG and this set is source drift and
-// must fail loudly rather than being silently dropped.
-const IGNORE_ISO3 = new Set(['MMR'])
+// must fail loudly rather than being silently dropped. (MMR/Myanmar is now a
+// profiled country — see ISO3_TO_SLUG above.)
+const IGNORE_ISO3 = new Set([])
 
 // Fixed slug emission order. Mirrors the PROFILES key order in
 // country-profiles.ts so the regenerated diff stays stable and reviewable.
@@ -75,7 +77,8 @@ const SLUG_ORDER = [
   'philippines',
   'brunei',
   'cambodia',
-  'laos'
+  'laos',
+  'myanmar'
 ]
 
 const METRIC = 'trade_goods'
@@ -188,12 +191,12 @@ for (const slug of SLUG_ORDER) {
 }
 
 // Total contributing source rows must equal
-// 9 countries x 1 partner x 2 directions x 1 year = 18.
+// N countries x 1 partner x 2 directions x 1 year.
 const expectedRows = SLUG_ORDER.length * 2
 if (contributingRows !== expectedRows) {
   fail(
     `expected ${expectedRows} contributing ${METRIC} rows ` +
-      `(9 countries x 1 partner x 2 directions x 1 year), got ` +
+      `(${SLUG_ORDER.length} countries x 1 partner x 2 directions x 1 year), got ` +
       `${contributingRows}`
   )
 }

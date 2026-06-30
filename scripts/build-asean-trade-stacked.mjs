@@ -35,13 +35,14 @@ const OUT = path.join(ROOT, 'data/asean/trade-stacked.ts')
 const CHART_PARTNERS = ['CHN', 'USA', 'EU']
 
 // ISO3 -> country slug, mirroring the COUNTRIES record in
-// data/asean/country-tiers.ts. MMR (Myanmar) and the absent Timor-Leste are
-// intentionally excluded: not in tradeStackedBySlug, inert tier, no profile.
+// data/asean/country-tiers.ts. (The absent Timor-Leste stays excluded: inert
+// tier, no profile. Myanmar is now profiled — included below.)
 const ISO3_TO_SLUG = {
   BRN: 'brunei',
   IDN: 'indonesia',
   KHM: 'cambodia',
   LAO: 'laos',
+  MMR: 'myanmar',
   MYS: 'malaysia',
   PHL: 'philippines',
   SGP: 'singapore',
@@ -55,6 +56,7 @@ const SLUG_TO_NAME = {
   cambodia: 'Cambodia',
   indonesia: 'Indonesia',
   laos: 'Laos',
+  myanmar: 'Myanmar',
   malaysia: 'Malaysia',
   philippines: 'Philippines',
   singapore: 'Singapore',
@@ -71,7 +73,7 @@ const SLUG_TO_ISO3 = Object.fromEntries(
 // trade_goods ISO3 codes that legitimately appear in the source but are not
 // charted. Anything outside ISO3_TO_SLUG and this set is source drift and
 // must fail loudly rather than being silently dropped.
-const IGNORE_ISO3 = new Set(['MMR'])
+const IGNORE_ISO3 = new Set([])
 
 // Fixed slug emission order. Mirrors the current trade-stacked.ts so the
 // regenerated diff stays stable and reviewable.
@@ -84,7 +86,8 @@ const SLUG_ORDER = [
   'philippines',
   'brunei',
   'cambodia',
-  'laos'
+  'laos',
+  'myanmar'
 ]
 
 const METRIC = 'trade_goods'

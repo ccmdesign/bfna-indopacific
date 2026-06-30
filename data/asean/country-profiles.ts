@@ -298,6 +298,37 @@ export const PROFILES: Record<string, CountryProfile> = {
       { label: 'Machinery', valueUsdB: 0.5 },
       { label: 'Electrical apparatus', valueUsdB: 0.4 }
     ]
+  },
+
+  myanmar: {
+    slug: 'myanmar',
+    name: 'Myanmar',
+    flagUrl: flag('mm'),
+    tagline: 'Small in dollars, decisive in rare earths.',
+    hero: COUNTRY_HERO.myanmar,
+    // Anchors: generated China-trade hero (~$13B, 2024);
+    // myanmarRareEarthsSharePct (~5.6% of world rare-earth mine production,
+    // USGS MCS2026, via data/asean/minerals.generated.ts). The post-2021-coup
+    // framing is qualitative (no invented figures). FIRST-PASS prose — flag for
+    // BFNA review.
+    paragraph:
+      'Two-way goods trade with China reached roughly $13B in 2024 — modest in dollar terms, outsized in dependence. Myanmar’s leverage is mineral: it supplies an estimated ~5.6% of world rare-earth mine production, much of it heavy rare earths feeding Chinese separation plants across the border. Since the 2021 coup that reliance on China — for trade, investment and arms — has only deepened, leaving Naypyidaw a partner more of necessity than of choice.',
+    // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
+    // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
+    topExports: [
+      { label: 'Natural gas', valueUsdB: 3.5 },
+      { label: 'Rare earths', valueUsdB: 1.4 },
+      { label: 'Jade & gems', valueUsdB: 1.0 },
+      { label: 'Beans & pulses', valueUsdB: 0.8 },
+      { label: 'Garments', valueUsdB: 0.6 }
+    ],
+    // UNVERIFIED PLACEHOLDER — see topExports note above.
+    topImports: [
+      { label: 'Refined petroleum', valueUsdB: 1.6 },
+      { label: 'Machinery', valueUsdB: 0.9 },
+      { label: 'Fabric & textiles', valueUsdB: 0.7 },
+      { label: 'Vehicles & parts', valueUsdB: 0.5 }
+    ]
   }
 }
 

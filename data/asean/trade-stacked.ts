@@ -263,5 +263,31 @@ export const tradeStackedBySlug: Record<string, StackedAreaData> = {
       { year: 2023, CHN: 5972.1, USA: 432.5, EU: 604.9 },
       { year: 2024, CHN: 7344.7, USA: 869.4, EU: 584.8 }
     ]
+  },
+
+  myanmar: {
+    country: 'MMR',
+    country_name: 'Myanmar',
+    metric: 'Two-way trade',
+    unit: 'USD millions',
+    source: BASE_SOURCE,
+    partners: BASE_PARTNERS,
+    series: [
+      { year: 2010, CHN: 4063.9, USA: 31.8, EU: 283 },
+      { year: 2011, CHN: 6322.6, USA: 204.2, EU: 400 },
+      { year: 2012, CHN: 6893.8, USA: 95.9, EU: 413.7 },
+      { year: 2013, CHN: 9806.8, USA: 238.4, EU: 710.7 },
+      { year: 2014, CHN: 24906, USA: 231.6, EU: 1112.3 },
+      { year: 2015, CHN: 15768.3, USA: 353.3, EU: 1349.9 },
+      { year: 2016, CHN: 13419.7, USA: 584, EU: 1728.6 },
+      { year: 2017, CHN: 12954, USA: 1091.8, EU: 2535.2 },
+      { year: 2018, CHN: 15202.1, USA: 1090.9, EU: 3849.2 },
+      { year: 2019, CHN: 16096.4, USA: 1441.7, EU: 4535.1 },
+      { year: 2020, CHN: 15678.2, USA: 1590, EU: 4248 },
+      { year: 2021, CHN: 14019.6, USA: 1216.6, EU: 3929.6 },
+      { year: 2022, CHN: 20304, USA: 1321.9, EU: 5533.9 },
+      { year: 2023, CHN: 15637.8, USA: 1104.7, EU: 4760.8 },
+      { year: 2024, CHN: 12643.8, USA: 787.6, EU: 4484.8 }
+    ]
   }
 }

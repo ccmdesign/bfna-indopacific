@@ -88,7 +88,7 @@ export const COUNTRIES: Record<string, CountryDescriptor> = {
     slug: 'myanmar',
     name: 'Myanmar',
     flag: '🇲🇲',
-    tier: 'inert'
+    tier: 'stretch'
   },
   timor_leste: {
     id: '626',
