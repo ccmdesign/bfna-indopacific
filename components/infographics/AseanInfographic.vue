@@ -63,6 +63,15 @@ const activeMinerals = computed(() =>
   activeSlug.value ? MINERALS_BY_SLUG[activeSlug.value] : undefined
 )
 
+// Some slugs have no minerals record at all (e.g. Timor-Leste — absent from
+// USGS MCS2026 world-share production AND the nickel-chain flows, so both chart
+// faces render empty). On the Critical Minerals tab, swap those empty cards for
+// an honest null state. Countries with a hasMaterialData:false stub are NOT
+// null — their components render the designed low-data state.
+const mineralsNullState = computed(
+  () => tab.value === 'minerals' && !activeMinerals.value
+)
+
 // Tab = the single source of truth for the focused sidebar view (BF-72 U3).
 // "description" (default) shows the hero number + label + narrative paragraph;
 // "trade" / "minerals" show the two chart cards, with the Trade<->Minerals flip
@@ -383,8 +392,9 @@ watch(
           </Transition>
 
           <!-- Tornado bars: indicative top exports & imports (front) / share of
-               world mine production (back). -->
-          <div class="asean-infographic__panel">
+               world mine production (back). Hidden on the Minerals tab when the
+               country has no minerals data (null state below takes over). -->
+          <div v-show="!mineralsNullState" class="asean-infographic__panel">
             <CardFlip :flipped="tab === 'minerals'">
               <template #front>
                 <CountryChartCard
@@ -419,8 +429,9 @@ watch(
           </div>
 
           <!-- Stacked area: trade flows with the US, China, EU since 2010 (front)
-               / mineral flows by destination (back). -->
-          <div v-if="activeTradeStacked" class="asean-infographic__panel">
+               / mineral flows by destination (back). Hidden on the Minerals tab
+               when the country has no minerals data (null state below). -->
+          <div v-if="activeTradeStacked" v-show="!mineralsNullState" class="asean-infographic__panel">
             <CardFlip :flipped="tab === 'minerals'">
               <template #front>
                 <CountryChartCard
@@ -453,6 +464,19 @@ watch(
                 </CountryChartCard>
               </template>
             </CardFlip>
+          </div>
+
+          <!-- Minerals null state (BF follow-up): shown only on the Critical
+               Minerals tab for countries with no minerals record at all (e.g.
+               Timor-Leste). Replaces the two empty chart cards; the minerals
+               prose above still gives the qualitative context. -->
+          <div v-if="mineralsNullState" class="asean-infographic__minerals-empty">
+            <p class="asean-infographic__minerals-empty-title">Not yet on the critical-minerals map</p>
+            <p class="asean-infographic__minerals-empty-body">
+              {{ activeProfile.name }} has no world-share mine production or
+              nickel-chain trade recorded in the source data (USGS MCS2026 · BACI
+              2024) — its reserves remain largely untapped.
+            </p>
           </div>
         </section>
       </aside>
@@ -777,6 +801,34 @@ watch(
 .asean-infographic__panel > * {
   flex: 1;
   min-width: 0;
+}
+
+/* Minerals null state: a quiet card-height message that stands in for the two
+   empty chart cards when a country has no minerals data (e.g. Timor-Leste). */
+.asean-infographic__minerals-empty {
+  flex: 0 0 auto;
+  pointer-events: auto;
+  padding: clamp(16px, 2.4vh, 24px);
+  border: 1px dashed rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.asean-infographic__minerals-empty-title {
+  margin: 0 0 6px;
+  font-family: 'Encode Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.asean-infographic__minerals-empty-body {
+  margin: 0;
+  font-family: 'Encode Sans', sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.55);
 }
 
 /* --- Focused-panel choreography (R6/D4) --- */
