@@ -219,20 +219,6 @@ watch(
       @expand="userExpanded = true"
     />
 
-    <!-- Back to full map (focused state). Nulls activeSlug → restores the idle
-         calibrated frame in AseanMap. Replaces the old in-sidebar back button. -->
-    <Transition name="intro-fade">
-      <button
-        v-if="activeProfile"
-        type="button"
-        class="asean-infographic__backmap"
-        @click="onActiveSlugUpdate(null)"
-      >
-        <span class="asean-infographic__backmap-glyph" aria-hidden="true">←</span>
-        Full map
-      </button>
-    </Transition>
-
     <!-- Focused-state country switcher (BF-76 follow-up): a horizontal carousel
          of country titles across the top. The active country is the large title;
          clicking a neighbour docks it. Replaces the flag + typed-name identity. -->
@@ -573,8 +559,11 @@ watch(
      hero + paragraph and the chart panels more room. */
   width: clamp(340px, 34vw, 600px);
   box-sizing: border-box;
-  /* Top padding clears the country-title carousel pinned across the top. */
-  padding: clamp(104px, 15vh, 150px) clamp(20px, 2vw, 32px) clamp(20px, 3vh, 40px);
+  /* Top padding clears the country-title carousel pinned across the top.
+     Bottom padding clears the fixed 4rem footer strip so the last content item
+     scrolls fully above the footer's shaded area instead of behind it. */
+  padding: clamp(104px, 15vh, 150px) clamp(20px, 2vw, 32px)
+    calc(4rem + clamp(20px, 3vh, 40px));
   display: flex;
   flex-direction: column;
   gap: clamp(14px, 2vh, 24px);
@@ -586,56 +575,24 @@ watch(
     rgba(2, 38, 64, 0) 0%,
     rgba(2, 38, 64, 0.55) 26%
   );
+  /* Top fade: scrolled content stays fully masked until 12px below the top
+     country-name reel, then ramps up to full opacity — so nothing bleeds behind
+     that strip. Reel bottom = 52px active line + 2·switcher pad clamp(16,3vh,32);
+     the flat transparent band runs to reel-bottom + 12px, then ~40px of fade. */
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(64px + clamp(32px, 6vh, 64px)),
+    #000 calc(104px + clamp(32px, 6vh, 64px))
+  );
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent calc(64px + clamp(32px, 6vh, 64px)),
+    #000 calc(104px + clamp(32px, 6vh, 64px))
+  );
 }
 
-/* Back-to-full-map control (focused state). Glass pill bottom-left over the
-   ocean, clear of the right-hand sidebar. Matches the idle Legend pill. */
-.asean-infographic__backmap {
-  position: absolute;
-  bottom: clamp(16px, 4vh, 40px);
-  left: clamp(12px, 1.5vw, 28px);
-  z-index: 25;
-  appearance: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 9px 16px 9px 13px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 999px;
-  background: rgba(2, 38, 64, 0.5);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
-  color: rgba(255, 255, 255, 0.9);
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  pointer-events: auto;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.asean-infographic__backmap:hover {
-  background: rgba(2, 38, 64, 0.7);
-  color: #fff;
-}
-
-.asean-infographic__backmap:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.5);
-  outline-offset: 1px;
-}
-
-.asean-infographic__backmap-glyph {
-  font-size: 15px;
-  line-height: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .asean-infographic__backmap {
-    transition: none;
-  }
-}
 
 /* Top block: tabs + hero (left) beside the flag panel (right). align-items
    flex-start so the flag's top lines up with the tabs' top. */
