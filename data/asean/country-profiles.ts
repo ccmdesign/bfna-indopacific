@@ -415,6 +415,39 @@ export const PROFILES: Record<string, CountryProfile> = {
       { label: 'Fabric & textiles', valueUsdB: 0.7 },
       { label: 'Vehicles & parts', valueUsdB: 0.5 }
     ]
+  },
+
+  timor_leste: {
+    slug: 'timor_leste',
+    name: 'Timor-Leste',
+    flagUrl: flag('tl'),
+    tagline: 'A young petro-economy inching into the minerals game.',
+    hero: COUNTRY_HERO.timor_leste,
+    paragraphs: {
+      description:
+        'One of the world’s youngest nations, Timor-Leste is a small, developing economy the UN lists as a Least Developed Country. Since regaining independence from Indonesia in 2002, it has seen modest growth fuelled by government spending, foreign direct investment and a growing petrochemicals industry. Further growth has been hampered by insufficient infrastructure, lagging job creation and a decentralized, heavily rural population.',
+      trade:
+        'Timor-Leste relies heavily on trade, with exports dominated by crude oil — much of it flowing to Thailand and the U.S. — and limited domestic manufacturing leaving it dependent on imports of refined oil and rice. China accounts for a significant share of those imports, at approximately $266 million in 2024. Bilateral trade with the EU remains limited (€17 million in 2025), though the two sides have signed several agreements to boost trade and investment.',
+      minerals:
+        'Timor-Leste’s role in the critical-mineral supply chain is currently minimal, but it is taking steps to expand its footprint. The country is believed to hold significant, largely untapped reserves of nickel, copper and manganese. Since 2020 foreign firms have invested in mining, including Australia’s Estrella Resources, which secured rights to mine manganese in the northern regions — investments welcomed by a government keen to diversify beyond oil and gas.'
+    },
+    sources: {
+      description: 'BFNA research brief, Jun 2026.',
+      trade: 'Bilateral-trade figures: BFNA research brief, Jun 2026 (China 2024, EU 2025).',
+      minerals: 'BFNA research brief, Jun 2026.'
+    },
+    // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
+    // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
+    topExports: [
+      { label: 'Crude petroleum', valueUsdB: 0.4 },
+      { label: 'Coffee', valueUsdB: 0.02 }
+    ],
+    // UNVERIFIED PLACEHOLDER — see topExports note above.
+    topImports: [
+      { label: 'Refined petroleum', valueUsdB: 0.2 },
+      { label: 'Rice', valueUsdB: 0.05 },
+      { label: 'Machinery', valueUsdB: 0.05 }
+    ]
   }
 }
 

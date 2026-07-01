@@ -95,7 +95,7 @@ export const COUNTRIES: Record<string, CountryDescriptor> = {
     slug: 'timor_leste',
     name: 'Timor-Leste',
     flag: '🇹🇱',
-    tier: 'inert'
+    tier: 'stretch'
   }
 }
 
