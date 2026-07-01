@@ -37,7 +37,7 @@ const COUNTRIES = {
   '116': { tier: 'stretch', slug: 'cambodia', expectedName: 'Cambodia' },
   '418': { tier: 'stretch', slug: 'laos', expectedName: 'Laos' },
   '104': { tier: 'inert', slug: 'myanmar', expectedName: 'Myanmar' },
-  '626': { tier: 'inert', slug: 'timor_leste', expectedName: 'Timor-Leste' },
+  '626': { tier: 'stretch', slug: 'timor_leste', expectedName: 'Timor-Leste' },
   '156': { tier: 'context', slug: 'china', expectedName: 'China' },
   '356': { tier: 'context', slug: 'india', expectedName: 'India' },
   '036': { tier: 'context', slug: 'australia', expectedName: 'Australia' }
