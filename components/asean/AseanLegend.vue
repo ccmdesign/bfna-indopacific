@@ -148,7 +148,7 @@ function onLeave() {
   grid-auto-flow: column;
   grid-template-rows: repeat(6, auto);
   justify-items: end;
-  gap: clamp(2px, 0.6vh, 8px) clamp(24px, 3vw, 52px);
+  gap: clamp(6px, 1vh, 10px) clamp(32px, 5vw, 72px);
 }
 
 /* Mirrors AseanCountrySwitcher: Encode Sans Condensed, thin, dim with
@@ -160,11 +160,11 @@ function onLeave() {
   padding: 2px 0;
   font-family: 'Encode Sans Condensed', 'Encode Sans', sans-serif;
   font-weight: 300;
-  font-size: clamp(20px, 1.8vw, 28px);
+  font-size: clamp(18px, 1.53vw, 22px);
   line-height: 1.15;
   letter-spacing: 0.01em;
   text-align: right;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.75);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
   cursor: pointer;
   transition: color 0.2s ease;

@@ -480,16 +480,16 @@ watch(
   margin: 0;
   font-size: clamp(3.5rem, 8vw, 7rem);
   font-weight: 100;
-  line-height: 1;
+  line-height: 1.02;
   letter-spacing: 0.05em;
   color: #fff;
 }
 
 /* Tier 2: "Pivot of the Indo-Pacific" — line break, smaller than ASEAN,
-   larger than the subtitle. */
+   larger than the subtitle. ~20px below ASEAN to match the design. */
 .asean-infographic__intro-title-sub {
   display: block;
-  margin-top: 0.2em;
+  margin-top: clamp(12px, 1.4vw, 20px);
   font-size: clamp(1.5rem, 2.4vw, 2.125rem);
   font-weight: 500;
   letter-spacing: -0.01em;
@@ -498,10 +498,10 @@ watch(
 
 .asean-infographic__intro-subtitle {
   margin: 0;
-  font-size: clamp(1rem, 1.4vw, 1.4rem);
+  font-size: clamp(1.125rem, 1.4vw, 1.25rem);
   font-weight: 400;
   line-height: 1.3;
-  color: hsl(218, 70%, 88%);
+  color: #cbdbf6;
 }
 
 .asean-infographic__intro-blurb {
