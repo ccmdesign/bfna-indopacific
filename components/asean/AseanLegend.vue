@@ -131,7 +131,9 @@ function onLeave() {
 .asean-legend__menu {
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: flex-start;
+  /* Same column as the intro block, so the grid's left edge lines up with it. */
+  width: var(--intro-w, clamp(200px, 28vw, 384px));
   max-height: 56svh;
   overflow-y: auto;
 }
@@ -144,11 +146,13 @@ function onLeave() {
   list-style: none;
   margin: 0;
   padding: 0;
+  width: 100%;
   display: grid;
   grid-auto-flow: column;
+  grid-template-columns: 1fr 1fr;
   grid-template-rows: repeat(6, auto);
-  justify-items: end;
-  gap: clamp(6px, 1vh, 10px) clamp(32px, 5vw, 72px);
+  justify-items: start;
+  gap: clamp(6px, 1vh, 10px) clamp(16px, 2vw, 32px);
 }
 
 /* Mirrors AseanCountrySwitcher: Encode Sans Condensed, thin, dim with
@@ -163,7 +167,7 @@ function onLeave() {
   font-size: clamp(18px, 1.53vw, 22px);
   line-height: 1.15;
   letter-spacing: 0.01em;
-  text-align: right;
+  text-align: left;
   color: rgba(255, 255, 255, 0.75);
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
   cursor: pointer;

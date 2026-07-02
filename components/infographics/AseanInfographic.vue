@@ -452,15 +452,17 @@ watch(
   width: 100svw;
   height: 100svh;
   z-index: 10;
+  /* Shared idle-sidebar column width — set by the ASEAN masthead (~3.4x its
+     font-size incl. tracking). The intro block and the country legend both use
+     it so they align to one left edge and one width. */
+  --intro-w: clamp(200px, 28vw, 384px);
 }
 
 /* Idle intro — top-right quadrant. Sits on the dark map, no card chrome. */
 .asean-infographic__intro {
-  /* Fixed-width, left-aligned text block pinned to the top-right. The column
-     width is set by the ASEAN masthead (~3.4x its font-size incl. tracking);
-     every line — title, subhead, subtitle, blurb — shares it, so the four read
-     as one justified block and long lines wrap within it (not fanned out). */
-  --intro-w: clamp(200px, 28vw, 384px);
+  /* Fixed-width, left-aligned text block pinned to the top-right. Shares
+     --intro-w (declared on .asean-infographic) with the country legend so both
+     line up to one left edge; long lines wrap within it (not fanned out). */
   position: absolute;
   top: 0;
   right: 0;
