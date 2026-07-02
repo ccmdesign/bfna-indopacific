@@ -185,22 +185,6 @@ watch(
       @update:active-slug="onActiveSlugUpdate"
     />
 
-    <!-- Floating country legend (BF-76 A1/A2): left-edge over the ocean. Lists
-         all 11 countries (incl. the hard-to-click ones) + an Overview entry to
-         return to the full map. Collapses to a pill when it would overlap land. -->
-    <!-- Idle-only: once a country is docked, switching happens via the top
-         country-title carousel, so the vertical legend would be redundant (and
-         its expanded list overlaps the carousel). Back-to-map is the pill below. -->
-    <AseanLegend
-      v-if="!activeProfile"
-      :active-slug="activeSlug"
-      :collapsed="shouldCollapse"
-      @select="onActiveSlugUpdate"
-      @overview="onActiveSlugUpdate(null)"
-      @hover="legendHoverSlug = $event"
-      @expand="userExpanded = true"
-    />
-
     <!-- Focused-state country switcher (BF-76 follow-up): a horizontal carousel
          of country titles across the top. The active country is the large title;
          clicking a neighbour docks it. Replaces the flag + typed-name identity. -->
@@ -213,21 +197,34 @@ watch(
       />
     </Transition>
 
-    <!-- Idle intro: top-right quadrant. Infographic title + subtitle + blurb,
-         shown only when no country is selected. -->
+    <!-- Idle sidebar: the intro block (title + subtitle + blurb) and the country
+         legend, grouped in one fixed right-side column and stacked. Shown only
+         when no country is docked. The map stays clickable through the gaps
+         (sidebar is pointer-events:none; the legend opts its buttons back in). -->
     <Transition name="intro-fade">
-      <header v-if="!activeSlug" class="asean-infographic__intro">
-        <h1 class="asean-infographic__intro-title">ASEAN<span class="asean-infographic__intro-title-sub">Pivot of the Indo-Pacific</span></h1>
-        <p class="asean-infographic__intro-subtitle">
-          How Southeast Asia's economies balance the United States, China, and the EU
-        </p>
-        <p class="asean-infographic__intro-blurb">
-          An interactive map of ASEAN member states and their economic, strategic, and
-          resource ties to the three great powers. Select a country to explore its trade
-          balance, its trade flows with the US, China, and the EU since 2010, and its
-          critical-mineral leverage.
-        </p>
-      </header>
+      <div v-if="!activeSlug" class="asean-infographic__idle">
+        <header class="asean-infographic__intro">
+          <h1 class="asean-infographic__intro-title">ASEAN<span class="asean-infographic__intro-title-sub">Pivot of the Indo-Pacific</span></h1>
+          <p class="asean-infographic__intro-subtitle">
+            How Southeast Asia's economies balance the United States, China, and the EU
+          </p>
+          <p class="asean-infographic__intro-blurb">
+            An interactive map of ASEAN member states and their economic, strategic, and
+            resource ties to the three great powers. Select a country to explore its trade
+            balance, its trade flows with the US, China, and the EU since 2010, and its
+            critical-mineral leverage.
+          </p>
+        </header>
+
+        <AseanLegend
+          :active-slug="activeSlug"
+          :collapsed="shouldCollapse"
+          @select="onActiveSlugUpdate"
+          @overview="onActiveSlugUpdate(null)"
+          @hover="legendHoverSlug = $event"
+          @expand="userExpanded = true"
+        />
+      </div>
     </Transition>
 
     <!-- Focused-state right sidebar. Selecting a country stacks the identity
@@ -459,28 +456,36 @@ watch(
 }
 
 /* Idle intro — top-right quadrant. Sits on the dark map, no card chrome. */
-.asean-infographic__intro {
-  /* Fixed-width, left-aligned text block pinned to the top-right. Shares
-     --intro-w (declared on .asean-infographic) with the country legend so both
-     line up to one left edge; long lines wrap within it (not fanned out). */
-  position: absolute;
+/* Idle sidebar: the intro block + country legend, grouped and stacked on the
+   right. Fixed to the right edge, content-height (top-anchored). Map stays
+   clickable through the gaps — pointer-events:none here; the legend re-enables
+   its own buttons. Every line shares --intro-w so the whole column is one width. */
+.asean-infographic__idle {
+  position: fixed;
   top: 0;
   right: 0;
-  width: fit-content;
   max-width: 50svw;
-  max-height: 50svh;
   box-sizing: border-box;
   padding: clamp(28px, 5vh, 64px) clamp(24px, 3vw, 56px);
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 14px;
+  gap: clamp(24px, 5vh, 52px);
   z-index: 20;
   color: rgba(255, 255, 255, 0.92);
   font-family: 'Encode Sans', sans-serif;
   text-align: left;
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
   pointer-events: none;
+}
+
+/* Intro text block — just the stacked title / subtitle / blurb; positioning and
+   padding live on the .asean-infographic__idle sidebar above. */
+.asean-infographic__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
 }
 
 .asean-infographic__intro-title,

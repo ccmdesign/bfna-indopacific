@@ -101,29 +101,12 @@ function onLeave() {
 </template>
 
 <style scoped>
-/* Anchored over the left-edge ocean band, vertically centered. Sits inside the
-   infographic's pointer-events:none overlay, so it opts pointer events back in
-   (mirrors .asean-infographic__tabs). */
+/* In-flow inside the idle sidebar (.asean-infographic__idle), stacked below the
+   intro — the sidebar owns positioning. Opts pointer events back in for its
+   buttons since the sidebar overlay is pointer-events:none. */
 .asean-legend {
-  position: absolute;
-  /* Idle: docked under the top-right intro (title + subtitle + blurb) so the
-     right edge reads top-down: title -> subtitle -> blurb -> country grid.
-     The intro is capped at 50svh, so anchor just below that band (+ a gap) to
-     clear it at any viewport. right matches the intro's right padding. */
-  top: calc(50svh + clamp(16px, 3vh, 32px));
-  right: clamp(24px, 3vw, 56px);
-  z-index: 25;
   pointer-events: auto;
   font-family: 'Encode Sans', sans-serif;
-}
-
-/* Collapsed pill (shows when a country is docked): anchor bottom-left, clear of
-   the right-hand focused sidebar that owns the right edge in that state. */
-.asean-legend--collapsed {
-  top: auto;
-  right: auto;
-  bottom: clamp(16px, 4vh, 40px);
-  left: clamp(12px, 1.5vw, 28px);
 }
 
 /* Stacked list, no card chrome — names sit directly on the map (reel style),
