@@ -456,22 +456,35 @@ watch(
 
 /* Idle intro — top-right quadrant. Sits on the dark map, no card chrome. */
 .asean-infographic__intro {
+  /* Fixed-width, left-aligned text block pinned to the top-right. The column
+     width is set by the ASEAN masthead (~3.4x its font-size incl. tracking);
+     every line — title, subhead, subtitle, blurb — shares it, so the four read
+     as one justified block and long lines wrap within it (not fanned out). */
+  --intro-w: clamp(200px, 28vw, 384px);
   position: absolute;
   top: 0;
   right: 0;
-  width: 50svw;
+  width: fit-content;
+  max-width: 50svw;
   max-height: 50svh;
   box-sizing: border-box;
   padding: clamp(28px, 5vh, 64px) clamp(24px, 3vw, 56px);
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: 14px;
   z-index: 20;
   color: rgba(255, 255, 255, 0.92);
   font-family: 'Encode Sans', sans-serif;
-  text-align: right;
+  text-align: left;
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
   pointer-events: none;
+}
+
+.asean-infographic__intro-title,
+.asean-infographic__intro-subtitle,
+.asean-infographic__intro-blurb {
+  width: var(--intro-w);
 }
 
 /* Tier 1: "ASEAN" — large, thin, airy. A tracked-out Encode Sans Thin display
@@ -506,8 +519,6 @@ watch(
 
 .asean-infographic__intro-blurb {
   margin: 4px 0 0;
-  max-width: 46ch;
-  align-self: flex-end;
   font-size: clamp(0.85rem, 1vw, 1rem);
   font-weight: 400;
   line-height: 1.5;
