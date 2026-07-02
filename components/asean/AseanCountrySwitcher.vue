@@ -13,6 +13,9 @@ import { COUNTRIES } from '~/data/asean/country-tiers'
 const props = defineProps<{
   /** Currently docked country slug. Marks its title active + anchors the reel. */
   activeSlug: string
+  /** Flag of the active country. Rendered as a badge over the active title;
+      fades out (revealing the reel) when the top strip is hovered/focused. */
+  flagUrl?: string
 }>()
 
 const emit = defineEmits<{
@@ -43,9 +46,23 @@ const COPIES = [0, 1, 2]
 
 const SLIDE_MS = 500
 
+// Flag badge geometry. The badge is a fixed box sitting just left of the active
+// title (FLAG_GAP between them), vertically centred on the reel line.
+const FLAG_W = 66
+const FLAG_GAP = 12
+
 const rootEl = ref<HTMLElement | null>(null)
 const trackEl = ref<HTMLElement | null>(null)
 const translateX = ref(0)
+// Left offset for the flag badge, kept in sync with the reel anchor (focalX) so
+// it rides the active title across responsive resizes and every switch.
+const flagX = ref(0)
+// After a country switch we re-assert the new flag for a beat even if the
+// pointer is still over the strip — otherwise the reveal (hover) would keep the
+// just-selected flag hidden. `.is-settling` suppresses the hover/focus reveal.
+const SETTLE_MS = 1100
+const settling = ref(false)
+let settleTimer: ReturnType<typeof setTimeout> | null = null
 const noTransition = ref(false)
 // Flat slot index (0 .. 3N-1) anchored at the focal x. Normalised into the middle
 // copy [N, 2N) after each slide so it's a true infinite cycle.
@@ -72,7 +89,10 @@ function focalX(): number {
 function applyTranslate() {
   const slot = trackEl.value?.querySelector(`[data-flat="${focalFlat.value}"]`) as HTMLElement | null
   if (!slot) return
-  translateX.value = Math.round(focalX() - slot.offsetLeft)
+  const anchor = focalX()
+  translateX.value = Math.round(anchor - slot.offsetLeft)
+  // Badge hangs just left of the active title's left edge (= the anchor).
+  flagX.value = Math.round(anchor - FLAG_W - FLAG_GAP)
 }
 
 // After the slide, re-home the focal slot into the middle copy without animating.
@@ -122,7 +142,7 @@ function onKeydown(e: KeyboardEvent) {
 // the change came from here, else the middle-copy instance.
 watch(
   () => props.activeSlug,
-  (slug) => {
+  (slug, prev) => {
     if (!slug) return
     const i = rows.value.findIndex((r) => r.slug === slug)
     if (i === -1) return
@@ -135,6 +155,14 @@ watch(
     pendingFlat = null
     focalFlat.value = flat
     nextTick(() => { applyTranslate(); scheduleReHome() })
+
+    // Real switch (not the initial dock): flash the new flag back in, then hand
+    // control back to the hover/focus reveal.
+    if (prev && prev !== slug) {
+      settling.value = true
+      if (settleTimer) clearTimeout(settleTimer)
+      settleTimer = setTimeout(() => { settling.value = false }, SETTLE_MS)
+    }
   },
   { immediate: true }
 )
@@ -149,11 +177,18 @@ onMounted(() => {
 onBeforeUnmount(() => {
   ro?.disconnect()
   if (snapTimer) clearTimeout(snapTimer)
+  if (settleTimer) clearTimeout(settleTimer)
 })
 </script>
 
 <template>
-  <nav ref="rootEl" class="asean-switcher" aria-label="Switch country" @keydown="onKeydown">
+  <nav
+    ref="rootEl"
+    class="asean-switcher"
+    :class="{ 'is-settling': settling }"
+    aria-label="Switch country"
+    @keydown="onKeydown"
+  >
     <div
       ref="trackEl"
       class="asean-switcher__track"
@@ -176,6 +211,18 @@ onBeforeUnmount(() => {
         >{{ row.name }}</button>
       </template>
     </div>
+
+    <!-- Flag badge over the active title. Decorative + click-through: hovering
+         it hits the title underneath, which drives the reveal. Fades out (and
+         the reel brightens) whenever the strip is hovered or keyboard-focused. -->
+    <img
+      v-if="flagUrl && activeSlug"
+      class="asean-switcher__flag"
+      :src="flagUrl"
+      alt=""
+      aria-hidden="true"
+      :style="{ left: `${flagX}px` }"
+    />
   </nav>
 </template>
 
@@ -206,6 +253,40 @@ onBeforeUnmount(() => {
   transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* Flag badge: pinned just left of the active title, vertically centred on the
+   reel line, on top of the (dimmed) reel. pointer-events:none so it never eats
+   a click meant for the title beneath it. */
+.asean-switcher__flag {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 66px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 5px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.15),
+    0 6px 18px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 280ms ease;
+  z-index: 1;
+}
+
+/* The reveal: hovering any title (the flag is click-through, so hovering it
+   counts as hovering the active title under it) or keyboard-focusing the strip
+   fades the flag out and lifts the reel to full opacity.
+   Gated by :not(.is-settling): right after a switch we re-assert the new flag
+   for a beat even if the pointer is still over the strip (see `settling`). */
+.asean-switcher:not(.is-settling):has(.asean-switcher__name:hover) .asean-switcher__name:not(.is-active):not(.is-inert),
+.asean-switcher:not(.is-settling):focus-within .asean-switcher__name:not(.is-active):not(.is-inert) {
+  opacity: 1;
+}
+.asean-switcher:not(.is-settling):has(.asean-switcher__name:hover) .asean-switcher__flag,
+.asean-switcher:not(.is-settling):focus-within .asean-switcher__flag {
+  opacity: 0;
+}
+
 .asean-switcher__name {
   appearance: none;
   border: none;
@@ -222,15 +303,22 @@ onBeforeUnmount(() => {
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.55);
   cursor: pointer;
   pointer-events: auto;
-  /* Colour only — size must NOT transition: the reel measures each title's
-     offset right after a switch to anchor it, and an in-flight size animation
-     would make that measurement (and the anchor) drift. The track slide carries
-     the motion instead. */
-  transition: color 0.2s ease;
+  /* Colour + opacity only — size must NOT transition: the reel measures each
+     title's offset right after a switch to anchor it, and an in-flight size
+     animation would make that measurement (and the anchor) drift. The track
+     slide carries the motion instead. */
+  transition: color 0.2s ease, opacity 0.28s ease;
 }
 
 .asean-switcher__name:hover {
   color: rgba(255, 255, 255, 0.85);
+}
+
+/* Non-active titles are the reel: heavily dimmed at rest (the flag badge is the
+   crisp element), lifted to full on the reveal (see below). The active title is
+   deliberately excluded — it always stays at full opacity. */
+.asean-switcher__name:not(.is-active):not(.is-inert) {
+  opacity: var(--reel-rest, 0.28);
 }
 
 .asean-switcher__name.is-active {
@@ -238,6 +326,7 @@ onBeforeUnmount(() => {
   line-height: 52px;
   font-weight: 400;
   color: #fff;
+  opacity: 1;
   cursor: default;
 }
 
@@ -258,7 +347,8 @@ onBeforeUnmount(() => {
 
 @media (prefers-reduced-motion: reduce) {
   .asean-switcher__track,
-  .asean-switcher__name {
+  .asean-switcher__name,
+  .asean-switcher__flag {
     transition: none;
   }
 }

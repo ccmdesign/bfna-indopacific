@@ -155,46 +155,19 @@ function onActiveSlugUpdate(next: string | null) {
 // declarative on the `activeSlug` key — all in sync with the map re-zoom.
 const { displayText: heroValue, play: playHero, set: setHero } = useScramble()
 
-// --- Flag 3D flip (reactivated, now a large panel beside the tabs/hero) ------
-// CardFlip shows `front` when flagFlipped=false, `back` when true. Each switch is
-// ONE 180° rotation: drop the incoming flag onto the currently-hidden face, then
-// flip to it. No snap back to a "home" orientation (that snap was a second
-// animated rotation — the double-spin), so the direction simply alternates each
-// switch. CardFlip cross-fades under reduced motion. First open shows flagFront.
-const FLAG_FLIP_MS = 700
-const flagFront = ref('')
-const flagBack = ref('')
-const flagFlipped = ref(false)
-
-function flipFlagTo(nextUrl: string) {
-  if (flagFlipped.value) {
-    flagFront.value = nextUrl
-    flagFlipped.value = false
-  } else {
-    flagBack.value = nextUrl
-    flagFlipped.value = true
-  }
-}
-
-// Single orchestrator (immediate, so first open seeds the settled values).
-// - country<->country switch: scramble the hero number + flip the flag (paragraph
-//   cross-fade is declarative via <Transition> keyed on activeSlug, in sync).
-// - first open / re-seed: set the hero + flag with no animation (panel-rise
-//   entrance unchanged). - deselect (!next): leave values for the leave anim.
+// --- Hero number choreography ------------------------------------------------
+// The flag now lives in the top country reel (AseanCountrySwitcher) as a badge
+// that fades to reveal the reel on hover — see that component. Here we only drive
+// the hero big-number: scramble on a country<->country switch, set instantly on
+// first open / re-seed. Deselect (!next) leaves the value for the leave anim.
 watch(
   activeSlug,
   (next, prev) => {
     if (!next) return
     const profile = profileBySlug(next)
     if (!profile) return
-    if (prev && prev !== next) {
-      playHero(profile.hero.value)
-      flipFlagTo(profile.flagUrl)
-    } else {
-      setHero(profile.hero.value)
-      flagFront.value = profile.flagUrl
-      flagFlipped.value = false
-    }
+    if (prev && prev !== next) playHero(profile.hero.value)
+    else setHero(profile.hero.value)
   },
   { immediate: true }
 )
@@ -235,6 +208,7 @@ watch(
       <AseanCountrySwitcher
         v-if="activeProfile"
         :active-slug="activeSlug ?? ''"
+        :flag-url="activeProfile.flagUrl"
         @select="onActiveSlugUpdate"
       />
     </Transition>
@@ -312,19 +286,6 @@ watch(
                 {{ activeProfile.hero.label }}
               </span>
             </div>
-          </div>
-
-          <!-- Flag panel (reactivated). Flips on country switch via CardFlip; the
-               faces stretch to the fixed box. Decorative — alt names the country. -->
-          <div class="asean-infographic__flag" aria-hidden="true">
-            <CardFlip :flipped="flagFlipped" :duration-ms="FLAG_FLIP_MS">
-              <template #front>
-                <img :src="flagFront" :alt="`Flag of ${activeProfile.name}`" class="asean-infographic__flag-img" />
-              </template>
-              <template #back>
-                <img :src="flagBack" alt="" class="asean-infographic__flag-img" />
-              </template>
-            </CardFlip>
           </div>
         </div>
 
@@ -513,13 +474,14 @@ watch(
   pointer-events: none;
 }
 
-/* Tier 1: "ASEAN" — largest, boldest. */
+/* Tier 1: "ASEAN" — large, thin, airy. A tracked-out Encode Sans Thin display
+   treatment (the redesigned masthead), not a bold slab. */
 .asean-infographic__intro-title {
   margin: 0;
-  font-size: clamp(2.6rem, 4.2vw, 4.6rem);
-  font-weight: 700;
-  line-height: 1.02;
-  letter-spacing: -0.02em;
+  font-size: clamp(3.5rem, 8vw, 7rem);
+  font-weight: 100;
+  line-height: 1;
+  letter-spacing: 0.05em;
   color: #fff;
 }
 
@@ -527,8 +489,8 @@ watch(
    larger than the subtitle. */
 .asean-infographic__intro-title-sub {
   display: block;
-  margin-top: 0.1em;
-  font-size: clamp(1.3rem, 2vw, 2.1rem);
+  margin-top: 0.2em;
+  font-size: clamp(1.5rem, 2.4vw, 2.125rem);
   font-weight: 500;
   letter-spacing: -0.01em;
   color: rgba(255, 255, 255, 0.9);
@@ -633,22 +595,6 @@ watch(
   display: flex;
   flex-direction: column;
   gap: clamp(14px, 2vh, 24px);
-}
-
-/* Flag panel (reactivated): right of the tabs/hero, top-aligned. Decorative
-   (pointer-events off so the map stays clickable). No explicit size — fits to
-   the flag image's natural dimensions. */
-.asean-infographic__flag {
-  flex: 0 0 auto;
-  pointer-events: none;
-}
-
-.asean-infographic__flag-img {
-  display: block;
-  border-radius: 6px;
-  box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.15),
-    0 6px 18px rgba(0, 0, 0, 0.45);
 }
 
 /* Header inside the sidebar (no card chrome). Holds only the tablist. */

@@ -106,10 +106,11 @@ function onLeave() {
    (mirrors .asean-infographic__tabs). */
 .asean-legend {
   position: absolute;
-  /* Idle: docked under the top-right intro (title + description) so the right
-     edge reads as one column — title -> subtitle -> blurb -> country list.
-     top clears the intro band; right matches the intro's right padding. */
-  top: clamp(220px, 36svh, 420px);
+  /* Idle: docked under the top-right intro (title + subtitle + blurb) so the
+     right edge reads top-down: title -> subtitle -> blurb -> country grid.
+     The intro is capped at 50svh, so anchor just below that band (+ a gap) to
+     clear it at any viewport. right matches the intro's right padding. */
+  top: calc(50svh + clamp(16px, 3vh, 32px));
   right: clamp(24px, 3vw, 56px);
   z-index: 25;
   pointer-events: auto;
@@ -135,14 +136,19 @@ function onLeave() {
   overflow-y: auto;
 }
 
+/* Two balanced columns (6 / 5 for the 11 countries). grid-auto-flow:column with
+   a fixed row count fills the first column top-to-bottom, then the second —
+   matching the designed order — and stays balanced if the list grows. Uniform
+   right-align keeps both columns on the intro's right axis. */
 .asean-legend__list {
   list-style: none;
   margin: 0;
   padding: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: clamp(2px, 0.6vh, 8px);
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: repeat(6, auto);
+  justify-items: end;
+  gap: clamp(2px, 0.6vh, 8px) clamp(24px, 3vw, 52px);
 }
 
 /* Mirrors AseanCountrySwitcher: Encode Sans Condensed, thin, dim with
