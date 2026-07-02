@@ -101,6 +101,9 @@ function roundPath(d: string) {
 // ~141°E) already trips the width threshold below; the Philippines sits far east
 // too, so we force its label to the left of the highlight to match.
 const LEFT_LABEL_NAMES = new Set(['Indonesia', 'Philippines'])
+// Left-anchored labels sit 16px west of the highlight by default, which leaves
+// them far out over open ocean. Nudge them back ~40px toward the country.
+const LEFT_LABEL_NUDGE = 40
 
 const renderedFeatures = features.map((f) => {
   const c = pathGen.centroid(f as any) as [number, number]
@@ -120,7 +123,7 @@ const renderedFeatures = features.map((f) => {
     // viewport (currently only Indonesia, with Papua at ~141°E), flip it to the
     // left of the highlight (anchored at the bbox's west edge, text-anchor end).
     ...((right) => LEFT_LABEL_NAMES.has(f.properties.name) || right > VB_W * 0.72
-      ? { labelX: r2(b[0][0] - 16), labelAnchor: 'end' as const }
+      ? { labelX: r2(b[0][0] - 16 + LEFT_LABEL_NUDGE), labelAnchor: 'end' as const }
       : { labelX: r2(right), labelAnchor: 'start' as const })(b[1][0] + 16),
     labelY: r2((b[0][1] + b[1][1]) / 2)
   }
@@ -202,7 +205,9 @@ watch(hoveredFeature, (f) => {
     stopType()
     return
   }
-  playType(f.properties.name)
+  // Left-anchored labels (end) type right-to-left so the word grows away from
+  // the highlight, caret leading on the left.
+  playType(f.properties.name, f.labelAnchor === 'end')
 })
 
 function onClick(slug: string) {
@@ -373,9 +378,7 @@ function onSvgClick(e: MouseEvent) {
               :y="hoveredFeature.labelY"
               :style="{ textAnchor: hoveredFeature.labelAnchor }"
               class="asean-map__label"
-            >
-              {{ typedName }}<tspan v-if="isTyping" class="asean-map__caret">▌</tspan>
-            </text>
+            ><tspan v-if="isTyping && hoveredFeature.labelAnchor === 'end'" class="asean-map__caret">▌</tspan>{{ typedName }}<tspan v-if="isTyping && hoveredFeature.labelAnchor !== 'end'" class="asean-map__caret">▌</tspan></text>
           </g>
         </Transition>
       </g>

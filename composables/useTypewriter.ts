@@ -47,8 +47,13 @@ export function useTypewriter(options: UseTypewriterOptions = {}) {
       && window.matchMedia('(prefers-reduced-motion: reduce)').matches
   }
 
-  /** Clear then type `text` char-by-char. Cancels any in-flight animation. */
-  function play(text: string) {
+  /**
+   * Clear then type `text` char-by-char. Cancels any in-flight animation.
+   * `reverse` reveals the string right-to-left (growing suffixes) instead of
+   * left-to-right (growing prefixes) — used for left-anchored map labels so the
+   * word builds away from the highlight with the caret leading on the left.
+   */
+  function play(text: string, reverse = false) {
     clearTimer()
 
     // SSR or reduced-motion: show the final string immediately, no animation.
@@ -68,7 +73,7 @@ export function useTypewriter(options: UseTypewriterOptions = {}) {
     isTyping.value = true
     timer = setInterval(() => {
       i++
-      displayText.value = text.slice(0, i)
+      displayText.value = reverse ? text.slice(text.length - i) : text.slice(0, i)
       if (i >= text.length) {
         clearTimer()
         isTyping.value = false
