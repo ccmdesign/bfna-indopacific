@@ -96,6 +96,12 @@ function roundPath(d: string) {
   return d.replace(/-?\d+\.\d+/g, (m) => r2(Number(m)).toString())
 }
 
+// Countries whose right-anchored label reads poorly on the right — it would run
+// off the east edge or sit out over open ocean. Indonesia (Papua reaches
+// ~141°E) already trips the width threshold below; the Philippines sits far east
+// too, so we force its label to the left of the highlight to match.
+const LEFT_LABEL_NAMES = new Set(['Indonesia', 'Philippines'])
+
 const renderedFeatures = features.map((f) => {
   const c = pathGen.centroid(f as any) as [number, number]
   const b = pathGen.bounds(f as any) as [[number, number], [number, number]]
@@ -113,7 +119,7 @@ const renderedFeatures = features.map((f) => {
     // edge is far enough east that a right-anchored label would run off the
     // viewport (currently only Indonesia, with Papua at ~141°E), flip it to the
     // left of the highlight (anchored at the bbox's west edge, text-anchor end).
-    ...((right) => right > VB_W * 0.72
+    ...((right) => LEFT_LABEL_NAMES.has(f.properties.name) || right > VB_W * 0.72
       ? { labelX: r2(b[0][0] - 16), labelAnchor: 'end' as const }
       : { labelX: r2(right), labelAnchor: 'start' as const })(b[1][0] + 16),
     labelY: r2((b[0][1] + b[1][1]) / 2)
