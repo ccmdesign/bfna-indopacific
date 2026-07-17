@@ -4,6 +4,26 @@ import { publishedInfographics, draftInfographics } from './data/infographics'
 // Treat anything that isn't an explicit production build as a preview environment so drafts get prerendered.
 const isProductionBuild = process.env.CONTEXT === 'production'
 
+// The ccm-feedback review FAB loads on every non-production deploy, but stays hidden on the
+// canonical dev deploy (dev--…netlify.app) that the client sees during review — shown on all
+// other branch/preview deploys so internal reviewers can drop pins. (Replaced the blanket
+// display:none that lived in assets/styles.css.)
+const isMainDevDeploy = process.env.CONTEXT === 'branch-deploy' && process.env.BRANCH === 'dev'
+
+// Cloud sync (Supabase) is opt-in via env vars: set both on a non-production Netlify context to
+// switch the widget from per-browser localStorage to shared multi-reviewer mode. ANON/publishable
+// key ONLY — never the service-role key. Absent → widget stays in localStorage mode.
+const ccmFeedbackSupabaseUrl = process.env.CCM_FEEDBACK_SUPABASE_URL || ''
+const ccmFeedbackSupabaseKey = process.env.CCM_FEEDBACK_SUPABASE_ANON_KEY || ''
+const ccmFeedbackScript = {
+  src: 'https://ccm-feedback-582.netlify.app/w.js',
+  'data-project': 'bfna-indopacific',
+  defer: true,
+  ...(ccmFeedbackSupabaseUrl && ccmFeedbackSupabaseKey
+    ? { 'data-supabase-url': ccmFeedbackSupabaseUrl, 'data-supabase-key': ccmFeedbackSupabaseKey }
+    : {})
+}
+
 const infographicsToPrerender = isProductionBuild
   ? publishedInfographics
   : [...publishedInfographics, ...draftInfographics]
@@ -77,15 +97,11 @@ export default defineNuxtConfig({
       // ccm-feedback visual review widget — loaded on dev/branch/preview deploys only,
       // never on production. Production is a single-URL SPA-fallback heavy site and the
       // widget's DOM/URL anchoring collides across infographic routes, so keep it off prod.
-      script: isProductionBuild
-        ? []
-        : [
-            {
-              src: 'https://ccm-feedback-582.netlify.app/w.js',
-              'data-project': 'bfna-indopacific',
-              defer: true
-            }
-          ]
+      script: isProductionBuild ? [] : [ccmFeedbackScript],
+      // Hide the FAB only on the canonical dev deploy the client reviews; visible elsewhere.
+      style: isMainDevDeploy
+        ? [{ innerHTML: 'ccm-feedback-widget{display:none!important}' }]
+        : []
     }
   },
   css: ['~/assets/styles.css']
