@@ -136,9 +136,18 @@ const interactiveFeatures = computed(() =>
 // Fit the active country's bounding box into the top-left quadrant: PAD = how
 // much of the quadrant the country may fill; MIN/MAX clamp keeps wide countries
 // from zooming out too far and tiny ones from over-zooming. (Tunable.)
+// BF-99: raised 4 -> 6.5. At the old cap, tiny/isolated countries (Timor-Leste,
+// Singapore, Brunei) only filled ~14% of the quadrant width, so nearby
+// landmasses with no relation to the docked country visually dominated the
+// frame — reported for Timor-Leste specifically as "centered on Northern
+// Australia" (client note, 2026-07-14). 6.5 roughly doubles their on-screen
+// footprint while staying under the raster's native-resolution ceiling (image
+// is oversampled ~3.1x relative to the viewBox at scale 1, so some softening
+// above that is an existing, accepted trade-off — Singapore/Brunei/Cambodia/
+// Laos already dock at the old 4x clamp).
 const QUADRANT_PAD = 0.8
 const MIN_DOCK_ZOOM = 1.2
-const MAX_DOCK_ZOOM = 4
+const MAX_DOCK_ZOOM = 6.5
 
 // Frame applied as a CSS transform (property, not SVG attribute) so it can be
 // CSS-transitioned. Idle = the calibrated default frame from props; active =
