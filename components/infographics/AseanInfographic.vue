@@ -282,18 +282,16 @@ function onActiveSlugUpdate(next: string | null) {
                hidden content; gating with v-if would add a one-time fade-in on
                every tab-open, which we deliberately avoid. (Validated in PR #46
                review; see todos/159.) -->
+          <!-- Key Facts (BF-96): 4 economic indicators + 3 trade-agreement rows,
+               replacing the removed hero big-number. Lives in the same keyed
+               div as the paragraph so both cross-fade together on a country
+               switch. -->
           <Transition name="desc-fade" mode="out-in">
             <div :key="activeSlug" class="asean-infographic__prose">
               <p class="asean-infographic__title-paragraph">{{ activeProfile.paragraphs.description }}</p>
               <p class="asean-infographic__source">Source: {{ activeProfile.sources.description }}</p>
+              <CountryKeyFacts :key-facts="activeProfile.keyFacts" />
             </div>
-          </Transition>
-
-          <!-- Key Facts (BF-96): 4 economic indicators + 3 trade-agreement rows,
-               replacing the removed hero big-number. Keyed on activeSlug so it
-               cross-fades with the paragraph above on a country switch. -->
-          <Transition name="desc-fade" mode="out-in">
-            <CountryKeyFacts :key="activeSlug" :key-facts="activeProfile.keyFacts" />
           </Transition>
         </section>
 
