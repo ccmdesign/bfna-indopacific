@@ -9,7 +9,8 @@
     "gen:trade-stacked": "node scripts/build-asean-trade-stacked.mjs",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "export:tiles": "node scripts/export-tiles.mjs"
   },
   "dependencies": {
     "d3": "^7.9.0",
@@ -22,7 +23,9 @@
   },
   "devDependencies": {
     "@nuxt/devtools": "latest",
+    "@playwright/test": "^1.61.1",
     "@types/d3": "^7.4.3",
+    "playwright": "^1.61.1",
     "tweakpane": "^4.0.5",
     "world-atlas": "^2.0.2"
   }

@@ -29,3 +29,10 @@ logs
 
 _process/
 .gstack/
+
+# BF-100 static tile export output — the pipeline is the deliverable, not this.
+exports/
+
+# Playwright test run artifacts
+test-results/
+playwright-report/
