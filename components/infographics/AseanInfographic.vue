@@ -73,7 +73,7 @@ const mineralsNullState = computed(
 )
 
 // Tab = the single source of truth for the focused sidebar view (BF-72 U3).
-// "description" (default) shows the hero number + label + narrative paragraph;
+// "description" (default) shows the narrative paragraph + Key Facts (BF-96);
 // "trade" / "minerals" show the two chart cards, with the Trade<->Minerals flip
 // preserved via :flipped="tab === 'minerals'" on both CardFlips.
 //
@@ -150,27 +150,11 @@ function onActiveSlugUpdate(next: string | null) {
 
 // --- Country-switch choreography --------------------------------------------
 // The country-name carousel (AseanCountrySwitcher) owns the name transition
-// (slide), replacing the old name typewriter. On a switch the hero number
-// scrambles, the large flag panel flips, and the paragraph cross-fade stays
+// (slide); the large flag panel flips and the paragraph cross-fade stays
 // declarative on the `activeSlug` key — all in sync with the map re-zoom.
-const { displayText: heroValue, play: playHero, set: setHero } = useScramble()
-
-// --- Hero number choreography ------------------------------------------------
-// The flag now lives in the top country reel (AseanCountrySwitcher) as a badge
-// that fades to reveal the reel on hover — see that component. Here we only drive
-// the hero big-number: scramble on a country<->country switch, set instantly on
-// first open / re-seed. Deselect (!next) leaves the value for the leave anim.
-watch(
-  activeSlug,
-  (next, prev) => {
-    if (!next) return
-    const profile = profileBySlug(next)
-    if (!profile) return
-    if (prev && prev !== next) playHero(profile.hero.value)
-    else setHero(profile.hero.value)
-  },
-  { immediate: true }
-)
+// (The hero big-number that used to scramble here — two-way trade with China
+// — was removed per BF-96; see CountryKeyFacts for its Description-tab
+// replacement.)
 </script>
 
 <template>
@@ -227,20 +211,20 @@ watch(
 
     <!-- Focused-state right sidebar. Selecting a country stacks the identity
          (flag + name) and a 3-tab tablist above the active tabpanel: Description
-         (hero + narrative) or the two chart cards (Trade / Critical Minerals) —
-         in a single right-hand column. The map keeps the rest of the viewport
-         with the country docked top-left. The sidebar is pointer-events:none
-         (map stays clickable through it); only the tabs and the chart cards opt
-         back in. -->
+         (narrative + Key Facts) or the two chart cards (Trade / Critical
+         Minerals) — in a single right-hand column. The map keeps the rest of
+         the viewport with the country docked top-left. The sidebar is
+         pointer-events:none (map stays clickable through it); only the tabs
+         and the chart cards opt back in. -->
     <Transition name="panel-rise">
       <aside v-if="activeProfile" class="asean-infographic__sidebar">
-        <!-- Identity: flag + name only. Hero + narrative moved into the
-             Description tabpanel below (BF-72 U3/R4). Flag + name stay
+        <!-- Identity: flag + name only. Narrative + Key Facts moved into the
+             Description tabpanel below (BF-72 U3/R4; BF-96). Flag + name stay
              always-visible and animate on country switch (U4/U5). -->
-        <!-- Top block: tabs + hero on the left, the large flag panel on the
-             right. The flag is top-aligned with the tabs and spans down past the
-             hero number + sub-heading — the country identity, reactivated and
-             enlarged now that the name lives in the top carousel. -->
+        <!-- Top block: tabs on the left, the large flag panel on the right.
+             The flag is top-aligned with the tabs — the country identity,
+             reactivated and enlarged now that the name lives in the top
+             carousel. -->
         <div class="asean-infographic__top">
           <div class="asean-infographic__top-main">
             <header class="asean-infographic__title">
@@ -270,21 +254,10 @@ watch(
                 </button>
               </div>
             </header>
-
-            <!-- Hero big-number + label. Shown only on the Description tab; the
-                 narrative paragraph is the Description tabpanel below. -->
-            <div v-show="tab === 'description'" class="asean-infographic__title-hero">
-              <span class="asean-infographic__title-hero-value">
-                {{ heroValue }}
-              </span>
-              <span class="asean-infographic__title-hero-label">
-                {{ activeProfile.hero.label }}
-              </span>
-            </div>
           </div>
         </div>
 
-        <!-- Description tabpanel: the narrative paragraph. -->
+        <!-- Description tabpanel: the narrative paragraph + Key Facts (BF-96). -->
         <section
           v-show="tab === 'description'"
           id="asean-tabpanel-description"
@@ -309,10 +282,15 @@ watch(
                hidden content; gating with v-if would add a one-time fade-in on
                every tab-open, which we deliberately avoid. (Validated in PR #46
                review; see todos/159.) -->
+          <!-- Key Facts (BF-96): 4 economic indicators + 3 trade-agreement rows,
+               replacing the removed hero big-number. Lives in the same keyed
+               div as the paragraph so both cross-fade together on a country
+               switch. -->
           <Transition name="desc-fade" mode="out-in">
             <div :key="activeSlug" class="asean-infographic__prose">
               <p class="asean-infographic__title-paragraph">{{ activeProfile.paragraphs.description }}</p>
               <p class="asean-infographic__source">Source: {{ activeProfile.sources.description }}</p>
+              <CountryKeyFacts :key-facts="activeProfile.keyFacts" />
             </div>
           </Transition>
         </section>
@@ -558,7 +536,7 @@ watch(
   right: 0;
   bottom: 0;
   /* BF-72 R5: width cap raised 480px -> 600px to give the Description tab's
-     hero + paragraph and the chart panels more room. */
+     paragraph + Key Facts and the chart panels more room. */
   width: clamp(340px, 34vw, 600px);
   box-sizing: border-box;
   /* Top padding clears the country-title carousel pinned across the top.
@@ -596,7 +574,7 @@ watch(
 }
 
 
-/* Top block: tabs + hero (left) beside the flag panel (right). align-items
+/* Top block: tabs (left) beside the flag panel (right). align-items
    flex-start so the flag's top lines up with the tabs' top. */
 .asean-infographic__top {
   display: flex;
@@ -675,29 +653,6 @@ watch(
   }
 }
 
-.asean-infographic__title-hero {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.asean-infographic__title-hero-value {
-  font-size: clamp(2rem, 2.8vw, 3rem);
-  font-weight: 400;
-  line-height: 1;
-  letter-spacing: -0.015em;
-  color: hsl(218, 70%, 78%);
-  font-variant-numeric: tabular-nums;
-}
-
-.asean-infographic__title-hero-label {
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6);
-}
-
 .asean-infographic__title-paragraph {
   margin: 0;
   font-size: clamp(13px, 1vw, 14px);
@@ -732,8 +687,8 @@ watch(
 }
 
 /* --- Tabpanels --- */
-/* Description tabpanel: hero block + paragraph, stacked with the same rhythm
-   they had inside the old identity header (inherits the sidebar's
+/* Description tabpanel: paragraph + Key Facts (BF-96), stacked with the same
+   rhythm they had inside the old identity header (inherits the sidebar's
    pointer-events:none so the map stays click-through, unchanged from before).
    Charts tabpanel: the two CardFlip panels stacked with the sidebar gap; the
    panels opt back into pointer events on their own (.asean-infographic__panel). */

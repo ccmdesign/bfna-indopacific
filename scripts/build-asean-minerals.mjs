@@ -68,8 +68,8 @@ const ANCHORS_SOURCE = path.join(ROOT, '_data/wrangled/asean-headline-stats.json
 const OUT = path.join(ROOT, 'data/asean/minerals.generated.ts')
 
 // ISO3 -> country slug, mirroring ISO3_TO_SLUG in
-// scripts/build-asean-trade-stacked.mjs / build-asean-country-hero.mjs and
-// the PROFILES keys in data/asean/country-profiles.ts.
+// scripts/build-asean-trade-stacked.mjs and the PROFILES keys in
+// data/asean/country-profiles.ts.
 const ISO3_TO_SLUG = {
   BRN: 'brunei',
   IDN: 'indonesia',
