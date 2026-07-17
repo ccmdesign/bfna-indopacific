@@ -4,6 +4,7 @@ import type { ComponentPublicInstance } from 'vue'
 import { profileBySlug, PROFILES } from '~/data/asean/country-profiles'
 import { tradeStackedBySlug } from '~/data/asean/trade-stacked'
 import { MINERALS_BY_SLUG } from '~/data/asean/minerals.generated'
+import { CRM_NOTES_BY_SLUG } from '~/data/asean/critical-minerals-notes'
 
 // Active country state. Idle (null) = fullscreen map, no selection; clicking a
 // country docks the map to the top-left quadrant (see AseanMap re-zoom). The
@@ -63,13 +64,27 @@ const activeMinerals = computed(() =>
   activeSlug.value ? MINERALS_BY_SLUG[activeSlug.value] : undefined
 )
 
-// Some slugs have no minerals record at all (e.g. Timor-Leste — absent from
-// USGS MCS2026 world-share production AND the nickel-chain flows, so both chart
-// faces render empty). On the Critical Minerals tab, swap those empty cards for
-// an honest null state. Countries with a hasMaterialData:false stub are NOT
-// null — their components render the designed low-data state.
-const mineralsNullState = computed(
-  () => tab.value === 'minerals' && !activeMinerals.value
+// Card A (world-share bars) keeps its own data gate: some slugs have no
+// minerals record at all (e.g. Timor-Leste — absent from USGS MCS2026
+// world-share production AND the nickel-chain flows), so Card A hides on the
+// Critical Minerals tab rather than flip to an empty face. Countries with a
+// hasMaterialData:false stub are NOT hidden — CountryMineralShareBars
+// renders its own designed low-data state for those (untouched by BF-97).
+const showMineralShareCard = computed(
+  () => tab.value !== 'minerals' || !!activeMinerals.value
+)
+
+// Card B ("Where the nickel goes") — BF-97 Feedback 2: the nickel flow chart
+// stays only where it's meaningful; the other seven countries get a
+// client-authored CRM fact box instead. This is a fixed editorial split, not
+// a data-driven one (Thailand/Laos/Myanmar have real flow data but still move
+// to the box), so it's gated on a fixed slug set rather than hasMaterialData.
+const NICKEL_CHART_SLUGS = new Set(['indonesia', 'malaysia', 'vietnam', 'philippines'])
+const showsNickelChart = computed(
+  () => !!activeSlug.value && NICKEL_CHART_SLUGS.has(activeSlug.value)
+)
+const crmNote = computed(() =>
+  activeSlug.value ? CRM_NOTES_BY_SLUG[activeSlug.value] : undefined
 )
 
 // Tab = the single source of truth for the focused sidebar view (BF-72 U3).
@@ -327,8 +342,8 @@ function onActiveSlugUpdate(next: string | null) {
 
           <!-- Tornado bars: indicative top exports & imports (front) / share of
                world mine production (back). Hidden on the Minerals tab when the
-               country has no minerals data (null state below takes over). -->
-          <div v-show="!mineralsNullState" class="asean-infographic__panel">
+               country has no minerals record at all (Timor-Leste). -->
+          <div v-show="showMineralShareCard" class="asean-infographic__panel">
             <CardFlip :flipped="tab === 'minerals'">
               <template #front>
                 <CountryChartCard
@@ -363,9 +378,11 @@ function onActiveSlugUpdate(next: string | null) {
           </div>
 
           <!-- Stacked area: trade flows with the US, China, EU since 2010 (front)
-               / mineral flows by destination (back). Hidden on the Minerals tab
-               when the country has no minerals data (null state below). -->
-          <div v-if="activeTradeStacked" v-show="!mineralsNullState" class="asean-infographic__panel">
+               / nickel flow chart or CRM fact box (back) — BF-97: the chart
+               stays only for Indonesia, Malaysia, Vietnam, Philippines
+               (showsNickelChart); the other seven countries render a
+               client-authored CRM box in the same slot instead (crmNote). -->
+          <div v-if="activeTradeStacked" class="asean-infographic__panel">
             <CardFlip :flipped="tab === 'minerals'">
               <template #front>
                 <CountryChartCard
@@ -383,10 +400,15 @@ function onActiveSlugUpdate(next: string | null) {
                 </CountryChartCard>
               </template>
               <template #back>
+                <!-- Scope caption (BF-97): the chart covers all nickel-class
+                     exports by value (ore, matte, oxide sinter, refined) —
+                     stated here so the % figure isn't conflated with
+                     ore-only figures from other sources (e.g. Böll). -->
                 <CountryChartCard
+                  v-if="showsNickelChart"
                   eyebrow="Mineral flows"
                   title="Where the nickel goes · 2024"
-                  meta="USD share by destination"
+                  meta="All nickel-class exports by value — ore, matte, oxide sinter, refined"
                   source="BACI HS07 V202601 (mineral HS6 codes), 2024"
                 >
                   <CountryMineralFlowBand
@@ -396,21 +418,16 @@ function onActiveSlugUpdate(next: string | null) {
                     :height="200"
                   />
                 </CountryChartCard>
+                <CountryChartCard
+                  v-else-if="crmNote"
+                  eyebrow="Critical minerals"
+                  :title="crmNote.leadIn"
+                  :source="crmNote.source"
+                >
+                  <CountryCrmBox :key="activeSlug" :note="crmNote" />
+                </CountryChartCard>
               </template>
             </CardFlip>
-          </div>
-
-          <!-- Minerals null state (BF follow-up): shown only on the Critical
-               Minerals tab for countries with no minerals record at all (e.g.
-               Timor-Leste). Replaces the two empty chart cards; the minerals
-               prose above still gives the qualitative context. -->
-          <div v-if="mineralsNullState" class="asean-infographic__minerals-empty">
-            <p class="asean-infographic__minerals-empty-title">Not yet on the critical-minerals map</p>
-            <p class="asean-infographic__minerals-empty-body">
-              {{ activeProfile.name }} has no world-share mine production or
-              nickel-chain trade recorded in the source data (USGS MCS2026 · BACI
-              2024) — its reserves remain largely untapped.
-            </p>
           </div>
         </section>
       </aside>
@@ -718,34 +735,6 @@ function onActiveSlugUpdate(next: string | null) {
 .asean-infographic__panel > * {
   flex: 1;
   min-width: 0;
-}
-
-/* Minerals null state: a quiet card-height message that stands in for the two
-   empty chart cards when a country has no minerals data (e.g. Timor-Leste). */
-.asean-infographic__minerals-empty {
-  flex: 0 0 auto;
-  pointer-events: auto;
-  padding: clamp(16px, 2.4vh, 24px);
-  border: 1px dashed rgba(255, 255, 255, 0.16);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.asean-infographic__minerals-empty-title {
-  margin: 0 0 6px;
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.asean-infographic__minerals-empty-body {
-  margin: 0;
-  font-family: 'Encode Sans', sans-serif;
-  font-size: 12px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.55);
 }
 
 /* --- Focused-panel choreography (R6/D4) --- */
