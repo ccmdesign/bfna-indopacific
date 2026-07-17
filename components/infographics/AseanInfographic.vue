@@ -204,15 +204,13 @@ watch(
     <Transition name="intro-fade">
       <div v-if="!activeSlug" class="asean-infographic__idle">
         <header class="asean-infographic__intro">
-          <h1 class="asean-infographic__intro-title">ASEAN<span class="asean-infographic__intro-title-sub">Pivot of the Indo-Pacific</span></h1>
+          <h1 class="asean-infographic__intro-title">ASEAN<span class="asean-infographic__intro-title-sub">The Strategic Pivot of the Indo-Pacific</span></h1>
           <p class="asean-infographic__intro-subtitle">
-            How Southeast Asia's economies balance the United States, China, and the EU
+            Trade, Power and Critical Mineral Supply Chains in an Era of Great Power Competition
           </p>
           <p class="asean-infographic__intro-blurb">
-            An interactive map of ASEAN member states and their economic, strategic, and
-            resource ties to the three great powers. Select a country to explore its trade
-            balance, its trade flows with the US, China, and the EU since 2010, and its
-            critical-mineral leverage.
+            Select a country and examine its trade with the U.S., China and the EU since 2010,
+            and its role in critical mineral supply chains.
           </p>
         </header>
 
