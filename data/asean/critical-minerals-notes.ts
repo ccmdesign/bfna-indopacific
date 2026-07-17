@@ -27,7 +27,7 @@ export const CRM_NOTES_BY_SLUG: Record<string, CrmNote> = {
   },
 
   singapore: {
-    leadIn: 'Not a producer, but a key supply-chain hub',
+    leadIn: 'Singapore is not a critical-minerals producer but plays a key role in the supply chain',
     lines: [
       'Hub for high-tech materials, recycling and resilient supply chains.',
       'Supports diversification through trade, stockpiling, regional partnerships and the U.S.-led Pax Silica initiative.'
@@ -35,14 +35,14 @@ export const CRM_NOTES_BY_SLUG: Record<string, CrmNote> = {
   },
 
   brunei: {
-    leadIn: 'Not a critical-minerals producer at scale',
+    leadIn: 'Brunei is not a critical-minerals producer at scale',
     lines: [
       'Aims to grow the sector, especially as it diversifies its energy sources to renewables.'
     ]
   },
 
   cambodia: {
-    leadIn: 'Not a producer, but trying to grow the sector',
+    leadIn: 'Cambodia is not a critical-minerals producer but is trying to grow the sector',
     lines: [
       'Strong subsoil potential across both metallic and industrial minerals.',
       'Cambodia offers a competitive fiscal regime for mining investors.'
@@ -50,7 +50,7 @@ export const CRM_NOTES_BY_SLUG: Record<string, CrmNote> = {
   },
 
   laos: {
-    leadIn: 'Not a producer at scale, but deepening Laos-China cooperation',
+    leadIn: 'Not a critical-minerals producer at scale but deepening Laos-China cooperation',
     lines: [
       '2017 Minerals Law, banning rare earth extraction, under revision.',
       'Chinese rail, road and SEZ investments driving raw material exports to China.',
@@ -67,7 +67,7 @@ export const CRM_NOTES_BY_SLUG: Record<string, CrmNote> = {
   },
 
   timor_leste: {
-    leadIn: 'Not a producer at scale, but deepening ties with Australia',
+    leadIn: 'Not a critical-minerals producer at scale but deepening ties with Australia',
     lines: [
       'Four of five mining leases were awarded to Australian companies.'
     ]
