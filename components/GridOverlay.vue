@@ -73,6 +73,13 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import GridCounter from './GridCounter.vue'
+import { useCaptureMode } from '~/composables/useCaptureMode'
+
+// BF-100: this decorative rAF loop doesn't check prefers-reduced-motion (it's
+// ambient background texture, not a "real" animation) — but for tile export
+// it needs to be deterministic and idle-clean, so skip it entirely in
+// capture mode and render a static, inactive grid.
+const isCapturing = useCaptureMode()
 
 const gridSize = 10
 const totalItems = 100
@@ -148,6 +155,7 @@ function animate() {
 }
 
 onMounted(() => {
+  if (isCapturing.value) return
   isRunning = true
   startTime = null
   animate()

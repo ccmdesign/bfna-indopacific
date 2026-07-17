@@ -7,3 +7,24 @@ body {
 }
 /* Hide the ccm-feedback review FAB/widget (shadow-DOM custom element). Flip to un-hide. */
 ccm-feedback-widget { display: none !important; }
+
+/* BF-100 capture mode (scripts/export-tiles.mjs, ?capture query flag via
+   plugins/capture-mode.client.ts). .master-grid is normally hard-locked to
+   aspect-ratio: 16/9 (public/styles.css); giving it a definite height here
+   makes that lock a no-op so the grid fills whatever viewport the export
+   script provides (its target tile aspect ratios are not 16:9). Also zeroes
+   out CSS animation/transition durations as a belt-and-suspenders on top of
+   the Playwright `reducedMotion: 'reduce'` context option, which already
+   covers everything that checks prefers-reduced-motion. */
+.is-capturing .master-grid {
+  aspect-ratio: auto !important;
+  height: 100svh !important;
+}
+
+.is-capturing,
+.is-capturing * {
+  animation-duration: 0s !important;
+  animation-delay: 0s !important;
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}
