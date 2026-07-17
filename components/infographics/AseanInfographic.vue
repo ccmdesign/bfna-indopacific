@@ -388,7 +388,7 @@ function onActiveSlugUpdate(next: string | null) {
                 <CountryChartCard
                   eyebrow="Trade flows"
                   title="Two-way goods trade with China, the U.S. and the EU"
-                  meta="Exports plus imports per year, in USD billions, 2010–2024. Source: CEPII BACI."
+                  meta="Share held by China, the U.S. and the EU · 2010–2024 · Source: CEPII BACI"
                   :source="activeTradeStacked.source"
                 >
                   <CountryStackedArea
