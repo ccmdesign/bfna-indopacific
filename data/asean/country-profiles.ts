@@ -1,10 +1,15 @@
 // Country profiles consumed by AseanInfographic / dock cards.
 //
 // Provenance:
-// - `hero` is GENERATED from _data/wrangled/asean-flows-yearly.csv
-//   (BACI HS07 V202601) via scripts/build-asean-country-hero.mjs — each
-//   country's two-way goods trade with China for 2024. Do not hand-edit the
-//   hero values here; they are spread from country-hero.generated.ts.
+// - `keyFacts` is CURATED from the client's Feedback 2 data pass (BF-96):
+//   4 economic indicators (GDP growth 2026 — IMF WEO; GDP per capita PPP,
+//   trade-to-GDP and FDI net inflows, all 2024 — World Bank) + 3 trade-
+//   agreement rows (EU / US / China) per country. FDI figures are normalized
+//   to $-billions/millions form from the client's inconsistent raw units;
+//   see docs/plans/BF-96-plan.md for the specific unit-normalization calls
+//   (Myanmar FDI, Malaysia/Laos off-year figures, Myanmar/Timor-Leste EU-row
+//   overrides). Replaces the old `hero` big-number (two-way trade with China)
+//   which the client asked to remove from the Description tab.
 // - `paragraphs` is CURATED prose, one block per tab (description / trade /
 //   minerals), from Marshall Reid + Georgia Kruger's BFNA copy
 //   (_data/sources/marshall-infographic-copy-2026-07-17.md, BF-95; supersedes
@@ -26,8 +31,6 @@
 //   trade-balance card keeps rendering; NOT regenerated or guessed. See
 //   todos/BF-57-defer-top-trade-hs-product-composition.md (Decision D1).
 
-import { COUNTRY_HERO } from './country-hero.generated'
-
 export interface TradeItem {
   label: string
   valueUsdB: number
@@ -40,12 +43,22 @@ export interface CountryPanelProse {
   minerals: string
 }
 
+export interface KeyFactRow {
+  label: string
+  value: string
+}
+
+export interface CountryKeyFacts {
+  indicators: KeyFactRow[]
+  agreements: KeyFactRow[]
+}
+
 export interface CountryProfile {
   slug: string
   name: string
   flagUrl: string
   tagline: string
-  hero: { value: string; label: string }
+  keyFacts: CountryKeyFacts
   paragraphs: CountryPanelProse
   sources: CountryPanelProse
   topExports: TradeItem[]
@@ -60,7 +73,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     name: 'Indonesia',
     flagUrl: flag('id'),
     tagline: 'Hedging in absolute terms, drifting in relative ones.',
-    hero: COUNTRY_HERO.indonesia,
+    keyFacts: {
+      indicators: [
+        { label: 'GDP growth (2026)', value: '5%' },
+        { label: 'GDP per capita PPP (2024)', value: '$16,448.3' },
+        { label: 'Trade-to-GDP (2024)', value: '43%' },
+        { label: 'FDI net inflows (2024)', value: '$24.28B' }
+      ],
+      agreements: [
+        { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Indonesia CEPA (signed 2025)' },
+        { label: 'US', value: 'US-ASEAN TIFA (2006)' },
+        { label: 'China', value: 'ASEAN-China FTA (2009), RCEP (2021), several MoUs' }
+      ]
+    },
     paragraphs: {
       description:
         'Indonesia is the most populous country in Southeast Asia — 287 million people across 17,000 islands — and ASEAN’s largest economy. It holds to a longstanding bebas aktif ("free and active") doctrine, refusing to side with any great-power bloc: it trades predominantly with China while anchoring its security to the U.S. and expanding ties with the EU.',
@@ -98,7 +123,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     name: 'Thailand',
     flagUrl: flag('th'),
     tagline: 'A long-time US ally drifting toward Beijing’s gravity.',
-    hero: COUNTRY_HERO.thailand,
+    keyFacts: {
+      indicators: [
+        { label: 'GDP growth (2026)', value: '1.5%' },
+        { label: 'GDP per capita PPP (2024)', value: '$24,712.1' },
+        { label: 'Trade-to-GDP (2024)', value: '137%' },
+        { label: 'FDI net inflows (2024)', value: '$14.3B' }
+      ],
+      agreements: [
+        { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Thailand FTA (ongoing)' },
+        { label: 'US', value: 'US-ASEAN TIFA (2006)' },
+        { label: 'China', value: 'ASEAN-China FTA (2009), RCEP (2021), several MoUs' }
+      ]
+    },
     paragraphs: {
       description:
         'Thailand is an upper-middle-income country and ASEAN’s second-largest economy, growing 2.5% in 2024, and serves as a land bridge linking South Asia, Indochina and maritime Southeast Asia. A U.S. treaty ally that runs regular joint exercises with Washington, it has also held annual military exercises with China since 2005 — a hedging posture, though recent trends suggest a gradual drift toward Beijing.',
@@ -135,7 +172,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     name: 'Singapore',
     flagUrl: flag('sg'),
     tagline: 'The neutral hub everyone trusts to launder the contradiction.',
-    hero: COUNTRY_HERO.singapore,
+    keyFacts: {
+      indicators: [
+        { label: 'GDP growth (2026)', value: '3.5%' },
+        { label: 'GDP per capita PPP (2024)', value: '$150,689.3' },
+        { label: 'Trade-to-GDP (2024)', value: '322%' },
+        { label: 'FDI net inflows (2024)', value: '$135.08B' }
+      ],
+      agreements: [
+        { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Singapore FTA (2019), Investment Protection Agreement (2019), Digital Trade Agreement (2026)' },
+        { label: 'US', value: 'US-Singapore FTA (2004), US-ASEAN TIFA (2006)' },
+        { label: 'China', value: 'ASEAN-China FTA (2009), RCEP (2021), several MoUs' }
+      ]
+    },
     paragraphs: {
       description:
         'Singapore is one of the world’s great financial centers, leveraging its position at the mouth of the Strait of Malacca to exercise outsized influence on the global economy. Its ports are vital transshipment hubs for ASEAN, and its banks hold billions in U.S., European and Chinese assets. It produces little of its own, but its position, infrastructure and business-friendly governance have propelled it to the top of global economic rankings.',
@@ -172,7 +221,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     name: 'Malaysia',
     flagUrl: flag('my'),
     tagline: 'Semiconductor packaging is the new geopolitics.',
-    hero: COUNTRY_HERO.malaysia,
+    keyFacts: {
+      indicators: [
+        { label: 'GDP growth (2026)', value: '4.7%' },
+        { label: 'GDP per capita PPP (2024)', value: '$38,779.3' },
+        { label: 'Trade-to-GDP (2024)', value: '137%' },
+        { label: 'FDI net inflows (2024)', value: '$15.59B (2022)' }
+      ],
+      agreements: [
+        { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Malaysia PCA (signed 2022), MEUFTA (proposed)' },
+        { label: 'US', value: 'US-ASEAN TIFA (2006)' },
+        { label: 'China', value: 'ASEAN-China FTA (2009), RCEP (2021), several MoUs' }
+      ]
+    },
     paragraphs: {
       description:
         'One of the region’s most dynamic economies, Malaysia ranks as of 2026 as the world’s 34th-largest economy by nominal GDP and 28th by purchasing power parity. It has benefited from rising foreign investment as U.S. technology firms diversify away from China and Taiwan. It has also carved out a key role in the critical-minerals supply chain — both as a source of raw materials and as a refiner of unprocessed ores.',
@@ -209,7 +270,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     name: 'Vietnam',
     flagUrl: flag('vn'),
     tagline: 'The factory floor for the US-China decoupling.',
-    hero: COUNTRY_HERO.vietnam,
+    keyFacts: {
+      indicators: [
+        { label: 'GDP growth (2026)', value: '7.1%' },
+        { label: 'GDP per capita PPP (2024)', value: '$16,385.5' },
+        { label: 'Trade-to-GDP (2024)', value: '174%' },
+        { label: 'FDI net inflows (2024)', value: '$20.17B' }
+      ],
+      agreements: [
+        { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Vietnam FTA (2020), Investment Protection Agreement (2019)' },
+        { label: 'US', value: 'US-ASEAN TIFA (2006)' },
+        { label: 'China', value: 'ASEAN-China FTA (2009), RCEP (2021), several MoUs' }
+      ]
+    },
     paragraphs: {
       description:
         'Vietnam is one of the region’s fastest-growing manufacturing hubs and an emerging alternative to China in global supply chains; as of 2025 it ranked 23rd globally by purchasing power parity, with recorded GDP growth of 7.1%. It shares a 1,297 km land border with China and has seen repeated South China Sea tensions. It holds Comprehensive Strategic Partnerships with both China and the U.S. — a calibrated hedge that maximizes leverage rather than aligning with either side.',
@@ -246,7 +319,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     name: 'Philippines',
     flagUrl: flag('ph'),
     tagline: 'The treaty ally turning EDCA into reality.',
-    hero: COUNTRY_HERO.philippines,
+    keyFacts: {
+      indicators: [
+        { label: 'GDP growth (2026)', value: '4.1%' },
+        { label: 'GDP per capita PPP (2024)', value: '$11,794.1' },
+        { label: 'Trade-to-GDP (2024)', value: '66%' },
+        { label: 'FDI net inflows (2024)', value: '$9.4B' }
+      ],
+      agreements: [
+        { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Philippines FTA (ongoing), GSP+ (2014)' },
+        { label: 'US', value: 'US-ASEAN TIFA (2006), Mutual Defense Treaty (1951)' },
+        { label: 'China', value: 'ASEAN-China FTA (2009), RCEP (2021), several MoUs' }
+      ]
+    },
     paragraphs: {
       description:
         'The Philippines, a mid-sized archipelagic nation, has built one of the region’s most vibrant economies, led by a thriving services sector, and ranks as the world’s 35th-largest economy by nominal GDP. While Manila keeps extensive diplomatic and military ties with the U.S., it has built strong economic relations with regional partners, most notably China. With fast-developing infrastructure and growth regularly above 5%, it is poised to become a regional leader — though corruption and inequality remain pressing concerns.',
@@ -283,7 +368,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     name: 'Brunei',
     flagUrl: flag('bn'),
     tagline: 'A petrostate with one revenue stream and three customers.',
-    hero: COUNTRY_HERO.brunei,
+    keyFacts: {
+      indicators: [
+        { label: 'GDP growth (2026)', value: '2.6%' },
+        { label: 'GDP per capita PPP (2024)', value: '$89,879.4' },
+        { label: 'Trade-to-GDP (2024)', value: '133%' },
+        { label: 'FDI net inflows (2024)', value: '$29.06M' }
+      ],
+      agreements: [
+        { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980)' },
+        { label: 'US', value: 'US-ASEAN TIFA (2006)' },
+        { label: 'China', value: 'ASEAN-China FTA (2009), RCEP (2021), several MoUs' }
+      ]
+    },
     paragraphs: {
       description:
         'Despite its small size and population, Brunei is an economic powerhouse, trailing only Singapore among Southeast Asian nations on the Human Development Index (60th globally). Its success rests almost entirely on sizable crude-oil and natural-gas reserves, exports of which account for over half of GDP. Since launching the Wawasan Brunei 2035 plan in 2007, the government has sought to diversify into sectors such as mining and financial services.',
@@ -317,7 +414,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     name: 'Cambodia',
     flagUrl: flag('kh'),
     tagline: 'Garments out, Chinese capital in.',
-    hero: COUNTRY_HERO.cambodia,
+    keyFacts: {
+      indicators: [
+        { label: 'GDP growth (2026)', value: '4%' },
+        { label: 'GDP per capita PPP (2024)', value: '$7,966.9' },
+        { label: 'Trade-to-GDP (2024)', value: '143%' },
+        { label: 'FDI net inflows (2024)', value: '$4.39B' }
+      ],
+      agreements: [
+        { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Cambodia Cooperation Agreement (1999), Everything But Arms (2001)' },
+        { label: 'US', value: 'US-ASEAN TIFA (2006)' },
+        { label: 'China', value: 'ASEAN-China FTA (2009), RCEP (2021), several MoUs, China-Cambodia FTA (2022)' }
+      ]
+    },
     paragraphs: {
       description:
         'Cambodia, one of ASEAN’s smallest nations, has recovered from the COVID-19 pandemic and is experiencing real GDP growth of around 6%. It borders Thailand, Vietnam and Laos and holds direct access to the Gulf of Thailand through the Ream Naval Base, where China — its primary military partner — has secured a strategic foothold. While it leans strongly toward China, it continues to engage both the U.S. and the EU.',
@@ -353,7 +462,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     name: 'Laos',
     flagUrl: flag('la'),
     tagline: 'A landlocked ledger denominated in Chinese yuan.',
-    hero: COUNTRY_HERO.laos,
+    keyFacts: {
+      indicators: [
+        { label: 'GDP growth (2026)', value: '4.1%' },
+        { label: 'GDP per capita PPP (2024)', value: '$9,775.8' },
+        { label: 'Trade-to-GDP (2024)', value: '75% (2016)' },
+        { label: 'FDI net inflows (2024)', value: '$988.46M' }
+      ],
+      agreements: [
+        { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), Everything But Arms (2001)' },
+        { label: 'US', value: 'US-ASEAN TIFA (2006)' },
+        { label: 'China', value: 'ASEAN-China FTA (2009), RCEP (2021), several MoUs' }
+      ]
+    },
     paragraphs: {
       description:
         'Small in size and population (8 million), Laos is the only landlocked country in Southeast Asia — a critical transit corridor bordered by China, Vietnam, Myanmar, Thailand and Cambodia. Its GDP grew 4.1% in 2024, but it is deeply dependent on China for infrastructure. As of 2026 a Chinese state-owned firm holds a 90% stake and 25-year concession over the national grid, and the $6 billion China–Laos Railway gives Beijing a controlling operational stake — making Laos the ASEAN member most structurally dependent on Beijing.',
@@ -390,7 +511,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     name: 'Myanmar',
     flagUrl: flag('mm'),
     tagline: 'Small in dollars, decisive in rare earths.',
-    hero: COUNTRY_HERO.myanmar,
+    keyFacts: {
+      indicators: [
+        { label: 'GDP growth (2026)', value: '3%' },
+        { label: 'GDP per capita PPP (2024)', value: '$5,997.5' },
+        { label: 'Trade-to-GDP (2024)', value: 'Not available' },
+        { label: 'FDI net inflows (2024)', value: '$1.10B' }
+      ],
+      agreements: [
+        { label: 'EU', value: 'Everything But Arms (2001)' },
+        { label: 'US', value: 'US-ASEAN TIFA (2006) — suspended' },
+        { label: 'China', value: 'ASEAN-China FTA (2009), RCEP (2021), several MoUs' }
+      ]
+    },
     paragraphs: {
       description:
         'One of the world’s most ethnically diverse nations, Myanmar has been in near-constant civil war since independence in 1948 and destabilized by repeated military coups, struggling to build a modern economy. Its large population and abundant resources have allowed sporadic bursts of rapid growth, and reforms from 2011 liberalized the economy with significant gains. Those gains were largely reversed after the 2021 coup, as violence and mismanagement drove spiralling inflation and poverty.',
@@ -427,7 +560,19 @@ export const PROFILES: Record<string, CountryProfile> = {
     name: 'Timor-Leste',
     flagUrl: flag('tl'),
     tagline: 'A young petro-economy inching into the minerals game.',
-    hero: COUNTRY_HERO.timor_leste,
+    keyFacts: {
+      indicators: [
+        { label: 'GDP growth (2026)', value: '4.1%' },
+        { label: 'GDP per capita PPP (2024)', value: '$4,422.8' },
+        { label: 'Trade-to-GDP (2024)', value: '95%' },
+        { label: 'FDI net inflows (2024)', value: '$225.47M' }
+      ],
+      agreements: [
+        { label: 'EU', value: 'Everything But Arms (2001)' },
+        { label: 'US', value: 'US-ASEAN TIFA (2006) — not yet signed' },
+        { label: 'China', value: 'ASEAN-China FTA (2009), RCEP (2021), several MoUs' }
+      ]
+    },
     paragraphs: {
       description:
         'One of the world’s youngest nations, Timor-Leste is a small, developing economy the UN lists as a Least Developed Country. Since regaining independence from Indonesia in 2002, it has seen modest growth fuelled by government spending, foreign direct investment and a growing petrochemicals industry. Further growth has been hampered by insufficient infrastructure, lagging job creation and a decentralized, heavily rural population.',
