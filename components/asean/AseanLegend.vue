@@ -109,16 +109,26 @@ function onLeave() {
   font-family: 'Encode Sans', sans-serif;
 }
 
-/* Stacked list, no card chrome — names sit directly on the map (reel style),
-   right-aligned, with a text-shadow for legibility. */
+/* Translucent panel — same design language as the collapsed pill
+   (.asean-legend__pill below): rgba(2, 38, 64, 0.5) + blur + hairline border.
+   Gives the legend its own visual container so it reads as a distinct,
+   clickable element separate from the chrome-less intro copy above it. */
 .asean-legend__menu {
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  /* Same column as the intro block, so the grid's left edge lines up with it. */
+  /* Same column as the intro block, so the panel's left edge lines up with it. */
   width: var(--intro-w, clamp(200px, 28vw, 384px));
   max-height: 56svh;
   overflow-y: auto;
+  padding: clamp(16px, 2vh, 22px) clamp(16px, 2vw, 24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background: rgba(2, 38, 64, 0.5);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 /* Two balanced columns (6 / 5 for the 11 countries). grid-auto-flow:column with
