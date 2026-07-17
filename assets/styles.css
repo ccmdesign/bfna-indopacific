@@ -5,8 +5,6 @@ body {
   margin: 0;
   background-color: #032641;
 }
-/* Hide the ccm-feedback review FAB/widget (shadow-DOM custom element). Flip to un-hide. */
-ccm-feedback-widget { display: none !important; }
 
 /* BF-100 capture mode (scripts/export-tiles.mjs, ?capture query flag via
    plugins/capture-mode.client.ts). .master-grid is normally hard-locked to
