@@ -349,7 +349,7 @@ function onActiveSlugUpdate(next: string | null) {
                 <CountryChartCard
                   eyebrow="Indicative composition"
                   title="Top exports & imports"
-                  meta="USD billions"
+                  meta="Estimated value of leading export and import categories, in USD billions. Source: indicative, not individually sourced."
                   source="indicative — not individually sourced"
                 >
                   <CountryTradeBalanceBars
@@ -387,8 +387,8 @@ function onActiveSlugUpdate(next: string | null) {
               <template #front>
                 <CountryChartCard
                   eyebrow="Trade flows"
-                  title="Trade with US, China, EU · 2010–2024"
-                  meta="USD billions"
+                  title="Two-way goods trade with China, the U.S. and the EU"
+                  meta="Exports plus imports per year, in USD billions, 2010–2024. Source: CEPII BACI."
                   :source="activeTradeStacked.source"
                 >
                   <CountryStackedArea
