@@ -6,10 +6,15 @@
 //   country's two-way goods trade with China for 2024. Do not hand-edit the
 //   hero values here; they are spread from country-hero.generated.ts.
 // - `paragraphs` is CURATED prose, one block per tab (description / trade /
-//   minerals), from Marshall Reid + Georgia Kruger's corrected BFNA copy
-//   (_data/sources/marshall-infographic-copy-2026-06-30.md, BF-81). Each block
-//   is trimmed to ~2–3 sentences (Marshall's explicit permission) while keeping
-//   every hard number and named relationship.
+//   minerals), from Marshall Reid + Georgia Kruger's BFNA copy
+//   (_data/sources/marshall-infographic-copy-2026-07-17.md, BF-95; supersedes
+//   the 2026-06-30 doc from BF-81). Each block is trimmed to ~2–3 sentences
+//   (Marshall's explicit permission) while keeping every hard number and named
+//   relationship. Deliberate deviations from the source doc: Indonesia nickel
+//   share uses USGS MCS2026 (66.7%, 2025) instead of the doc's 62% (2024) to
+//   match the minerals chart; Philippines drops the "despite its small size"
+//   framing (client correction — PH is mid-sized); Laos folds the Key Facts
+//   trade/GDP figure into the Trade paragraph instead of an orphaned footnote.
 // - `sources` carries the per-tab attribution footnote shown under each
 //   tabpanel's prose. Bilateral-trade / mineral figures keep Marshall's stated
 //   year; figures with no named upstream source are attributed "BFNA research
@@ -62,12 +67,12 @@ export const PROFILES: Record<string, CountryProfile> = {
       trade:
         'China is Indonesia’s largest single trade partner, with bilateral trade reaching a record $135.15 billion in 2024. U.S. goods trade totalled an estimated $45.8 billion in 2025 and EU goods trade €27.3 billion ($31.9 billion) in 2024. The top source of foreign direct investment in 2025 was Singapore at $17.4 billion, reflecting deep integration into intra-ASEAN capital flows.',
       minerals:
-        'In 2024 Indonesia was the world’s largest producer of mined nickel at 62% of global output, plus the second-largest producer of mined tin (19%) and cobalt (12%). It also produces bauxite, copper, ferroalloys and gold. Those reserves and its geographic position make it essential to the clean-energy transition and one of the most strategically consequential countries in the Indo-Pacific.'
+        'Indonesia is the world’s largest producer of mined nickel at 66.7% of global output (2025), plus the second-largest producer of mined tin (19%) and cobalt (12%). It also produces bauxite, copper, ferroalloys and gold. Those reserves and its geographic position make it essential to the clean-energy transition and one of the most strategically consequential countries in the Indo-Pacific.'
     },
     sources: {
       description: 'BFNA research brief, Jun 2026.',
       trade: 'Bilateral-trade figures: BFNA research brief, Jun 2026 (China 2024, U.S. 2025, EU 2024); FDI: BFNA research brief, Jun 2026.',
-      minerals: 'Mineral production shares: BFNA research brief, Jun 2026 (2024).'
+      minerals: 'Nickel share: USGS Mineral Commodity Summaries 2026 (2025 data), matching the minerals chart. Other shares: BFNA research brief, Jun 2026 (2024).'
     },
     // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
     // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
@@ -244,11 +249,11 @@ export const PROFILES: Record<string, CountryProfile> = {
     hero: COUNTRY_HERO.philippines,
     paragraphs: {
       description:
-        'Despite its size and challenging geography, the Philippines has built one of the region’s most vibrant economies, led by a thriving services sector, and ranks as the world’s 35th-largest economy by nominal GDP. While Manila keeps extensive diplomatic and military ties with the U.S., it has built strong economic relations with regional partners, most notably China. With fast-developing infrastructure and growth regularly above 5%, it is poised to become a regional leader — though corruption and inequality remain pressing concerns.',
+        'The Philippines, a mid-sized archipelagic nation, has built one of the region’s most vibrant economies, led by a thriving services sector, and ranks as the world’s 35th-largest economy by nominal GDP. While Manila keeps extensive diplomatic and military ties with the U.S., it has built strong economic relations with regional partners, most notably China. With fast-developing infrastructure and growth regularly above 5%, it is poised to become a regional leader — though corruption and inequality remain pressing concerns.',
       trade:
         'Much of the Philippines’ recent success has been fuelled by trade. While a large share (~18% in April 2026) of exports flow to the U.S., the country is highly dependent on China for imports, with upwards of 29% of total imports originating in the PRC. Manila has also expanded EU ties, with bilateral goods trade of €17.6 billion in 2025; key exports include semiconductors, integrated circuits and critical minerals.',
       minerals:
-        'Despite its size, the Philippines plays a growing role in critical-mineral supply chains, with vast and largely untapped reserves of nickel, copper and cobalt. It is now one of the world’s leading nickel exporters, with reserves estimated above $175 billion, most shipped as raw ore to China. The government has debated banning raw-nickel-ore exports to build refining capacity and move up the value chain.'
+        'The Philippines plays a growing role in critical-mineral supply chains, with vast and largely untapped reserves of nickel, copper and cobalt. It is now one of the world’s leading nickel exporters, with reserves estimated above $175 billion, most shipped as raw ore to China. The government has debated banning raw-nickel-ore exports to build refining capacity and move up the value chain.'
     },
     sources: {
       description: 'BFNA research brief, Jun 2026.',
@@ -353,13 +358,13 @@ export const PROFILES: Record<string, CountryProfile> = {
       description:
         'Small in size and population (8 million), Laos is the only landlocked country in Southeast Asia — a critical transit corridor bordered by China, Vietnam, Myanmar, Thailand and Cambodia. Its GDP grew 4.1% in 2024, but it is deeply dependent on China for infrastructure. As of 2026 a Chinese state-owned firm holds a 90% stake and 25-year concession over the national grid, and the $6 billion China–Laos Railway gives Beijing a controlling operational stake — making Laos the ASEAN member most structurally dependent on Beijing.',
       trade:
-        'China is Laos’s dominant trade and investment partner by a commanding margin, with bilateral trade of roughly $6.29 billion in 2024. By comparison, U.S. goods trade totalled an estimated $2.1 billion in 2025 and EU goods trade around €500 million. Beijing’s dominance extends to debt: it owns roughly half of Laos’s $10.5 billion foreign debt.',
+        'China is Laos’s dominant trade and investment partner by a commanding margin, with bilateral trade of roughly $6.29 billion in 2024. By comparison, U.S. goods trade totalled an estimated $2.1 billion in 2025 and EU goods trade around €500 million. Beijing’s dominance extends to debt: it owns roughly half of Laos’s $10.5 billion foreign debt. Laos’s total trade equalled about 75% of GDP as of 2016, the most recent year available.',
       minerals:
         'In 2024 Laos was the fourth-largest producer of refined bismuth (3.0% of global output) and the sixth-largest producer of potash (5.1%). As it develops its critical-minerals sector — particularly copper, tin and antimony — its importance is rapidly growing.'
     },
     sources: {
-      description: 'BFNA research brief, Jun 2026. (Total trade as % of GDP figure is a 2016 value.)',
-      trade: 'Bilateral-trade and debt figures: BFNA research brief, Jun 2026 (China 2024, U.S. 2025, EU 2025).',
+      description: 'BFNA research brief, Jun 2026.',
+      trade: 'Bilateral-trade and debt figures: BFNA research brief, Jun 2026 (China 2024, U.S. 2025, EU 2025). Total trade as % of GDP: World Bank NE.TRD.GNFS.ZS (2016 — most recent available for Laos).',
       minerals: 'BFNA research brief, Jun 2026 (2024).'
     },
     // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
