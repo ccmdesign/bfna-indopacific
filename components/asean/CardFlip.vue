@@ -19,7 +19,9 @@ const props = defineProps<{
   durationMs?: number
 }>()
 
-const durationMs = computed(() => props.durationMs ?? 700)
+// Named distinctly from the `durationMs` prop: a setup binding of the same name
+// would shadow the prop in the template, which reads as a bug even when it isn't.
+const flipDurationMs = computed(() => props.durationMs ?? 700)
 
 // BF-104: `backface-visibility` alone is a single point of failure for hiding the
 // inactive face — it breaks wherever a face contains its own compositing layers
@@ -45,7 +47,7 @@ watch(
     clearTimeout(settleTimer)
     settleTimer = setTimeout(() => {
       settled.value = next
-    }, durationMs.value)
+    }, flipDurationMs.value)
   }
 )
 
@@ -56,7 +58,7 @@ const backHidden = computed(() => !props.flipped && !settled.value)
 </script>
 
 <template>
-  <div class="card-flip" :style="{ '--card-flip-duration': durationMs + 'ms' }">
+  <div class="card-flip" :style="{ '--card-flip-duration': flipDurationMs + 'ms' }">
     <div class="card-flip__inner" :class="{ 'is-flipped': flipped }">
       <div
         class="card-flip__face card-flip__face--front"
@@ -135,17 +137,27 @@ const backHidden = computed(() => !props.flipped && !settled.value)
     backface-visibility: visible;
     -webkit-backface-visibility: visible;
   }
+  /* BF-104: `pointer-events` alongside `opacity`. The settled-state gate hides the
+     inactive face after the full flip duration, but the cross-fade here finishes in
+     200ms — without this the faded-out face would stay hit-testable for the ~500ms
+     in between, long enough to fire a trade-chart tooltip over the Critical
+     Minerals tab. Unlike `opacity` this is not transitioned, so it switches on the
+     same frame as the tab. */
   .card-flip__face--front {
     opacity: 1;
+    pointer-events: auto;
   }
   .card-flip__face--back {
     opacity: 0;
+    pointer-events: none;
   }
   .card-flip__inner.is-flipped .card-flip__face--front {
     opacity: 0;
+    pointer-events: none;
   }
   .card-flip__inner.is-flipped .card-flip__face--back {
     opacity: 1;
+    pointer-events: auto;
   }
 }
 </style>
