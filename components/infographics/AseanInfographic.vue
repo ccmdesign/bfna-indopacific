@@ -590,6 +590,19 @@ function onActiveSlugUpdate(next: string | null) {
   );
 }
 
+/* BF-106: short viewports — a 150%-scaled 1920×1080 Windows display is a
+   1280×720 CSS viewport (125%-scaled laptops land at 768). The charts column
+   overflows there (~440px; the second chart card sits fully below the fold),
+   and with pointer-events:none the wheel falls through to the map in the gaps
+   between/around the cards, so the column reads as "not scrolling". At or
+   below 800px make the whole column wheelable; the trade-off (map not
+   clickable through the sidebar's transparent left edge) only bites at
+   heights where the hidden content matters more than the click-through. */
+@media (max-height: 800px) {
+  .asean-infographic__sidebar {
+    pointer-events: auto;
+  }
+}
 
 /* Top block: tabs (left) beside the flag panel (right). align-items
    flex-start so the flag's top lines up with the tabs' top. */
