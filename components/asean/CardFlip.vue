@@ -8,9 +8,11 @@
 //     <template #back>...</template>
 //   </CardFlip>
 //
-// Honour reduced-motion: cross-fade instead of rotate.
+// Where the rotation can't be trusted — or the user asked for less motion — the
+// component falls back to "flat" mode: same stacked slot, instant swap, no
+// rotation at all. See `flat` below.
 
-import { computed, onBeforeUnmount, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 const props = defineProps<{
   /** When true, show the back face. */
@@ -23,17 +25,53 @@ const props = defineProps<{
 // would shadow the prop in the template, which reads as a bug even when it isn't.
 const flipDurationMs = computed(() => props.durationMs ?? 700)
 
-// BF-104: `backface-visibility` alone is a single point of failure for hiding the
-// inactive face — it breaks wherever a face contains its own compositing layers
-// (the SVG charts do), notably in Safari and on software / blocklisted-GPU 3D
-// paths. When it fails BOTH faces paint at once and the trade chart shows through,
-// mirrored, on the Critical Minerals tab. That is the client-reported symptom.
+// Flat mode: drop the 3D rotation and just swap the faces in place.
 //
-// So back it with `visibility`, which needs no 3D support. The catch is timing: the
-// outgoing face must stay painted while it rotates away. `settled` therefore
-// mirrors `flipped`, but only once the rotation has finished — during the flip the
-// two disagree and both faces stay visible, which is exactly what the animation
-// needs. A face is hidden only when `flipped` and `settled` agree it is inactive.
+// Three triggers, all resolved client-side (SSR has no browser to inspect, and
+// the server-rendered default is the flip — a class change on hydrate, with no
+// visual difference at rest):
+//
+//  1. prefers-reduced-motion — the user asked for less movement. Kept live via a
+//     matchMedia listener so toggling the OS setting takes effect immediately.
+//  2. No `preserve-3d` support — the rotation would collapse to a 2D smear.
+//  3. WebKit — Safari and every iOS browser. These DO report preserve-3d support,
+//     so `@supports` can't catch them, but their `backface-visibility` is
+//     unreliable once a face contains its own compositing layers (our SVG charts
+//     do). BF-104's `visibility` gate keeps the settled state correct there, but
+//     mid-rotation both faces are deliberately painted and the outgoing face can
+//     bleed through mirrored. Flat mode removes that window entirely.
+//     `navigator.vendor` is the cheap discriminator: 'Apple Computer, Inc.' for
+//     WebKit, something else for Chrome/Firefox. Revisit if Safari's compositing
+//     stops glitching.
+const flat = ref(false)
+let motionQuery: MediaQueryList | undefined
+
+const isWebkit = () => navigator.vendor === 'Apple Computer, Inc.'
+const lacks3d = () => !CSS.supports('transform-style', 'preserve-3d')
+
+function syncFlat() {
+  flat.value = Boolean(motionQuery?.matches) || lacks3d() || isWebkit()
+}
+
+onMounted(() => {
+  motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+  motionQuery.addEventListener('change', syncFlat)
+  syncFlat()
+})
+
+// Flat mode swaps instantly, so the settle gate below must not hold the outgoing
+// face open for the (now non-existent) rotation.
+const settleMs = computed(() => (flat.value ? 0 : flipDurationMs.value))
+
+// BF-104: `backface-visibility` alone is a single point of failure for hiding the
+// inactive face. Back it with `visibility`, which needs no 3D support. The catch
+// is timing: the outgoing face must stay painted while it rotates away. `settled`
+// therefore mirrors `flipped`, but only once the rotation has finished — during
+// the flip the two disagree and both faces stay visible, which is exactly what
+// the animation needs. A face is hidden only when `flipped` and `settled` agree
+// it is inactive. In flat mode `settleMs` is 0, so they agree immediately and the
+// swap is instant — which is also what keeps the inactive face out of hit-testing
+// straight away, so a trade-chart tooltip can't fire over the minerals tab.
 //
 // Deliberately driven from component state rather than a CSS `visibility`
 // transition: transitions are frozen in background/occluded tabs, so a
@@ -45,13 +83,24 @@ watch(
   () => props.flipped,
   (next) => {
     clearTimeout(settleTimer)
+    // Flat mode settles synchronously, not via a 0ms timer: a timer still costs
+    // one macrotask, and that is a frame in which the outgoing trade face is
+    // still painted and hit-testable on the Critical Minerals tab. Caught in
+    // testing — the swap has to be atomic with the tab change, not merely fast.
+    if (settleMs.value === 0) {
+      settled.value = next
+      return
+    }
     settleTimer = setTimeout(() => {
       settled.value = next
-    }, flipDurationMs.value)
+    }, settleMs.value)
   }
 )
 
-onBeforeUnmount(() => clearTimeout(settleTimer))
+onBeforeUnmount(() => {
+  clearTimeout(settleTimer)
+  motionQuery?.removeEventListener('change', syncFlat)
+})
 
 const frontHidden = computed(() => props.flipped && settled.value)
 const backHidden = computed(() => !props.flipped && !settled.value)
@@ -59,7 +108,7 @@ const backHidden = computed(() => !props.flipped && !settled.value)
 
 <template>
   <div class="card-flip" :style="{ '--card-flip-duration': flipDurationMs + 'ms' }">
-    <div class="card-flip__inner" :class="{ 'is-flipped': flipped }">
+    <div class="card-flip__inner" :class="{ 'is-flipped': flipped, 'is-flat': flat }">
       <div
         class="card-flip__face card-flip__face--front"
         :class="{ 'is-hidden': frontHidden }"
@@ -112,8 +161,7 @@ const backHidden = computed(() => !props.flipped && !settled.value)
 
 /* BF-104: the settled-state gate (see the script block). Independent of 3D
    support, so the trade face stays hidden even where `backface-visibility` fails.
-   `visibility: hidden` also drops the face out of hit-testing, so a trade-chart
-   tooltip can never fire over the Critical Minerals tab. */
+   `visibility: hidden` also drops the face out of hit-testing. */
 .card-flip__face.is-hidden {
   visibility: hidden;
 }
@@ -122,42 +170,22 @@ const backHidden = computed(() => !props.flipped && !settled.value)
   transform: rotateY(180deg);
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .card-flip__inner,
-  .card-flip__inner.is-flipped {
-    transform: none;
-    transition: none;
-  }
-  /* No rotation: faces un-mirror and cross-fade by opacity within the shared
-     grid cell, so the hidden face still un-mirrors instead of relying on
-     backface-visibility (which would blank a non-rotated face). */
-  .card-flip__face {
-    transition: opacity 200ms ease;
-    transform: none;
-    backface-visibility: visible;
-    -webkit-backface-visibility: visible;
-  }
-  /* BF-104: `pointer-events` alongside `opacity`. The settled-state gate hides the
-     inactive face after the full flip duration, but the cross-fade here finishes in
-     200ms — without this the faded-out face would stay hit-testable for the ~500ms
-     in between, long enough to fire a trade-chart tooltip over the Critical
-     Minerals tab. Unlike `opacity` this is not transitioned, so it switches on the
-     same frame as the tab. */
-  .card-flip__face--front {
-    opacity: 1;
-    pointer-events: auto;
-  }
-  .card-flip__face--back {
-    opacity: 0;
-    pointer-events: none;
-  }
-  .card-flip__inner.is-flipped .card-flip__face--front {
-    opacity: 0;
-    pointer-events: none;
-  }
-  .card-flip__inner.is-flipped .card-flip__face--back {
-    opacity: 1;
-    pointer-events: auto;
-  }
+/* Flat mode: no rotation, so the faces must un-mirror and `backface-visibility`
+   must be neutralised (it would blank a face that never rotates). Hiding is left
+   entirely to the `is-hidden` gate above, which in flat mode applies immediately.
+   `will-change: auto` drops a compositing layer we no longer animate. */
+.card-flip__inner.is-flat,
+.card-flip__inner.is-flat.is-flipped {
+  transform: none;
+  transition: none;
+  transform-style: flat;
+  will-change: auto;
+}
+
+.card-flip__inner.is-flat .card-flip__face,
+.card-flip__inner.is-flat .card-flip__face--back {
+  transform: none;
+  backface-visibility: visible;
+  -webkit-backface-visibility: visible;
 }
 </style>
