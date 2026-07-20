@@ -53,7 +53,14 @@ const props = withDefaults(defineProps<{
    */
   externalHoverSlug?: string | null
 }>(), {
-  frameTx: -962,
+  // BF-103: panned left 315 viewBox units total (-962 -> -1277) so the ASEAN
+  // members clear the bottom-right country legend, which was sitting on top of
+  // eastern Indonesia (Maluku/Papua). The legend is fixed-size CSS while the map
+  // scales with the viewBox, so it eats proportionally more width as the window
+  // narrows — this value is tuned so the members stay framed AND clear of the
+  // sidebar down to ~1280px. Safe for the raster: the plate spans 3360 units at
+  // scale 1.75, so both edges stay covered at this offset.
+  frameTx: -1277,
   frameTy: -293,
   frameScale: 1.75,
   activeSlug: null,
@@ -317,6 +324,21 @@ function onSvgClick(e: MouseEvent) {
           />
         </g>
 
+        <!-- Idle affordance (BF-85): a persistent, brand-tinted outline + faint
+             fill on every member so the 11 clickable countries read as
+             interactive regions at rest, before any hover. The border sweep
+             above only shimmers transiently as the diagonal passes, so without
+             this the map looks like a static image. Rides the plate transform;
+             never intercepts pointer events (the hit layer below does). -->
+        <g class="asean-map__idle" :class="{ 'asean-map__idle--docked': !!activeFeature }" pointer-events="none">
+          <path
+            v-for="f in interactiveFeatures"
+            :key="'i' + f.id"
+            :d="f.d"
+            class="asean-map__idle-shape"
+          />
+        </g>
+
         <!-- Hit-test layer: invisible, captures hover/click for all countries -->
         <g class="asean-map__hits">
           <g
@@ -437,6 +459,25 @@ function onSvgClick(e: MouseEvent) {
   stroke-width: 1.4;
   vector-effect: non-scaling-stroke;
   pointer-events: none;
+}
+
+/* Idle interactive affordance (BF-85): subtle persistent tint so the 11
+   members read as clickable before hover. Brand meridian-blue, kept well below
+   hover/active intensity so those still pop. Present from load — the border
+   sweep still shimmers on top. */
+.asean-map__idle {
+  transition: opacity 600ms ease;
+}
+.asean-map__idle-shape {
+  fill: hsla(218, 60%, 58%, 0.05);
+  stroke: hsla(218, 65%, 74%, 0.42);
+  stroke-width: 0.9;
+  vector-effect: non-scaling-stroke;
+}
+/* When a country is docked, fade the idle tint back so the selection leads;
+   the other members stay faintly visible (still clickable). */
+.asean-map__idle--docked {
+  opacity: 0.4;
 }
 
 /* Hit-test layer: invisible to eyes, captures all pointer events */

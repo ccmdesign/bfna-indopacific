@@ -58,26 +58,17 @@ function prefersReducedMotion(): boolean {
   )
 }
 
-// Shared value formatter — used for both the end-of-series partner labels
-// and the Y-axis top tick. Input is USD millions (the data's native unit).
-// >= $1B: billions, 1 decimal, trailing ".0" dropped ("$12.6B").
-// $100M–$1B: whole millions ("$267M").
-// < $100M: millions, 1 decimal ("$24.6M").
-// This guarantees no sub-$1B value ever rounds down to "$0B" — the bug that
-// made Myanmar's US band and Timor-Leste's total trade read as zero.
-function formatTradeValue(vMillions: number): string {
-  if (!Number.isFinite(vMillions)) return '—'
-  const sign = vMillions < 0 ? '-' : ''
-  const abs = Math.abs(vMillions)
-  if (abs >= 1000) {
-    const billions = Math.round((abs / 1000) * 10) / 10
-    const str = Number.isInteger(billions) ? billions.toFixed(0) : billions.toFixed(1)
-    return `${sign}$${str}B`
-  }
-  if (abs >= 100) {
-    return `${sign}$${Math.round(abs)}M`
-  }
-  return `${sign}$${(Math.round(abs * 10) / 10).toFixed(1)}M`
+// BF-87: partner labels now show each partner's SHARE of the year's three-way
+// total (relative proportion), not an absolute dollar figure. Marshall asked to
+// drop the total-dollar figure and "USD billions" so the graphic reads as
+// relative proportions + growth over time; the absolute stacked areas still
+// carry the growth signal, while these % labels carry the proportions.
+function formatSharePct(value: number, total: number): string {
+  if (!Number.isFinite(value) || !(total > 0)) return '—'
+  const pct = (value / total) * 100
+  // Keep a thin band visible: never round a present partner down to "0%".
+  if (pct > 0 && pct < 1) return '<1%'
+  return `${Math.round(pct)}%`
 }
 
 interface LabelAnchor {
@@ -248,6 +239,13 @@ function draw() {
   const resolved = resolveLabelPositions(anchors, 14, margin.top + 6, height - margin.bottom - 6)
   const resolvedByKey = new Map(resolved.map((r) => [r.key, r]))
 
+  // Three-way total for the latest year — denominator for the share labels.
+  const lastYearData = props.data.series[props.data.series.length - 1]
+  const lastYearTotal = stackKeys.reduce(
+    (acc, k) => acc + ((lastYearData[k] as number) || 0),
+    0
+  )
+
   stackedSeries.forEach((s) => {
     const last = s[s.length - 1]
     const rawValue = (last.data as SeriesPoint)[s.key] as number
@@ -281,7 +279,7 @@ function draw() {
       .attr('font-size', 11)
       .attr('font-weight', 600)
       .attr('letter-spacing', '0.02em')
-      .text(`${PARTNER_LABEL[s.key] ?? s.key} ${formatTradeValue(rawValue)}`)
+      .text(`${PARTNER_LABEL[s.key] ?? s.key} ${formatSharePct(rawValue, lastYearTotal)}`)
   })
 
   // X axis — minimal, just first/last year + midpoint
@@ -309,37 +307,10 @@ function draw() {
     .attr('letter-spacing', '0.05em')
     .text((d) => String(d))
 
-  // Y axis — value at top tick, USD label (counts up in sync with the area).
-  // Shares formatTradeValue with the partner labels so a country whose total
-  // trade is under $1B (e.g. Timor-Leste, ~$319M in 2024) never shows "$0B".
-  const yTopTick = yTicks[yTicks.length - 1]
-  const fmtTopTick = (v: number) => formatTradeValue(v)
-  const topTick = svg
-    .append('text')
-    .attr('x', margin.left)
-    .attr('y', y(yTopTick) - 4)
-    .attr('fill', 'rgba(255,255,255,0.45)')
-    .attr('font-family', 'Encode Sans, system-ui, sans-serif')
-    .attr('font-size', 10)
-    .attr('font-weight', 600)
-    .attr('letter-spacing', '0.05em')
-
-  if (reduce) {
-    topTick.text(fmtTopTick(yTopTick))
-  } else {
-    topTick
-      .text(fmtTopTick(0))
-      .transition()
-      .duration(GROW_MS)
-      .ease(d3.easeCubicOut)
-      .tween('text', function () {
-        const node = this as SVGTextElement
-        const i = d3.interpolateNumber(0, yTopTick)
-        return (t) => {
-          node.textContent = fmtTopTick(i(t))
-        }
-      })
-  }
+  // BF-87: the Y-axis top-tick dollar figure (the "~$250B" total Marshall
+  // flagged) is intentionally removed. The unlabeled gridlines above still give
+  // a sense of scale/growth without putting an absolute-dollar number on the
+  // chart; relative proportions are carried by the per-partner share labels.
 }
 
 onMounted(() => {
