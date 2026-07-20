@@ -10,21 +10,68 @@
 //
 // Honour reduced-motion: cross-fade instead of rotate.
 
-defineProps<{
+import { computed, onBeforeUnmount, ref, watch } from 'vue'
+
+const props = defineProps<{
   /** When true, show the back face. */
   flipped: boolean
   /** Override transition duration in ms. */
   durationMs?: number
 }>()
+
+// Named distinctly from the `durationMs` prop: a setup binding of the same name
+// would shadow the prop in the template, which reads as a bug even when it isn't.
+const flipDurationMs = computed(() => props.durationMs ?? 700)
+
+// BF-104: `backface-visibility` alone is a single point of failure for hiding the
+// inactive face — it breaks wherever a face contains its own compositing layers
+// (the SVG charts do), notably in Safari and on software / blocklisted-GPU 3D
+// paths. When it fails BOTH faces paint at once and the trade chart shows through,
+// mirrored, on the Critical Minerals tab. That is the client-reported symptom.
+//
+// So back it with `visibility`, which needs no 3D support. The catch is timing: the
+// outgoing face must stay painted while it rotates away. `settled` therefore
+// mirrors `flipped`, but only once the rotation has finished — during the flip the
+// two disagree and both faces stay visible, which is exactly what the animation
+// needs. A face is hidden only when `flipped` and `settled` agree it is inactive.
+//
+// Deliberately driven from component state rather than a CSS `visibility`
+// transition: transitions are frozen in background/occluded tabs, so a
+// transition-timed gate can strand a face in the wrong state.
+const settled = ref(props.flipped)
+let settleTimer: ReturnType<typeof setTimeout> | undefined
+
+watch(
+  () => props.flipped,
+  (next) => {
+    clearTimeout(settleTimer)
+    settleTimer = setTimeout(() => {
+      settled.value = next
+    }, flipDurationMs.value)
+  }
+)
+
+onBeforeUnmount(() => clearTimeout(settleTimer))
+
+const frontHidden = computed(() => props.flipped && settled.value)
+const backHidden = computed(() => !props.flipped && !settled.value)
 </script>
 
 <template>
-  <div class="card-flip" :style="{ '--card-flip-duration': (durationMs ?? 700) + 'ms' }">
+  <div class="card-flip" :style="{ '--card-flip-duration': flipDurationMs + 'ms' }">
     <div class="card-flip__inner" :class="{ 'is-flipped': flipped }">
-      <div class="card-flip__face card-flip__face--front" :aria-hidden="flipped">
+      <div
+        class="card-flip__face card-flip__face--front"
+        :class="{ 'is-hidden': frontHidden }"
+        :aria-hidden="flipped"
+      >
         <slot name="front" />
       </div>
-      <div class="card-flip__face card-flip__face--back" :aria-hidden="!flipped">
+      <div
+        class="card-flip__face card-flip__face--back"
+        :class="{ 'is-hidden': backHidden }"
+        :aria-hidden="!flipped"
+      >
         <slot name="back" />
       </div>
     </div>
@@ -63,6 +110,14 @@ defineProps<{
   min-width: 0;
 }
 
+/* BF-104: the settled-state gate (see the script block). Independent of 3D
+   support, so the trade face stays hidden even where `backface-visibility` fails.
+   `visibility: hidden` also drops the face out of hit-testing, so a trade-chart
+   tooltip can never fire over the Critical Minerals tab. */
+.card-flip__face.is-hidden {
+  visibility: hidden;
+}
+
 .card-flip__face--back {
   transform: rotateY(180deg);
 }
@@ -82,17 +137,27 @@ defineProps<{
     backface-visibility: visible;
     -webkit-backface-visibility: visible;
   }
+  /* BF-104: `pointer-events` alongside `opacity`. The settled-state gate hides the
+     inactive face after the full flip duration, but the cross-fade here finishes in
+     200ms — without this the faded-out face would stay hit-testable for the ~500ms
+     in between, long enough to fire a trade-chart tooltip over the Critical
+     Minerals tab. Unlike `opacity` this is not transitioned, so it switches on the
+     same frame as the tab. */
   .card-flip__face--front {
     opacity: 1;
+    pointer-events: auto;
   }
   .card-flip__face--back {
     opacity: 0;
+    pointer-events: none;
   }
   .card-flip__inner.is-flipped .card-flip__face--front {
     opacity: 0;
+    pointer-events: none;
   }
   .card-flip__inner.is-flipped .card-flip__face--back {
     opacity: 1;
+    pointer-events: auto;
   }
 }
 </style>
