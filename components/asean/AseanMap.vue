@@ -53,7 +53,14 @@ const props = withDefaults(defineProps<{
    */
   externalHoverSlug?: string | null
 }>(), {
-  frameTx: -962,
+  // BF-103: panned left 315 viewBox units total (-962 -> -1277) so the ASEAN
+  // members clear the bottom-right country legend, which was sitting on top of
+  // eastern Indonesia (Maluku/Papua). The legend is fixed-size CSS while the map
+  // scales with the viewBox, so it eats proportionally more width as the window
+  // narrows — this value is tuned so the members stay framed AND clear of the
+  // sidebar down to ~1280px. Safe for the raster: the plate spans 3360 units at
+  // scale 1.75, so both edges stay covered at this offset.
+  frameTx: -1277,
   frameTy: -293,
   frameScale: 1.75,
   activeSlug: null,
