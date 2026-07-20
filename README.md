@@ -71,7 +71,52 @@ This runs `nuxt generate` (a full prerendered build — needed so `?capture` mod
 | Indo-Pacific Straits | `straits-2824x1986.png` | 2824×1986 (landscape) |
 | ASEAN: Pivot of the Indo-Pacific | `asean-3840x3840.png` | 3840×3840 (square) |
 
-Sizes were measured from the client's existing infographics page. Squarespace downscales images for display, so native-size exports are safe to upload as-is. To reuse an existing build without rebuilding (faster local iteration): `npm run export:tiles -- --skip-build`.
+Sizes were measured from the client's existing infographics page. To reuse an existing build without rebuilding (faster local iteration): `npm run export:tiles -- --skip-build`.
 
-**Squarespace usage:** for each infographic, place the tile PNG as an image block linking to its live interactive page, e.g. `https://bfna-indopacific.netlify.app/infographics/renewables`. The tile is the static preview; the link is where visitors get the real, interactive version.
+### Web-sized export for Squarespace
+
+The `tiles` sizes above are native-resolution. Squarespace resizes any upload wider than 2500px, so for the actual Squarespace image blocks use the `squarespace` preset instead:
+
+```bash
+npm run export:squarespace
+```
+
+| Infographic | File | Size |
+|---|---|---|
+| Renewables on the Rise | `renewables-2400x1688.png` | 2400×1688 (landscape) |
+| Indo-Pacific Straits | `straits-2400x1688.png` | 2400×1688 (landscape) |
+| ASEAN: Pivot of the Indo-Pacific | `asean-2400x2400.png` | 2400×2400 (square) |
+
+Output lands in `exports/squarespace/`.
+
+**On the 2400px default:** the client has not yet confirmed target pixel dimensions. 2400px is a deliberate placeholder — under Squarespace's 2500px resize cap, still crisp at 2× on its ~1200px content column. When the confirmed number arrives, either pass it (`npm run export:squarespace -- --width=2000`) or change the `SQUARESPACE_WIDTH` constant at the top of `scripts/export-tiles.mjs`. Heights are derived from each infographic's native aspect ratio, so only the width needs setting.
+
+### Flags
+
+| Flag | Effect |
+|---|---|
+| `--preset=tiles\|squarespace` | Size preset (default `tiles`) |
+| `--width=N` | Output width in pixels; height follows |
+| `--height=N` | Output height in pixels; width follows |
+| `--base-url=URL` | Origin the emitted links point at (default `https://bfna-indopacific.netlify.app`) |
+| `--skip-build` | Reuse an existing `.output/public` |
+
+Pass `--width` **or** `--height`, not both — see below.
+
+### Resolution vs. layout
+
+Output resolution and layout viewport are deliberately separate. Each infographic is always rendered at a fixed CSS-pixel viewport (`LAYOUTS` in the script — the size the design is composed for), and the target resolution is reached purely by scaling that render up or down.
+
+This matters: shrinking the CSS viewport to get a smaller PNG would re-flow the design instead of scaling it. An earlier pass at this did exactly that and clipped the renewables title and x-axis. So changing `--width` only changes resolution, never composition. Because the scale is uniform, width and height can't be set independently — passing both is rejected rather than distorting the design.
+
+Each run also clears its own preset directory first, so a folder only ever holds one version of each infographic.
+
+### Link-out artifacts
+
+A static image is only half the deliverable — each one has to link to its interactive version. Both presets emit, alongside the PNGs:
+
+- **`manifest.json`** — slug, title, filename, dimensions, and interactive URL per image.
+- **`squarespace-snippets.html`** — paste-ready `<a href="…"><img …></a>` markup per infographic, with the interactive URL already filled in.
+
+**Squarespace usage:** upload the PNG, then use the matching snippet, swapping only the `img src` for the URL Squarespace assigns the uploaded file. The `href` is already correct. The image is the static preview; the link is where visitors get the real, interactive version.
 

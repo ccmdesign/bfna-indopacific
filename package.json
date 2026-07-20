@@ -10,7 +10,8 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "export:tiles": "node scripts/export-tiles.mjs"
+    "export:tiles": "node scripts/export-tiles.mjs",
+    "export:squarespace": "node scripts/export-tiles.mjs --preset=squarespace"
   },
   "dependencies": {
     "d3": "^7.9.0",

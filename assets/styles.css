@@ -26,3 +26,10 @@ body {
   transition-duration: 0s !important;
   transition-delay: 0s !important;
 }
+
+/* BF-92: the ccm-feedback review FAB loads on every non-production deploy —
+   including the local `nuxt generate` the export pipeline runs — so without
+   this it gets burned into the static images handed to the client. */
+.is-capturing ccm-feedback-widget {
+  display: none !important;
+}
