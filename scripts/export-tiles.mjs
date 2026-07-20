@@ -107,12 +107,28 @@ function parseArgs(argv) {
 
 /** Read a positive-integer flag, or throw a usage error. */
 function intFlag(args, name) {
-  if (args[name] === undefined) return undefined
-  const value = Number(args[name])
+  const raw = args[name]
+  if (raw === undefined) return undefined
+  // A bare `--width` parses as boolean true, and Number(true) is 1 — which
+  // would sail past the check below and silently export 1px-wide images.
+  if (typeof raw !== 'string') {
+    throw new Error(`--${name} needs a value, e.g. --${name}=2400`)
+  }
+  const value = Number(raw)
   if (!Number.isInteger(value) || value <= 0) {
-    throw new Error(`--${name} must be a positive integer (got "${args[name]}")`)
+    throw new Error(`--${name} must be a positive integer (got "${raw}")`)
   }
   return value
+}
+
+/** Read a string flag, rejecting the bare `--flag` form. */
+function stringFlag(args, name, fallback) {
+  const raw = args[name]
+  if (raw === undefined) return fallback
+  if (typeof raw !== 'string' || raw === '') {
+    throw new Error(`--${name} needs a value, e.g. --${name}=https://example.org`)
+  }
+  return raw
 }
 
 /**
@@ -161,7 +177,7 @@ function resolvePlan(args) {
     }
   })
 
-  const baseUrl = String(args['base-url'] ?? DEFAULT_BASE_URL).replace(/\/+$/, '')
+  const baseUrl = stringFlag(args, 'base-url', DEFAULT_BASE_URL).replace(/\/+$/, '')
 
   return {
     presetName,
@@ -360,14 +376,6 @@ async function main() {
   log(`Preset "${plan.presetName}" → ${path.relative(ROOT, plan.exportDir)}/`)
   log(`Interactive links point at ${plan.baseUrl}`)
 
-  // Filenames carry their dimensions, so a run at a different --width leaves
-  // the previous run's PNGs behind. The client then has two versions of each
-  // infographic in one folder with no way to tell which the snippets refer to.
-  // Clear the preset's own directory (never `exports/` as a whole, so sibling
-  // presets survive) and let this run be the single source of truth.
-  await rm(plan.exportDir, { recursive: true, force: true })
-  await mkdir(plan.exportDir, { recursive: true })
-
   if (plan.skipBuild && existsSync(OUTPUT_DIR)) {
     log('--skip-build: reusing existing .output/public')
   } else {
@@ -382,6 +390,16 @@ async function main() {
   const server = await startServer()
   const localUrl = `http://localhost:${PORT}`
   const titles = await readTitles()
+
+  // Filenames carry their dimensions, so a run at a different --width would
+  // otherwise leave the previous run's PNGs behind — leaving the client two
+  // versions of each infographic in one folder with no way to tell which the
+  // snippets refer to. Clear the preset's own directory (never `exports/` as a
+  // whole, so sibling presets survive) so this run is the single source of
+  // truth. Deliberately after the build succeeds: clearing first would destroy
+  // a good previous export whenever `nuxt generate` fails.
+  await rm(plan.exportDir, { recursive: true, force: true })
+  await mkdir(plan.exportDir, { recursive: true })
 
   const entries = []
   const browser = await chromium.launch()
