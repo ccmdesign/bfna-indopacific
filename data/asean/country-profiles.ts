@@ -138,7 +138,7 @@ export const PROFILES: Record<string, CountryProfile> = {
     },
     paragraphs: {
       description:
-        'Thailand is an upper-middle-income country and ASEAN’s second-largest economy, growing 2.5% in 2024, and serves as a land bridge linking South Asia, Indochina and maritime Southeast Asia. A U.S. treaty ally that runs regular joint exercises with Washington, it has also held annual military exercises with China since 2005 — a hedging posture, though recent trends suggest a gradual drift toward Beijing.',
+        'Thailand is an upper-middle-income country and ASEAN’s second-largest economy, growing 2.5% in 2024 and serving as a land bridge linking South Asia, Indochina and maritime Southeast Asia. A U.S. treaty ally that runs regular joint exercises with Washington, it has also held annual military exercises with China since 2005 — a hedging posture, though recent trends suggest a gradual drift toward Beijing.',
       trade:
         'Thailand’s economy is modern, industrialized and export-oriented, with China as its largest trading partner in 2025. It maintains deep ties with the U.S., ranking among its top 10 partners, while the EU is its fourth-largest partner at 7.2% of goods trade in 2025. Thailand ranks as the EU’s 25th-largest partner, with bilateral goods trade totalling €44.3 billion.',
       minerals:
@@ -289,7 +289,7 @@ export const PROFILES: Record<string, CountryProfile> = {
       trade:
         'Vietnam is highly dependent on trade, exporting electrical machinery, apparel, textiles and footwear. As of 2025 China is its largest single trade partner at a record $296 billion, but its relationships are diversified: U.S. goods trade totalled an estimated $209.5 billion in 2025 (its 8th-largest partner), and with €76 billion in bilateral goods trade Vietnam is the EU’s largest trading partner within ASEAN.',
       minerals:
-        'Vietnam holds an estimated 3.5 million metric tons of rare-earth reserves, sixth globally, and is rich in bauxite, tungsten, titanium and manganese. It is the world’s second-largest producer of tungsten (4.1% of output), third in cement (2.3%) and fifth in fluorspar (1.4%), and also produces aluminum, antimony, bismuth, cobalt and graphite.'
+        'Vietnam holds an estimated 3.5 million metric tons of rare-earth reserves — sixth globally — and is rich in bauxite, tungsten, titanium and manganese. It is the world’s second-largest producer of tungsten (4.1% of output), third in cement (2.3%) and fifth in fluorspar (1.4%). It also produces aluminum, antimony, bismuth, cobalt and graphite.'
     },
     sources: {
       description: 'BFNA research brief, Jun 2026.',
@@ -334,7 +334,7 @@ export const PROFILES: Record<string, CountryProfile> = {
     },
     paragraphs: {
       description:
-        'The Philippines, a mid-sized archipelagic nation, has built one of the region’s most vibrant economies, led by a thriving services sector, and ranks as the world’s 35th-largest economy by nominal GDP. While Manila keeps extensive diplomatic and military ties with the U.S., it has built strong economic relations with regional partners, most notably China. With fast-developing infrastructure and growth regularly above 5%, it is poised to become a regional leader — though corruption and inequality remain pressing concerns.',
+        'The Philippines, a mid-sized archipelagic nation, has built one of the region’s most vibrant economies on a thriving services sector and ranks as the world’s 35th-largest economy by nominal GDP. While Manila keeps extensive diplomatic and military ties with the U.S., it has built strong economic relations with regional partners, most notably China. With fast-developing infrastructure and growth regularly above 5%, it is poised to become a regional leader — though corruption and inequality remain pressing concerns.',
       trade:
         'Much of the Philippines’ recent success has been fuelled by trade. While a large share (~18% in April 2026) of exports flow to the U.S., the country is highly dependent on China for imports, with upwards of 29% of total imports originating in the PRC. Manila has also expanded EU ties, with bilateral goods trade of €17.6 billion in 2025; key exports include semiconductors, integrated circuits and critical minerals.',
       minerals:
@@ -477,7 +477,7 @@ export const PROFILES: Record<string, CountryProfile> = {
     },
     paragraphs: {
       description:
-        'Small in size and population (8 million), Laos is the only landlocked country in Southeast Asia — a critical transit corridor bordered by China, Vietnam, Myanmar, Thailand and Cambodia. Its GDP grew 4.1% in 2024, but it is deeply dependent on China for infrastructure. As of 2026 a Chinese state-owned firm holds a 90% stake and 25-year concession over the national grid, and the $6 billion China–Laos Railway gives Beijing a controlling operational stake — making Laos the ASEAN member most structurally dependent on Beijing.',
+        'Small in size and population (8 million), Laos is the only landlocked country in Southeast Asia — a critical transit corridor bordered by China, Vietnam, Myanmar, Thailand and Cambodia. Its GDP grew 4.1% in 2024, but it is deeply dependent on China for infrastructure. As of 2026 a Chinese state-owned firm holds a 90% stake and 25-year concession over the national grid, while the $6 billion China–Laos Railway gives Beijing a controlling operational stake — making Laos the ASEAN member most structurally dependent on Beijing.',
       trade:
         'China is Laos’s dominant trade and investment partner by a commanding margin, with bilateral trade of roughly $6.29 billion in 2024. By comparison, U.S. goods trade totalled an estimated $2.1 billion in 2025 and EU goods trade around €500 million. Beijing’s dominance extends to debt: it owns roughly half of Laos’s $10.5 billion foreign debt. Laos’s total trade equalled about 75% of GDP as of 2016, the most recent year available.',
       minerals:
@@ -526,7 +526,7 @@ export const PROFILES: Record<string, CountryProfile> = {
     },
     paragraphs: {
       description:
-        'One of the world’s most ethnically diverse nations, Myanmar has been in near-constant civil war since independence in 1948 and destabilized by repeated military coups, struggling to build a modern economy. Its large population and abundant resources have allowed sporadic bursts of rapid growth, and reforms from 2011 liberalized the economy with significant gains. Those gains were largely reversed after the 2021 coup, as violence and mismanagement drove spiralling inflation and poverty.',
+        'One of the world’s most ethnically diverse nations, Myanmar has been in near-constant civil war since independence in 1948 and destabilized by repeated military coups, struggling to build a modern economy. Its large population and abundant resources have allowed sporadic bursts of rapid growth. Reforms from 2011 liberalized the economy with significant gains. Those gains were largely reversed after the 2021 coup, as violence and mismanagement drove spiralling inflation and poverty.',
       trade:
         'Despite sitting along busy maritime routes, Myanmar conducts most of its trade overland. Since 2021 the ruling junta has been isolated from many partners, including the U.S., which suspended its bilateral Trade and Investment Framework Agreement that March. As a result the government has deepened trade ties with neighbouring China, with bilateral trade reaching $19.4 billion in 2025.',
       minerals:
