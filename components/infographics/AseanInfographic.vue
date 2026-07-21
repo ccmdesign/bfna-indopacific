@@ -770,8 +770,8 @@ function onActiveSlugUpdate(next: string | null) {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  /* Instant appear/disappear: no slide, no fade duration. CardFlip cross-fades
-     internally under reduced motion (handled in CardFlip.vue). */
+  /* Instant appear/disappear: no slide, no fade duration. CardFlip drops to its
+     flat, no-rotation path under reduced motion (handled in CardFlip.vue). */
   .panel-rise-enter-active,
   .panel-rise-leave-active {
     transition: none;
