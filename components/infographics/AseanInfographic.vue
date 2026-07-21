@@ -205,7 +205,7 @@ function onActiveSlugUpdate(next: string | null) {
         <header class="asean-infographic__intro">
           <h1 class="asean-infographic__intro-title">ASEAN<span class="asean-infographic__intro-title-sub">The Strategic Pivot of the Indo-Pacific</span></h1>
           <p class="asean-infographic__intro-subtitle">
-            Trade, Power and Critical Mineral Supply Chains in an Era of Great Power Competition
+            Trade, Power, and Critical Mineral Supply Chains in an Era of Great Power Competition
           </p>
           <p class="asean-infographic__intro-blurb">
             Select a country and examine its trade with the U.S., China and the EU since 2010,
