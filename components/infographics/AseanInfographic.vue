@@ -639,6 +639,53 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onWindowKeydown))
   color: rgba(255, 255, 255, 0.7);
 }
 
+/* BF-119: landscape phones are the only orientation a real handset reaches —
+   RotateDeviceOverlay covers portrait on phone UAs — and iOS Safari lands at
+   ~812x340 with the URL bar showing. The intro's desktop hero type ate 268px of
+   that, leaving the legend pill inside the fixed footer's box (and below the
+   fold entirely at 340px), so the infographic had no entry point on a phone: the
+   map's country hit-areas are too small to be the way in.
+
+   Shrink the intro rather than restack it — the pill has to physically clear the
+   footer, and no z-index buys vertical space. Widening --intro-w cuts the
+   tagline's wrapped-line count, which is where most of the height went;
+   reserving 4rem of bottom padding keeps the column out from under the footer.
+   Height-only query, so desktop and portrait are untouched. */
+@media (max-height: 480px) {
+  .asean-infographic__idle {
+    --intro-w: clamp(200px, 42vw, 360px);
+    padding: 12px clamp(16px, 2vw, 24px) calc(4rem + 12px);
+    gap: 12px;
+    /* Footer is also z-index 20 and later in document order, so it wins the tie
+       and swallows the tap even where the pill paints above it. */
+    z-index: 21;
+  }
+
+  .asean-infographic__intro {
+    gap: 6px;
+  }
+
+  .asean-infographic__intro-title {
+    font-size: 2rem;
+  }
+
+  .asean-infographic__intro-title-sub {
+    margin-top: 4px;
+    font-size: 1rem;
+  }
+
+  .asean-infographic__intro-subtitle {
+    font-size: 0.875rem;
+    line-height: 1.25;
+  }
+
+  .asean-infographic__intro-blurb {
+    margin-top: 2px;
+    font-size: 0.75rem;
+    line-height: 1.35;
+  }
+}
+
 .intro-fade-enter-active,
 .intro-fade-leave-active {
   transition: opacity 400ms ease;
