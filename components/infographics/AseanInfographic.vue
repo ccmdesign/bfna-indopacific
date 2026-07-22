@@ -565,6 +565,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onWindowKeydown))
   top: 0;
   right: 0;
   max-width: 50svw;
+  /* BF-118: cap the column at the viewport. Top-anchored + content-height with
+     no cap let intro + gap + the legend's old flat `max-height: 56svh` add up
+     past 100svh on short viewports, pushing the legend panel's own bottom edge
+     (and the last country with it) below the fold, where its internal scroller
+     could never reach. box-sizing:border-box keeps the padding inside the cap;
+     .asean-legend then absorbs all the shrink (see AseanLegend.vue). */
+  max-height: 100svh;
   box-sizing: border-box;
   padding: clamp(28px, 5vh, 64px) clamp(24px, 3vw, 56px);
   display: flex;
