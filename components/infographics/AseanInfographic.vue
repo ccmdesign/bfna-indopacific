@@ -537,6 +537,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onWindowKeydown))
   outline-offset: 2px;
 }
 
+/* While fading out (400ms intro-fade leave) the button is still in the DOM and
+   would keep eating clicks meant for the map underneath it. Drop it out of
+   hit-testing as soon as it starts leaving. */
+.asean-infographic__back.intro-fade-leave-active {
+  pointer-events: none;
+}
+
 .asean-infographic__back-arrow {
   font-size: 14px;
   line-height: 1;
