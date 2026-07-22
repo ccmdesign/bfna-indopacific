@@ -107,6 +107,16 @@ function onLeave() {
 .asean-legend {
   pointer-events: auto;
   font-family: 'Encode Sans', sans-serif;
+  /* BF-118: this element sits between the viewport-capped idle column and the
+     scrolling panel below, so it has to be able to shrink — `min-height: 0`
+     defeats the flex `min-height: auto` floor — and it has to be a column flex
+     container so .asean-legend__menu can be sized from the leftover space
+     instead of a fixed svh fraction. align-items:flex-start keeps the
+     collapsed pill at its shrink-to-fit width (it would otherwise stretch). */
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 /* Translucent panel — same design language as the collapsed pill
@@ -120,7 +130,14 @@ function onLeave() {
   align-items: flex-start;
   /* Same column as the intro block, so the panel's left edge lines up with it. */
   width: var(--intro-w, clamp(200px, 28vw, 384px));
-  max-height: 56svh;
+  /* BF-118: fill whatever is left under the intro rather than a flat
+     `max-height: 56svh`. 56svh was measured against the viewport while the
+     panel starts below the intro block and the column gap, so the two summed
+     past the fold on short viewports. `.asean-legend` is shrink-to-fit inside
+     the idle column, so `flex: 1` here does not grow the panel past its
+     content on tall viewports — the 1920x1080 layout is unchanged. */
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   padding: clamp(16px, 2vh, 22px) clamp(16px, 2vw, 24px);
   border: 1px solid rgba(255, 255, 255, 0.1);
