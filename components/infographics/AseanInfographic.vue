@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 import { profileBySlug, PROFILES } from '~/data/asean/country-profiles'
 import { tradeStackedBySlug } from '~/data/asean/trade-stacked'
@@ -163,6 +163,28 @@ function onActiveSlugUpdate(next: string | null) {
   }
 }
 
+// --- Back to overview (BF-117) ----------------------------------------------
+// Before this, the ONLY way back to the idle country list was clicking empty map
+// geometry — undiscoverable (Aline, BF-113 §2). The layout's "Back to home" link
+// (layouts/default.vue) is not that affordance: it leaves for a site index that
+// doesn't even list this infographic. So: an explicit top-left Back control,
+// visible only while a country is docked, plus Escape. One button, one key
+// handler — no routing, no history entries.
+function backToOverview() {
+  onActiveSlugUpdate(null)
+}
+
+function onWindowKeydown(event: KeyboardEvent) {
+  // Only claim Escape while a country is docked, so we never swallow it from
+  // anything else on the page in the idle state.
+  if (event.key === 'Escape' && activeSlug.value !== null) {
+    backToOverview()
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onWindowKeydown))
+onBeforeUnmount(() => window.removeEventListener('keydown', onWindowKeydown))
+
 // --- Country-switch choreography --------------------------------------------
 // The country-name carousel (AseanCountrySwitcher) owns the name transition
 // (slide); the large flag panel flips and the paragraph cross-fade stays
@@ -183,6 +205,24 @@ function onActiveSlugUpdate(next: string | null) {
       :suppress-active-label="true"
       @update:active-slug="onActiveSlugUpdate"
     />
+
+    <!-- Back to overview (BF-117). Top-left, offset from BOTH the layout's
+         "Back to home" link (top: 1rem, left: 1.5rem — a different destination,
+         deliberately left alone per the brief) and the country-name reel across
+         the top, so nothing overlaps or reads as a duplicate. Only rendered
+         while a country is docked; Escape does the same thing. -->
+    <Transition name="intro-fade">
+      <button
+        v-if="activeProfile"
+        type="button"
+        class="asean-infographic__back"
+        aria-label="Back to all countries"
+        @click="backToOverview"
+      >
+        <span class="asean-infographic__back-arrow" aria-hidden="true">&#8592;</span>
+        <span>Back</span>
+      </button>
+    </Transition>
 
     <!-- Focused-state country switcher (BF-76 follow-up): a horizontal carousel
          of country titles across the top. The active country is the large title;
@@ -446,6 +486,66 @@ function onActiveSlugUpdate(next: string | null) {
      font-size incl. tracking). The intro block and the country legend both use
      it so they align to one left edge and one width. */
   --intro-w: clamp(200px, 28vw, 384px);
+}
+
+/* --- Back to overview (BF-117) --- */
+/* Fixed top-left, stacked BELOW two existing things so it collides with neither:
+   1. layouts/default.vue .back-link-nav ("Back to home", top: 1rem / left: 1.5rem)
+   2. the AseanCountrySwitcher reel band (top: 0; 52px active line + 2x its
+      clamp(16px, 3vh, 32px) padding => ~64px + clamp(32px, 6vh, 64px) tall).
+   The focused sidebar is on the RIGHT, so top-left is inherently clear of it.
+   z-index 25 clears the sidebar (20) and the reel (22).
+   pointer-events: auto is load-bearing — the overlays around it are
+   pointer-events:none by design so the map stays clickable through them; without
+   this the button would render but be dead to clicks. */
+.asean-infographic__back {
+  position: fixed;
+  top: calc(64px + clamp(32px, 6vh, 64px) + 8px);
+  left: clamp(16px, 1.5vw, 24px);
+  z-index: 25;
+  pointer-events: auto;
+
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  font-family: 'Encode Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+
+  /* Same panel language as .asean-legend__menu / .asean-infographic__tabs. */
+  background: rgba(2, 38, 64, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.asean-infographic__back:hover {
+  color: #fff;
+  background: rgba(2, 38, 64, 0.72);
+}
+
+.asean-infographic__back:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 2px;
+}
+
+.asean-infographic__back-arrow {
+  font-size: 14px;
+  line-height: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .asean-infographic__back {
+    transition: none;
+  }
 }
 
 /* Idle intro — top-right quadrant. Sits on the dark map, no card chrome. */
