@@ -1,11 +1,15 @@
 <script setup lang="ts">
 const route = useRoute()
 const layoutClass = computed(() => (route.meta.layoutClass as string) || '')
+// BF-130: the embed per-country detail route sets suppressRotateOverlay (it's a
+// portrait page), same knob the default layout already honours. Existing embed
+// pages don't set it, so their rotate overlay is unchanged.
+const suppressRotateOverlay = computed(() => route.meta.suppressRotateOverlay === true)
 </script>
 
 <template>
   <div class="page-wrapper | master-grid" :class="layoutClass">
-    <RotateDeviceOverlay />
+    <RotateDeviceOverlay v-if="!suppressRotateOverlay" />
     <GridOverlay />
 
     <slot />

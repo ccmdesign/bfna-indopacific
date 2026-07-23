@@ -2,11 +2,31 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { profileBySlug, PROFILES } from '~/data/asean/country-profiles'
 
+// BF-130: the per-country detail route (`/infographics/asean/<country>`) mounts
+// this same infographic on desktop, docked to a country, by passing its profile
+// key as `initialSlug`. The index landing passes nothing → null → the unchanged
+// idle-first map. This is the "don't build a second desktop layout" wiring: the
+// detail route is the mobile face of the same selection, and on desktop it just
+// pre-docks the map.
+const props = defineProps<{
+  initialSlug?: string | null
+}>()
+
 // Active country state. Idle (null) = fullscreen map, no selection; clicking a
 // country docks the map to the top-left quadrant (see AseanMap re-zoom). The
 // other three quadrants then fill with this country's content panels (TR
 // identity, BL stacked area, BR tornado bars).
-const activeSlug = ref<string | null>(null)
+const activeSlug = ref<string | null>(props.initialSlug ?? null)
+
+// Keep the docked country in sync if the route param changes while [country].vue
+// stays mounted (desktop deep-link → deep-link). Map clicks mutate activeSlug
+// locally without touching the prop, so they never round-trip through here.
+watch(
+  () => props.initialSlug,
+  (next) => {
+    activeSlug.value = next ?? null
+  }
+)
 
 // --- Floating legend (BF-76 A1/A2) ------------------------------------------
 // The left-edge legend lets the user dock any country (esp. tiny ones) by name
