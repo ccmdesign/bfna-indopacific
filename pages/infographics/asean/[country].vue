@@ -34,21 +34,20 @@ const pageTitle = computed(() =>
     : 'ASEAN: Pivot of the Indo-Pacific'
 )
 
+const pageDescription = computed(() =>
+  profile.value
+    ? `${profile.value.name}'s economic, strategic, and critical-mineral ties to the US, China, and EU.`
+    : 'Interactive map of ASEAN member states and their economic, strategic, and resource ties to the US, China, and EU.'
+)
+
+// Document <title> via the shared ASEAN head; social/meta via useSeoMeta
+// (mirrors asean/index.vue, which keeps title out of useSeoMeta).
 useAseanHead({ title: pageTitle })
 
 useSeoMeta({
-  title: pageTitle,
-  description: computed(() =>
-    profile.value
-      ? `${profile.value.name}'s economic, strategic, and critical-mineral ties to the US, China, and EU.`
-      : 'Interactive map of ASEAN member states and their economic, strategic, and resource ties to the US, China, and EU.'
-  ),
-  ogTitle: pageTitle,
-  ogDescription: computed(() =>
-    profile.value
-      ? `${profile.value.name}'s economic, strategic, and critical-mineral ties to the US, China, and EU.`
-      : 'Interactive map of ASEAN member states and their economic, strategic, and resource ties to the US, China, and EU.'
-  )
+  description: () => pageDescription.value,
+  ogTitle: () => pageTitle.value,
+  ogDescription: () => pageDescription.value
 })
 </script>
 
