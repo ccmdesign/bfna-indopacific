@@ -16,7 +16,12 @@ const { isMobile } = useViewport()
 </script>
 
 <template>
-  <div class="asean-landing">
+  <!-- data-allow-mismatch: the server/prerender always emits the desktop map
+       branch (isMobile=false during SSR), while a phone's client render omits it
+       (isMobile=true) and mounts the card list instead. That divergence is
+       intentional and by design — this tells Vue not to log it as a hydration
+       mismatch. The display:none guard below keeps it visually seamless. -->
+  <div class="asean-landing" data-allow-mismatch>
     <!-- Mobile card list. Wrapped in <ClientOnly> because it depends on viewport
          detection: `useViewport` defaults isMobile=false during SSR/prerender, so
          SSR emits the desktop branch. ClientOnly renders nothing on the server and
