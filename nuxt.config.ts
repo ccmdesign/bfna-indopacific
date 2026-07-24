@@ -1,4 +1,5 @@
 import { publishedInfographics, draftInfographics } from './data/infographics'
+import { COUNTRY_URL_SLUGS } from './data/asean/country-profiles'
 
 // Netlify CONTEXT: 'production' for main, 'branch-deploy' for other branches, 'deploy-preview' for PRs.
 // Treat anything that isn't an explicit production build as a preview environment so drafts get prerendered.
@@ -32,6 +33,17 @@ const infographicsToExcludeFromPrerender = isProductionBuild
   ? draftInfographics
   : []
 
+// BF-130: per-country ASEAN detail routes (/infographics/asean/<c>, /embed/asean/<c>).
+// Only prerender them when `asean` itself is being prerendered — it's a draft, so
+// that's dev/branch/preview today and (future-proof) production once it's published.
+const aseanIsPrerendered = infographicsToPrerender.some((i) => i.slug === 'asean')
+const aseanCountryRoutes = aseanIsPrerendered
+  ? COUNTRY_URL_SLUGS.flatMap((c) => [
+      `/infographics/asean/${c}`,
+      `/embed/asean/${c}`
+    ])
+  : []
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
@@ -46,10 +58,13 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'static',
     prerender: {
-      routes: infographicsToPrerender.flatMap((i) => [
-        `/embed/${i.slug}`,
-        `/infographics/${i.slug}`
-      ]),
+      routes: [
+        ...infographicsToPrerender.flatMap((i) => [
+          `/embed/${i.slug}`,
+          `/infographics/${i.slug}`
+        ]),
+        ...aseanCountryRoutes
+      ],
       ignore: [/^\/test\//]
     }
   },
@@ -63,6 +78,7 @@ export default defineNuxtConfig({
     ...Object.fromEntries(
       infographicsToExcludeFromPrerender.flatMap((i) => [
         [`/embed/${i.slug}`, { prerender: false }],
+        [`/embed/${i.slug}/**`, { prerender: false }],
         [`/infographics/${i.slug}`, { prerender: false }],
         [`/infographics/${i.slug}/**`, { prerender: false }]
       ])

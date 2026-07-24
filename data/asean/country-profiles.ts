@@ -604,3 +604,25 @@ export const PROFILES: Record<string, CountryProfile> = {
 export function profileBySlug(slug: string): CountryProfile | undefined {
   return PROFILES[slug]
 }
+
+// --- URL <-> profile-key slug mapping (BF-130) ------------------------------
+// Profile keys are lowercase single tokens EXCEPT Timor-Leste, whose key carries
+// an underscore (`timor_leste`). URLs read better with a hyphen (`timor-leste`),
+// so map hyphen<->underscore both ways. All other keys round-trip unchanged.
+export function urlSlugToKey(urlSlug: string): string {
+  return urlSlug.replace(/-/g, '_')
+}
+
+export function keyToUrlSlug(key: string): string {
+  return key.replace(/_/g, '-')
+}
+
+// Resolve a profile from a URL slug (hyphen form). Returns undefined for any
+// slug that doesn't map to a wired profile — callers degrade to the list.
+export function profileByUrlSlug(urlSlug: string): CountryProfile | undefined {
+  return PROFILES[urlSlugToKey(urlSlug)]
+}
+
+// Every wired country as its URL slug (hyphen form) — used to prerender the
+// per-country detail routes.
+export const COUNTRY_URL_SLUGS: string[] = Object.keys(PROFILES).map(keyToUrlSlug)
