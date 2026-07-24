@@ -32,18 +32,18 @@ watch(
 // The left-edge legend lets the user dock any country (esp. tiny ones) by name
 // and hover-highlight it on the map. We own its hover slug here and feed it into
 // AseanMap as `externalHoverSlug` (direct map hover still wins). The legend
-// collapses to a pill when it would overlap land: when a country is docked the
-// map reframes into the top-left quadrant (overlapping the left edge), and on
-// narrow viewports there isn't room — so shouldCollapse fires on either. A
+// collapses to a pill when it would overlap land: docking a country reframes the
+// map into the top-left quadrant, over the left edge the legend sits on. A
 // user-initiated expand overrides until the next dock (the activeSlug watch
-// resets it). No land-geometry detection — a viewport/threshold heuristic per
-// the brief.
+// resets it). No land-geometry detection — a threshold heuristic per the brief.
+// (BF-132: this used to also collapse on `isMobile`. Since BF-131 the map is not
+// mounted at all below 879px — AseanLanding / AseanCountryDetailPage both gate
+// AseanInfographic behind `!isMobile` — so that term could never fire.)
 const legendHoverSlug = ref<string | null>(null)
 const userExpanded = ref(false)
-const { isMobile } = useViewport()
 
 const shouldCollapse = computed(
-  () => (activeSlug.value !== null || isMobile.value) && !userExpanded.value
+  () => activeSlug.value !== null && !userExpanded.value
 )
 
 // A new dock re-collapses the legend (so each selection starts from the
@@ -57,8 +57,8 @@ watch(activeSlug, () => {
 // this the last-hovered slug stays set and paints a ghost hover glow +
 // typewriter label on the map with the pointer nowhere near it — most visibly
 // after Overview/Back nulls activeSlug (the map hover-layer gate
-// slug !== activeSlug passes again at activeSlug=null). Covers the dock,
-// Overview/Back, and viewport-shrink collapse paths in one rule.
+// slug !== activeSlug passes again at activeSlug=null). Covers both the dock and
+// the Overview/Back collapse paths in one rule.
 watch(shouldCollapse, (collapsed) => {
   if (collapsed) legendHoverSlug.value = null
 })
@@ -360,52 +360,15 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onWindowKeydown))
   color: rgba(255, 255, 255, 0.7);
 }
 
-/* BF-119: landscape phones are the only orientation a real handset reaches —
-   RotateDeviceOverlay covers portrait on phone UAs — and iOS Safari lands at
-   ~812x340 with the URL bar showing. The intro's desktop hero type ate 268px of
-   that, leaving the legend pill inside the fixed footer's box (and below the
-   fold entirely at 340px), so the infographic had no entry point on a phone: the
-   map's country hit-areas are too small to be the way in.
-
-   Shrink the intro rather than restack it — the pill has to physically clear the
-   footer, and no z-index buys vertical space. Widening --intro-w cuts the
-   tagline's wrapped-line count, which is where most of the height went;
-   reserving 4rem of bottom padding keeps the column out from under the footer.
-   Height-only query, so desktop and portrait are untouched. */
-@media (max-height: 480px) {
-  .asean-infographic__idle {
-    --intro-w: clamp(200px, 42vw, 360px);
-    padding: 12px clamp(16px, 2vw, 24px) calc(4rem + 12px);
-    gap: 12px;
-    /* Footer is also z-index 20 and later in document order, so it wins the tie
-       and swallows the tap even where the pill paints above it. */
-    z-index: 21;
-  }
-
-  .asean-infographic__intro {
-    gap: 6px;
-  }
-
-  .asean-infographic__intro-title {
-    font-size: 2rem;
-  }
-
-  .asean-infographic__intro-title-sub {
-    margin-top: 4px;
-    font-size: 1rem;
-  }
-
-  .asean-infographic__intro-subtitle {
-    font-size: 0.875rem;
-    line-height: 1.25;
-  }
-
-  .asean-infographic__intro-blurb {
-    margin-top: 2px;
-    font-size: 0.75rem;
-    line-height: 1.35;
-  }
-}
+/* BF-132: BF-119's `@media (max-height: 480px)` intro-shrink block lived here.
+   It existed for one case — a landscape phone (~812x340 iOS Safari), where the
+   desktop hero type pushed the COLLAPSED legend pill into the fixed footer's
+   box. Both halves of that premise are gone: since BF-131 no phone reaches this
+   component at all (AseanLanding / AseanCountryDetailPage gate it behind
+   `!isMobile`), and the idle legend is never a pill on desktop now that
+   shouldCollapse only fires on a docked country. No desktop window is 480px
+   tall. The idle column's fit on short DESKTOP viewports is BF-118's job
+   (`max-height: 100svh` above + the legend's flex shrink), which is untouched. */
 
 .intro-fade-enter-active,
 .intro-fade-leave-active {
