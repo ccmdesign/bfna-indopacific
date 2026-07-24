@@ -42,7 +42,9 @@ const cards = computed<CountryCard[]>(() =>
       <h1 class="asean-card-list__title">
         ASEAN<span class="asean-card-list__title-sub">The Strategic Pivot of the Indo-Pacific</span>
       </h1>
-      <p class="asean-card-list__hint">Select a country to explore its trade, power, and critical-mineral ties.</p>
+      <!-- No Oxford comma — client instruction "Overall no Oxford Comma!" (Feedback 2,
+           enforced across the piece in BF-116). -->
+      <p class="asean-card-list__hint">Select a country to explore its trade, power and critical-mineral ties.</p>
     </header>
 
     <ul class="asean-card-list__grid">
@@ -79,6 +81,14 @@ const cards = computed<CountryCard[]>(() =>
   box-sizing: border-box;
   min-height: 100svh;
   width: 100%;
+  /* The layout wrapper is a COLUMN flex container fixed at viewport height, so a
+     default flex-shrink:1 squeezes this box back down to 100svh — the card list
+     then overflows it visibly and the padding-bottom below stays trapped at the
+     squeezed box's edge instead of sitting under the last card. Measured on a
+     390x844 phone: Timor-Leste's bottom landed 48.5px behind the fixed footer at
+     full scroll, with no scroll left to clear it. flex-shrink:0 lets the box grow
+     to its content so the padding lands where it was meant to. */
+  flex-shrink: 0;
   padding: clamp(16px, 5vw, 28px);
   padding-bottom: calc(4rem + clamp(20px, 5vh, 40px));
   display: flex;
