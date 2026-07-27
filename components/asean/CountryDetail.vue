@@ -308,7 +308,7 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
             <CountryChartCard
               eyebrow="Trade flows"
               title="Share of top-six commodity trade held by China, US, and EU"
-              meta="Share held by China, the U.S. and the EU · 2010–2024 · Source: CEPII BACI"
+              meta="Two-way goods trade · 2010–2024 · Source: CEPII BACI"
               :source="tradeStacked.source"
             >
               <CountryStackedArea

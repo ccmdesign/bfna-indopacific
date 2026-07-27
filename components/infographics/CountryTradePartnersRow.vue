@@ -17,7 +17,8 @@ const latest = computed(() => props.data.series[props.data.series.length - 1])
 // Values arrive in USD millions; sub-$1B falls back to $NNNM so small
 // economies (Timor-Leste) never render as "$0B".
 function fmtUsd(millions: number): string {
-  if (millions >= 1000) {
+  // >= 999.5 so values that would round-display as "$1000M" become "$1B".
+  if (millions >= 999.5) {
     const b = millions / 1000
     const rounded = Math.round(b * 10) / 10
     return Number.isInteger(rounded) ? `$${rounded}B` : `$${rounded.toFixed(1)}B`
