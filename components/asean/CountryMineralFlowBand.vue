@@ -374,11 +374,14 @@ function draw() {
     .attr('font-family', 'Encode Sans, system-ui, sans-serif')
     .attr('font-size', 11)
     .attr('font-weight', 400)
+  // BF-133: "of export value" states the chart's basis inline so this figure
+  // can't be confused with by-volume ore-only shares from other sources
+  // (e.g. the Philippines' 87% ore-to-China by volume, Böll).
   cap
     .append('tspan')
     .text(
-      `~${chinaPct.value}% routes through China, which refines & re-exports ` +
-        `to the US & EU.`
+      `~${chinaPct.value}% of export value routes through China, which ` +
+        `refines & re-exports to the US & EU.`
     )
   svg
     .append('text')
