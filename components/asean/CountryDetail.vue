@@ -50,6 +50,25 @@ const NICKEL_CHART_SLUGS = new Set(['indonesia', 'malaysia', 'vietnam', 'philipp
 const showsNickelChart = computed(
   () => !!props.slug && NICKEL_CHART_SLUGS.has(props.slug)
 )
+
+// BF-133 (closes BF-111): the nickel-flow card copy carries the chart's basis
+// (all nickel-class exports BY VALUE), and for the Philippines additionally
+// states the client-adopted headline figure — 87% of nickel-ORE exports to
+// China BY VOLUME (Heinrich Böll Stiftung) — so the two bases can't be
+// confused with the chart's ~72%-by-value China share. The chart itself stays
+// internally consistent by value (see docs/plans/BF-133-plan.md).
+const NICKEL_META_BASE =
+  'All nickel-class exports by value — ore, matte, oxide sinter, refined'
+const nickelFlowMeta = computed(() =>
+  props.slug === 'philippines'
+    ? `${NICKEL_META_BASE}. By volume, 87% of nickel-ore exports go to China (Böll, 2024).`
+    : NICKEL_META_BASE
+)
+const nickelFlowSource = computed(() =>
+  props.slug === 'philippines'
+    ? 'BACI HS07 V202601 (mineral HS6 codes), 2024; ore-export share: Heinrich Böll Stiftung Southeast Asia, 2026'
+    : 'BACI HS07 V202601 (mineral HS6 codes), 2024'
+)
 const crmNote = computed(() =>
   props.slug ? CRM_NOTES_BY_SLUG[props.slug] : undefined
 )
@@ -229,6 +248,15 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
           <p class="asean-infographic__source">
             Source: {{ tab === 'trade' ? profile.sources.trade : profile.sources.minerals }}
           </p>
+          <!-- BF-133 (decided BF-86): China/US/EU trade figures side by side
+               on every country page — "$142.6B China / $41.6B US / $28.8B EU",
+               latest BACI year, Trade tab only. Lives inside the keyed prose
+               block so it cross-fades with the paragraph on country/tab
+               switches. -->
+          <CountryTradePartnersRow
+            v-if="tab === 'trade' && tradeStacked"
+            :data="tradeStacked"
+          />
         </div>
       </Transition>
 
@@ -279,8 +307,8 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
           <template #front>
             <CountryChartCard
               eyebrow="Trade flows"
-              title="Share of Trade with China, the U.S. and the EU"
-              meta="Share held by China, the U.S. and the EU · 2010–2024 · Source: CEPII BACI"
+              title="Share of top-six commodity trade held by China, US, and EU"
+              meta="Two-way goods trade · 2010–2024 · Source: CEPII BACI"
               :source="tradeStacked.source"
             >
               <CountryStackedArea
@@ -292,16 +320,18 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
             </CountryChartCard>
           </template>
           <template #back>
-            <!-- Scope caption (BF-97): the chart covers all nickel-class
-                 exports by value (ore, matte, oxide sinter, refined) —
-                 stated here so the % figure isn't conflated with
-                 ore-only figures from other sources (e.g. Böll). -->
+            <!-- Scope caption (BF-97, extended by BF-133): the chart covers
+                 all nickel-class exports by value (ore, matte, oxide sinter,
+                 refined) — stated here so the % figure isn't conflated with
+                 ore-only figures from other sources. For the Philippines the
+                 meta additionally carries the client-adopted 87% ore-to-China
+                 by-volume figure (Böll) with its basis spelled out. -->
             <CountryChartCard
               v-if="showsNickelChart"
               eyebrow="Mineral flows"
               title="Where the nickel goes · 2024"
-              meta="All nickel-class exports by value — ore, matte, oxide sinter, refined"
-              source="BACI HS07 V202601 (mineral HS6 codes), 2024"
+              :meta="nickelFlowMeta"
+              :source="nickelFlowSource"
             >
               <CountryMineralFlowBand
                 v-if="minerals"

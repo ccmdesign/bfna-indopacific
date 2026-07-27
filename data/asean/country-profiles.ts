@@ -338,12 +338,12 @@ export const PROFILES: Record<string, CountryProfile> = {
       trade:
         'Much of the Philippines’ recent success has been fuelled by trade. While a large share (~18% in April 2026) of exports flow to the U.S., the country is highly dependent on China for imports, with upwards of 29% of total imports originating in the PRC. Manila has also expanded EU ties, with bilateral goods trade of €17.6 billion in 2025; key exports include semiconductors, integrated circuits and critical minerals.',
       minerals:
-        'The Philippines plays a growing role in critical-mineral supply chains, with vast and largely untapped reserves of nickel, copper and cobalt. It is now one of the world’s leading nickel exporters, with reserves estimated above $175 billion, most shipped as raw ore to China. The government has debated banning raw-nickel-ore exports to build refining capacity and move up the value chain.'
+        'The Philippines plays a growing role in critical-mineral supply chains, with vast and largely untapped reserves of nickel, copper and cobalt. It is now one of the world’s leading nickel exporters, with reserves estimated above $175 billion — 87% of its nickel-ore exports, by volume, shipped to China in 2024. The government has debated banning raw-nickel-ore exports to build refining capacity and move up the value chain.'
     },
     sources: {
       description: 'BFNA research brief, Jun 2026.',
       trade: 'Trade-share and EU figures: BFNA research brief, Jun 2026 (exports Apr 2026, EU 2025).',
-      minerals: 'Reserve and export figures: BFNA research brief, Jun 2026.'
+      minerals: 'Reserve figures: BFNA research brief, Jun 2026. Nickel-ore export share (by volume, 2024): Heinrich Böll Stiftung Southeast Asia, 2026.'
     },
     // UNVERIFIED PLACEHOLDER — no HS-product source; not regenerated.
     // See todos/BF-57-defer-top-trade-hs-product-composition.md (D1).
