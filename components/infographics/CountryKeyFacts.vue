@@ -4,12 +4,15 @@ import type { CountryKeyFacts } from '~/data/asean/country-profiles'
 // `source` (BF-134): optional override for the attribution footnote. The
 // default is the shared IMF WEO / World Bank line every country's indicator
 // set draws from; the ASEAN bloc entry passes its own attribution instead.
+// BF-135 (client ask, Infographic Input July 2026): stat labels carry no year
+// qualifiers — the disclaimer line below the footnote covers data recency, so
+// the source attribution is year-free too.
 withDefaults(defineProps<{
   keyFacts: CountryKeyFacts
   source?: string
 }>(), {
   source:
-    'GDP growth (2026): IMF WEO. GDP per capita PPP, trade-to-GDP and FDI net inflows (2024): World Bank.'
+    'GDP growth: IMF WEO. GDP per capita PPP, trade-to-GDP and FDI net inflows: World Bank.'
 })
 </script>
 
@@ -43,6 +46,12 @@ withDefaults(defineProps<{
 
     <p class="country-key-facts__source">
       Source: {{ source }}
+    </p>
+
+    <!-- BF-135: replaces the per-label year qualifiers dropped from the stat
+         labels above. Caption position, same styling as the source footnote. -->
+    <p class="country-key-facts__disclaimer">
+      All data is based on most recent available data
     </p>
   </div>
 </template>
@@ -108,6 +117,15 @@ withDefaults(defineProps<{
   margin: 4px 0 0;
   font-size: 10px;
   line-height: 1.4;
+  color: rgba(255, 255, 255, 0.45);
+  letter-spacing: 0.03em;
+}
+
+.country-key-facts__disclaimer {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.4;
+  font-style: italic;
   color: rgba(255, 255, 255, 0.45);
   letter-spacing: 0.03em;
 }
