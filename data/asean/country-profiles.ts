@@ -103,13 +103,13 @@ export const PROFILES: Record<string, CountryProfile> = {
     keyFactsSource: 'BFNA research brief, Jul 2026. FDI shares: ASEANstats.',
     keyFacts: {
       indicators: [
-        { label: 'Combined GDP (2024)', value: 'US$3.9T' },
-        { label: 'GDP growth (2024)', value: '4.8%' },
-        { label: 'FDI net inflow (2024)', value: '$226.0B (+8.5% vs 2023)' },
-        { label: 'Top FDI sources (2024)', value: 'U.S. 18.6%, EU 13.9%, China 8.6%, HK 8.3%' },
-        { label: 'U.S. goods trade (2025)', value: '$580.1B' },
-        { label: 'EU goods trade (2024)', value: '€258.8B' },
-        { label: 'PRC goods trade (2024)', value: '$772.4B' }
+        { label: 'Combined GDP', value: 'US$3.9T' },
+        { label: 'GDP growth', value: '4.8%' },
+        { label: 'FDI net inflow', value: '$226.0B (+8.5% vs 2023)' },
+        { label: 'Top FDI sources', value: 'U.S. 18.6%, EU 13.9%, China 8.6%, HK 8.3%' },
+        { label: 'U.S. goods trade', value: '$580.1B' },
+        { label: 'EU goods trade', value: '€258.8B' },
+        { label: 'PRC goods trade', value: '$772.4B' }
       ],
       agreements: [
         { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980)' },
@@ -151,10 +151,10 @@ export const PROFILES: Record<string, CountryProfile> = {
     tagline: 'Hedging in absolute terms, drifting in relative ones.',
     keyFacts: {
       indicators: [
-        { label: 'GDP growth (2026)', value: '5%' },
-        { label: 'GDP per capita PPP (2024)', value: '$16,448.3' },
-        { label: 'Trade-to-GDP (2024)', value: '43%' },
-        { label: 'FDI net inflows (2024)', value: '$24.28B' }
+        { label: 'GDP growth', value: '5%' },
+        { label: 'GDP per capita PPP', value: '$16,448.3' },
+        { label: 'Trade-to-GDP', value: '43%' },
+        { label: 'FDI net inflows', value: '$24.28B' }
       ],
       agreements: [
         { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Indonesia CEPA (signed 2025)' },
@@ -201,10 +201,10 @@ export const PROFILES: Record<string, CountryProfile> = {
     tagline: 'A long-time US ally drifting toward Beijing’s gravity.',
     keyFacts: {
       indicators: [
-        { label: 'GDP growth (2026)', value: '1.5%' },
-        { label: 'GDP per capita PPP (2024)', value: '$24,712.1' },
-        { label: 'Trade-to-GDP (2024)', value: '137%' },
-        { label: 'FDI net inflows (2024)', value: '$14.3B' }
+        { label: 'GDP growth', value: '1.5%' },
+        { label: 'GDP per capita PPP', value: '$24,712.1' },
+        { label: 'Trade-to-GDP', value: '137%' },
+        { label: 'FDI net inflows', value: '$14.3B' }
       ],
       agreements: [
         { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Thailand FTA (ongoing)' },
@@ -250,10 +250,10 @@ export const PROFILES: Record<string, CountryProfile> = {
     tagline: 'The neutral hub everyone trusts to launder the contradiction.',
     keyFacts: {
       indicators: [
-        { label: 'GDP growth (2026)', value: '3.5%' },
-        { label: 'GDP per capita PPP (2024)', value: '$150,689.3' },
-        { label: 'Trade-to-GDP (2024)', value: '322%' },
-        { label: 'FDI net inflows (2024)', value: '$135.08B' }
+        { label: 'GDP growth', value: '3.5%' },
+        { label: 'GDP per capita PPP', value: '$150,689.3' },
+        { label: 'Trade-to-GDP', value: '322%' },
+        { label: 'FDI net inflows', value: '$135.08B' }
       ],
       agreements: [
         { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Singapore FTA (2019), Investment Protection Agreement (2019), Digital Trade Agreement (2026)' },
@@ -299,10 +299,10 @@ export const PROFILES: Record<string, CountryProfile> = {
     tagline: 'Semiconductor packaging is the new geopolitics.',
     keyFacts: {
       indicators: [
-        { label: 'GDP growth (2026)', value: '4.7%' },
-        { label: 'GDP per capita PPP (2024)', value: '$38,779.3' },
-        { label: 'Trade-to-GDP (2024)', value: '137%' },
-        { label: 'FDI net inflows (2024)', value: '$15.59B (2022)' }
+        { label: 'GDP growth', value: '4.7%' },
+        { label: 'GDP per capita PPP', value: '$38,779.3' },
+        { label: 'Trade-to-GDP', value: '137%' },
+        { label: 'FDI net inflows', value: '$15.59B (2022)' }
       ],
       agreements: [
         { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Malaysia PCA (signed 2022), MEUFTA (proposed)' },
@@ -348,10 +348,10 @@ export const PROFILES: Record<string, CountryProfile> = {
     tagline: 'The factory floor for the US-China decoupling.',
     keyFacts: {
       indicators: [
-        { label: 'GDP growth (2026)', value: '7.1%' },
-        { label: 'GDP per capita PPP (2024)', value: '$16,385.5' },
-        { label: 'Trade-to-GDP (2024)', value: '174%' },
-        { label: 'FDI net inflows (2024)', value: '$20.17B' }
+        { label: 'GDP growth', value: '7.1%' },
+        { label: 'GDP per capita PPP', value: '$16,385.5' },
+        { label: 'Trade-to-GDP', value: '174%' },
+        { label: 'FDI net inflows', value: '$20.17B' }
       ],
       agreements: [
         { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Vietnam FTA (2020), Investment Protection Agreement (2019)' },
@@ -397,10 +397,10 @@ export const PROFILES: Record<string, CountryProfile> = {
     tagline: 'The treaty ally turning EDCA into reality.',
     keyFacts: {
       indicators: [
-        { label: 'GDP growth (2026)', value: '4.1%' },
-        { label: 'GDP per capita PPP (2024)', value: '$11,794.1' },
-        { label: 'Trade-to-GDP (2024)', value: '66%' },
-        { label: 'FDI net inflows (2024)', value: '$9.4B' }
+        { label: 'GDP growth', value: '4.1%' },
+        { label: 'GDP per capita PPP', value: '$11,794.1' },
+        { label: 'Trade-to-GDP', value: '66%' },
+        { label: 'FDI net inflows', value: '$9.4B' }
       ],
       agreements: [
         { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Philippines FTA (ongoing), GSP+ (2014)' },
@@ -446,10 +446,10 @@ export const PROFILES: Record<string, CountryProfile> = {
     tagline: 'A petrostate with one revenue stream and three customers.',
     keyFacts: {
       indicators: [
-        { label: 'GDP growth (2026)', value: '2.6%' },
-        { label: 'GDP per capita PPP (2024)', value: '$89,879.4' },
-        { label: 'Trade-to-GDP (2024)', value: '133%' },
-        { label: 'FDI net inflows (2024)', value: '$29.06M' }
+        { label: 'GDP growth', value: '2.6%' },
+        { label: 'GDP per capita PPP', value: '$89,879.4' },
+        { label: 'Trade-to-GDP', value: '133%' },
+        { label: 'FDI net inflows', value: '$29.06M' }
       ],
       agreements: [
         { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980)' },
@@ -492,10 +492,10 @@ export const PROFILES: Record<string, CountryProfile> = {
     tagline: 'Garments out, Chinese capital in.',
     keyFacts: {
       indicators: [
-        { label: 'GDP growth (2026)', value: '4%' },
-        { label: 'GDP per capita PPP (2024)', value: '$7,966.9' },
-        { label: 'Trade-to-GDP (2024)', value: '143%' },
-        { label: 'FDI net inflows (2024)', value: '$4.39B' }
+        { label: 'GDP growth', value: '4%' },
+        { label: 'GDP per capita PPP', value: '$7,966.9' },
+        { label: 'Trade-to-GDP', value: '143%' },
+        { label: 'FDI net inflows', value: '$4.39B' }
       ],
       agreements: [
         { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), EU-Cambodia Cooperation Agreement (1999), Everything But Arms (2001)' },
@@ -540,10 +540,10 @@ export const PROFILES: Record<string, CountryProfile> = {
     tagline: 'A landlocked ledger denominated in Chinese yuan.',
     keyFacts: {
       indicators: [
-        { label: 'GDP growth (2026)', value: '4.1%' },
-        { label: 'GDP per capita PPP (2024)', value: '$9,775.8' },
-        { label: 'Trade-to-GDP (2024)', value: '75% (2016)' },
-        { label: 'FDI net inflows (2024)', value: '$988.46M' }
+        { label: 'GDP growth', value: '4.1%' },
+        { label: 'GDP per capita PPP', value: '$9,775.8' },
+        { label: 'Trade-to-GDP', value: '75% (2016)' },
+        { label: 'FDI net inflows', value: '$988.46M' }
       ],
       agreements: [
         { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980), Everything But Arms (2001)' },
@@ -589,10 +589,10 @@ export const PROFILES: Record<string, CountryProfile> = {
     tagline: 'Small in dollars, decisive in rare earths.',
     keyFacts: {
       indicators: [
-        { label: 'GDP growth (2026)', value: '3%' },
-        { label: 'GDP per capita PPP (2024)', value: '$5,997.5' },
-        { label: 'Trade-to-GDP (2024)', value: 'Not available' },
-        { label: 'FDI net inflows (2024)', value: '$1.10B' }
+        { label: 'GDP growth', value: '3%' },
+        { label: 'GDP per capita PPP', value: '$5,997.5' },
+        { label: 'Trade-to-GDP', value: 'Not available' },
+        { label: 'FDI net inflows', value: '$1.10B' }
       ],
       agreements: [
         { label: 'EU', value: 'Everything But Arms (2001)' },
@@ -638,10 +638,10 @@ export const PROFILES: Record<string, CountryProfile> = {
     tagline: 'A young petro-economy inching into the minerals game.',
     keyFacts: {
       indicators: [
-        { label: 'GDP growth (2026)', value: '4.1%' },
-        { label: 'GDP per capita PPP (2024)', value: '$4,422.8' },
-        { label: 'Trade-to-GDP (2024)', value: '95%' },
-        { label: 'FDI net inflows (2024)', value: '$225.47M' }
+        { label: 'GDP growth', value: '4.1%' },
+        { label: 'GDP per capita PPP', value: '$4,422.8' },
+        { label: 'Trade-to-GDP', value: '95%' },
+        { label: 'FDI net inflows', value: '$225.47M' }
       ],
       agreements: [
         { label: 'EU', value: 'Everything But Arms (2001)' },
