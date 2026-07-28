@@ -20,6 +20,18 @@ export interface CountryDescriptor {
 }
 
 export const COUNTRIES: Record<string, CountryDescriptor> = {
+  // BF-134: ASEAN bloc-level entry — FIRST so it leads the desktop legend and
+  // the top country-switcher reel. Synthetic id (not ISO numeric): there is no
+  // matching feature in countries.geo.json, and that is by design — the bloc
+  // "is" the whole map, so AseanMap keeps the idle full frame when it docks.
+  // No emoji flag exists for ASEAN; the field is unused in current renderers.
+  asean: {
+    id: 'asean',
+    slug: 'asean',
+    name: 'ASEAN',
+    flag: '',
+    tier: 'inScope'
+  },
   thailand: {
     id: '764',
     slug: 'thailand',

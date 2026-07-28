@@ -53,6 +53,13 @@ export interface CountryKeyFacts {
   agreements: KeyFactRow[]
 }
 
+// FDI-inflow table for the bloc entry (BF-134): Source × years, values kept as
+// pre-formatted strings so the doc's figures render digit-for-digit.
+export interface FdiInflowTable {
+  years: string[]
+  rows: { label: string; values: string[] }[]
+}
+
 export interface CountryProfile {
   slug: string
   name: string
@@ -63,11 +70,80 @@ export interface CountryProfile {
   sources: CountryPanelProse
   topExports: TradeItem[]
   topImports: TradeItem[]
+  // --- Bloc-entry extensions (BF-134) ---------------------------------------
+  // isBloc: the ASEAN bloc-level entry. It has no per-country chart series, so
+  // CountryDetail hides the Trade / Critical Minerals tabs and renders the
+  // FDI-inflow table instead. Absent (undefined) for the 11 countries.
+  isBloc?: boolean
+  // Override for CountryKeyFacts' source footnote — the bloc's facts are not
+  // the IMF WEO / World Bank series the default line cites.
+  keyFactsSource?: string
+  // The doc's bloc-level FDI inflow table (US$ millions, ASEANstats).
+  fdiInflows?: FdiInflowTable
 }
 
 const flag = (cc: string) => `https://flagcdn.com/w160/${cc}.png`
 
 export const PROFILES: Record<string, CountryProfile> = {
+  // BF-134: ASEAN bloc-level entry — deliberately FIRST so it leads the mobile
+  // card list and the prerendered route set (the "12th country" client ask).
+  // The bloc is the whole map, not a clickable country: AseanMap resolves no
+  // geo feature for this slug, so docking it keeps the idle full-map frame.
+  // paragraphs.trade/minerals + topExports/topImports are intentionally empty:
+  // no bloc-level chart series exists in the doc and nothing is fabricated —
+  // CountryDetail gates the chart tabs behind `isBloc`.
+  asean: {
+    slug: 'asean',
+    name: 'ASEAN',
+    // flagcdn has no ASEAN entry and the official emblem is copyrighted, so a
+    // neutral local badge ships instead (see public/assets/flag-asean.svg).
+    flagUrl: '/assets/flag-asean.svg',
+    tagline: 'Eleven members, one strategic pivot.',
+    isBloc: true,
+    keyFactsSource: 'BFNA research brief, Jul 2026. FDI shares: ASEANstats.',
+    keyFacts: {
+      indicators: [
+        { label: 'Combined GDP (2024)', value: 'US$3.9T' },
+        { label: 'GDP growth (2024)', value: '4.8%' },
+        { label: 'FDI net inflow (2024)', value: '$226.0B (+8.5% vs 2023)' },
+        { label: 'Top FDI sources (2024)', value: 'U.S. 18.6%, EU 13.9%, China 8.6%, HK 8.3%' },
+        { label: 'U.S. goods trade (2025)', value: '$580.1B' },
+        { label: 'EU goods trade (2024)', value: '€258.8B' },
+        { label: 'PRC goods trade (2024)', value: '$772.4B' }
+      ],
+      agreements: [
+        { label: 'EU', value: 'ASEAN-EEC Cooperation Agreement (1980)' },
+        { label: 'US', value: 'US-ASEAN TIFA (2006)' },
+        { label: 'China', value: 'ASEAN-China FTA (2009)' }
+      ]
+    },
+    paragraphs: {
+      // Doc's "ASEAN Overall → Description" trimmed to 3 sentences (Marshall's
+      // standing permission), keeping every hard number and named relationship.
+      // This is the bloc-entry text, distinct from the site's idle opening
+      // intro (hidden while the bloc is docked — no on-screen duplication).
+      description:
+        'In recent decades, the Association of Southeast Asian Nations (ASEAN) has grown dramatically in geopolitical significance. With 684 million citizens, it plays an increasingly crucial role in the global economy and has emerged as a leading producer of many critical raw materials. ASEAN and China have been each other’s largest trading partners for years, the United States is now the bloc’s largest source of foreign direct investment and ASEAN is projected to be the 4th largest economy in the world by 2030.',
+      trade: '',
+      minerals: ''
+    },
+    sources: {
+      description: 'BFNA research brief, Jul 2026.',
+      trade: '',
+      minerals: ''
+    },
+    fdiInflows: {
+      years: ['2023', '2024', '2025'],
+      rows: [
+        { label: 'EU27', values: ['22,223.69', '16,417.44', '31,323.71'] },
+        { label: 'US', values: ['83,540.12', '34,152.08', '30,044.76'] },
+        { label: 'PRC', values: ['16,551.01', '26,122.17', '26,243.68'] }
+      ]
+    },
+    topExports: [],
+    topImports: []
+  },
+
   indonesia: {
     slug: 'indonesia',
     name: 'Indonesia',

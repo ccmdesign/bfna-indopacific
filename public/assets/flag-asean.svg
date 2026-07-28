@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 107" role="img" aria-label="ASEAN">
+  <!-- BF-134: neutral ASEAN bloc badge. NOT the official ASEAN emblem (which is
+       copyrighted and unavailable on flag CDNs) - a brand-blue field with a
+       ring of 11 gold dots, one per member state. Swap for licensed art if the
+       client supplies it. -->
+  <rect width="160" height="107" fill="#2c5aa0"/>
+  <g>
+    <circle cx="80.00" cy="23.50" r="5.2" fill="#f2c94c"/>
+    <circle cx="96.22" cy="28.26" r="5.2" fill="#f2c94c"/>
+    <circle cx="107.29" cy="41.04" r="5.2" fill="#f2c94c"/>
+    <circle cx="109.69" cy="57.77" r="5.2" fill="#f2c94c"/>
+    <circle cx="102.67" cy="73.15" r="5.2" fill="#f2c94c"/>
+    <circle cx="88.45" cy="82.28" r="5.2" fill="#f2c94c"/>
+    <circle cx="71.55" cy="82.28" r="5.2" fill="#f2c94c"/>
+    <circle cx="57.33" cy="73.15" r="5.2" fill="#f2c94c"/>
+    <circle cx="50.31" cy="57.77" r="5.2" fill="#f2c94c"/>
+    <circle cx="52.71" cy="41.04" r="5.2" fill="#f2c94c"/>
+    <circle cx="63.78" cy="28.26" r="5.2" fill="#f2c94c"/>
+  </g>
+</svg>
