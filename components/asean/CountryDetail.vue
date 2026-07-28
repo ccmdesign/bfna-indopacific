@@ -194,11 +194,14 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
     </div>
 
     <!-- Description tabpanel: the narrative paragraph + Key Facts (BF-96). -->
+    <!-- BF-134: for the bloc entry the tablist is not rendered, so the tabpanel
+         role and its aria-labelledby (which would dangle on a missing tab id)
+         are dropped — it's just a plain section there. -->
     <section
       v-show="tab === 'description'"
       id="asean-tabpanel-description"
-      role="tabpanel"
-      aria-labelledby="asean-tab-description"
+      :role="isBloc ? undefined : 'tabpanel'"
+      :aria-labelledby="isBloc ? undefined : 'asean-tab-description'"
       class="asean-infographic__tabpanel"
     >
       <!-- Description paragraph cross-fade (BF-72 U5/R10): keyed on
