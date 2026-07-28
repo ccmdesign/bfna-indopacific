@@ -18,6 +18,13 @@ const props = defineProps<{
 
 const profile = computed(() => (props.slug ? profileBySlug(props.slug) : undefined))
 
+// BF-134: the ASEAN bloc-level entry. It has no per-country chart series (the
+// doc provides bloc-level totals only), so the Trade / Critical Minerals tabs
+// are hidden — the tablist itself is dropped and `tab` rests on 'description',
+// which renders the paragraph + Key Facts plus the FDI-inflow table below.
+// Nothing is fabricated to fill the chart slots.
+const isBloc = computed(() => profile.value?.isBloc === true)
+
 const tradeStacked = computed(() =>
   props.slug ? tradeStackedBySlug[props.slug] : undefined
 )
@@ -151,7 +158,10 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
          The flag is top-aligned with the tabs — the country identity,
          reactivated and enlarged now that the name lives in the top
          carousel. -->
-    <div class="asean-infographic__top">
+    <!-- BF-134: the bloc entry has a single (Description) view, so the tablist
+         is dropped entirely rather than rendering a one-tab tablist. `tab`
+         stays at its 'description' default, keeping the panel below visible. -->
+    <div v-if="!isBloc" class="asean-infographic__top">
       <div class="asean-infographic__top-main">
         <header class="asean-infographic__title">
           <!-- Real WAI-ARIA tablist (Description | Trade | Critical Minerals).
@@ -184,11 +194,14 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
     </div>
 
     <!-- Description tabpanel: the narrative paragraph + Key Facts (BF-96). -->
+    <!-- BF-134: for the bloc entry the tablist is not rendered, so the tabpanel
+         role and its aria-labelledby (which would dangle on a missing tab id)
+         are dropped — it's just a plain section there. -->
     <section
       v-show="tab === 'description'"
       id="asean-tabpanel-description"
-      role="tabpanel"
-      aria-labelledby="asean-tab-description"
+      :role="isBloc ? undefined : 'tabpanel'"
+      :aria-labelledby="isBloc ? undefined : 'asean-tab-description'"
       class="asean-infographic__tabpanel"
     >
       <!-- Description paragraph cross-fade (BF-72 U5/R10): keyed on
@@ -216,7 +229,25 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
         <div :key="slug" class="asean-infographic__prose">
           <p class="asean-infographic__title-paragraph">{{ profile.paragraphs.description }}</p>
           <p class="asean-infographic__source">Source: {{ profile.sources.description }}</p>
-          <CountryKeyFacts :key-facts="profile.keyFacts" />
+          <!-- keyFactsSource is undefined for the 11 countries, so the
+               component falls back to its shared IMF/World Bank default. -->
+          <CountryKeyFacts :key-facts="profile.keyFacts" :source="profile.keyFactsSource" />
+
+          <!-- BF-134: bloc-only FDI-inflow table (US$ millions, ASEANstats) —
+               the doc's EU27/US/PRC × 2023–2025 table, rendered as data rather
+               than a fabricated chart. Lives inside the keyed prose block so it
+               rides the same cross-fade. .asean-infographic__panel opts pointer
+               events back in (desktop sidebar is pointer-events:none). -->
+          <div v-if="profile.fdiInflows" class="asean-infographic__panel asean-infographic__panel--fdi">
+            <CountryChartCard
+              eyebrow="Foreign direct investment"
+              title="FDI inflows from the EU, US and PRC"
+              meta="US$ millions · 2023–2025"
+              source="ASEANstats"
+            >
+              <CountryFdiTable :data="profile.fdiInflows" />
+            </CountryChartCard>
+          </div>
         </div>
       </Transition>
     </section>
@@ -230,7 +261,11 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
          aria-labelledby names whichever chart tab is active and is dropped on
          the Description tab (chartsPanelLabelledBy). The per-tab prose is the
          new element (BF-81) that swaps with the active chart tab. -->
+    <!-- BF-134: v-if for the bloc entry — v-show alone would still MOUNT the
+         chart components (hidden) with the bloc's empty topExports/topImports.
+         Countries keep the original v-show fast-toggle behavior. -->
     <section
+      v-if="!isBloc"
       v-show="tab === 'trade' || tab === 'minerals'"
       id="asean-tabpanel-charts"
       role="tabpanel"
@@ -512,6 +547,12 @@ function onTabKeydown(event: KeyboardEvent, index: number) {
 .asean-infographic__panel > * {
   flex: 1;
   min-width: 0;
+}
+
+/* BF-134: the bloc entry's FDI table card sits under Key Facts inside the
+   Description prose block — give it a little separation from the facts list. */
+.asean-infographic__panel--fdi {
+  margin-top: 10px;
 }
 
 /* --- Description paragraph cross-fade (BF-72 U5/R10) --- */

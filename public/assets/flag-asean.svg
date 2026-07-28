@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 107" role="img" aria-label="ASEAN">
+  <!-- BF-134: neutral ASEAN bloc badge. NOT the official ASEAN emblem (which is
+       copyrighted and unavailable on flag CDNs) - this echoes the flag's layout
+       (blue field, white-ringed red disc) WITHOUT the copyrighted padi-sheaf
+       emblem. Deliberately not a ring of gold dots, which reads as the EU flag
+       at badge size. Swap for licensed art if the client supplies it. -->
+  <rect width="160" height="107" fill="#2455a4"/>
+  <circle cx="80" cy="53.5" r="34" fill="#fff"/>
+  <circle cx="80" cy="53.5" r="29" fill="#dc2f34"/>
+</svg>

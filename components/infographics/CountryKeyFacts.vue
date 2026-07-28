@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import type { CountryKeyFacts } from '~/data/asean/country-profiles'
 
-defineProps<{
+// `source` (BF-134): optional override for the attribution footnote. The
+// default is the shared IMF WEO / World Bank line every country's indicator
+// set draws from; the ASEAN bloc entry passes its own attribution instead.
+withDefaults(defineProps<{
   keyFacts: CountryKeyFacts
-}>()
+  source?: string
+}>(), {
+  source:
+    'GDP growth (2026): IMF WEO. GDP per capita PPP, trade-to-GDP and FDI net inflows (2024): World Bank.'
+})
 </script>
 
 <template>
@@ -35,7 +42,7 @@ defineProps<{
     </dl>
 
     <p class="country-key-facts__source">
-      Source: GDP growth (2026): IMF WEO. GDP per capita PPP, trade-to-GDP and FDI net inflows (2024): World Bank.
+      Source: {{ source }}
     </p>
   </div>
 </template>
