@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "nuxt-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--port", "3100"],
+      "port": 3100
+    },
+    {
+      "name": "flatflip-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "../bfna-indopacific-wt/flat-flip", "run", "dev", "--", "--port", "3111"],
+      "port": 3111
+    }
+  ]
+}
