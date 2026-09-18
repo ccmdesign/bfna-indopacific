@@ -27,6 +27,26 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const BASE_URL = 'http://localhost:4173';
+
+test.describe('Published embed previews (run against a generated production build)', () => {
+  for (const slug of ['straits', 'renewables']) {
+    test(`${slug} supports direct visits, hydration, copy, and homepage navigation`, async ({ page, context }) => {
+      const errors = collectConsoleErrors(page);
+      await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+      await page.goto(`${BASE_URL}/test/embeds/${slug}/`);
+      await expect(page).toHaveTitle(/Embed Preview:/);
+      await expect(page.locator('iframe')).toHaveAttribute('src', `/embed/${slug}`);
+      await expect(page.locator('pre code')).toContainText(`${BASE_URL}/embed/${slug}`);
+      expect(errors.filter(error => /hydration/i.test(error))).toEqual([]);
+      await page.getByRole('button', { name: 'Copy Embed Link', exact: true }).click();
+      expect(await page.evaluate(() => navigator.clipboard.readText())).toContain(`${BASE_URL}/embed/${slug}`);
+      await page.goto(BASE_URL);
+      await page.locator(`a[href="/test/embeds/${slug}"]`).click();
+      await expect(page).toHaveTitle(/Embed Preview:/);
+      await expect(page.locator('iframe')).toHaveAttribute('src', `/embed/${slug}`);
+    });
+  }
+});
 const SCREENSHOT_DIR = path.resolve(__dirname, 'test-screenshots');
 
 // Ensure screenshot directory exists
