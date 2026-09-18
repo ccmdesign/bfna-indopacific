@@ -32,7 +32,13 @@ export function useEmbedCode(
   const copied = ref(false)
   const error = ref(false)
   const isClipboardAvailable = ref(true)
+  const origin = ref('')
   let resetTimer: ReturnType<typeof setTimeout> | null = null
+
+  // Prerender and hydration must use the same URL; resolve the host after mounting.
+  onMounted(() => {
+    origin.value = window.location.origin
+  })
 
   // Check clipboard availability on the client
   if (import.meta.client) {
@@ -43,10 +49,7 @@ export function useEmbedCode(
 
   const embedUrl = computed(() => {
     const s = toValue(slug)
-    if (import.meta.client) {
-      return `${window.location.origin}/embed/${s}`
-    }
-    return `/embed/${s}`
+    return `${origin.value}/embed/${s}`
   })
 
   const embedCode = computed(() => {

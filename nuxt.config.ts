@@ -49,9 +49,16 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
   devtools: { enabled: true },
 
-  // Exclude test pages from production builds entirely (they use runtime dev-only guards,
-  // but static imports would still be bundled without build-time exclusion)
-  ignore: process.env.NODE_ENV === 'production' ? ['pages/test/**'] : [],
+  // Embed previews are public links from the homepage; other test pages stay dev-only.
+  ignore: process.env.NODE_ENV === 'production'
+    ? ['pages/test/**', '!pages/test/embeds/', '!pages/test/embeds/**']
+    : [],
+
+  runtimeConfig: {
+    public: {
+      embedPreviewSlugs: infographicsToPrerender.map(i => i.slug)
+    }
+  },
 
   // Force static generation for SSG deployment
   ssr: true,
@@ -59,24 +66,26 @@ export default defineNuxtConfig({
     preset: 'static',
     prerender: {
       routes: [
+        '/test/embeds',
         ...infographicsToPrerender.flatMap((i) => [
           `/embed/${i.slug}`,
+          `/test/embeds/${i.slug}`,
           `/infographics/${i.slug}`
         ]),
         ...aseanCountryRoutes
       ],
-      ignore: [/^\/test\//]
+      ignore: [/^\/test\/(?!embeds(?:\/|$))/]
     }
   },
 
-  // Exclude /test/* pages and draft infographics (production only) from prerendering.
+  // Exclude development test pages and draft infographics (production only) from prerendering.
   // On dev/branch/preview builds, drafts are prerendered so reviewers can see them.
   routeRules: {
-    '/test/embeds': { prerender: false },
     '/test/hormuz': { prerender: false },
     '/test/hormuz/**': { prerender: false },
     ...Object.fromEntries(
       infographicsToExcludeFromPrerender.flatMap((i) => [
+        [`/test/embeds/${i.slug}`, { prerender: false }],
         [`/embed/${i.slug}`, { prerender: false }],
         [`/embed/${i.slug}/**`, { prerender: false }],
         [`/infographics/${i.slug}`, { prerender: false }],

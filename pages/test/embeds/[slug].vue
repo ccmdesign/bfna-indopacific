@@ -1,7 +1,6 @@
 <!--
-  DEV-ONLY TEST PAGE
   Per-infographic embed preview with iframe simulation and copy-code button.
-  Not included in prerender routes.
+  Prerendered for infographics available on this deployment.
 -->
 <script setup lang="ts">
 import { infographics } from '~/data/infographics'
@@ -12,7 +11,8 @@ definePageMeta({
 })
 
 const route = useRoute()
-const entry = infographics.find(i => i.slug === route.params.slug)
+const { embedPreviewSlugs } = useRuntimeConfig().public
+const entry = infographics.find(i => i.slug === route.params.slug && embedPreviewSlugs.includes(i.slug))
 
 if (!entry) {
   throw createError({ statusCode: 404, statusMessage: 'Infographic not found' })
@@ -31,7 +31,7 @@ const { embedCode } = useEmbedCode(() => entry.slug, () => entry.title)
 <template>
   <main class="embed-preview-page">
     <header class="embed-preview-header">
-      <div class="dev-badge">Dev Only</div>
+      <div class="preview-badge">Embed Preview</div>
       <h1>{{ entry!.title }}</h1>
       <p>Preview how this infographic looks when embedded on an external site.</p>
     </header>
@@ -84,7 +84,7 @@ const { embedCode } = useEmbedCode(() => entry.slug, () => entry.title)
   margin: 0 0 var(--space-m) 0;
 }
 
-.dev-badge {
+.preview-badge {
   display: inline-block;
   background: rgba(245, 158, 11, 0.2);
   border: 1px solid rgba(245, 158, 11, 0.5);
