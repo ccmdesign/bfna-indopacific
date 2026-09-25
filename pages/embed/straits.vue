@@ -1,7 +1,8 @@
 <script setup>
+// BF-224: the stage renders /embed/canvas/straits at design size and scales it to
+// fit the host frame (or shows a cover card on phones) — see components/EmbedStage.vue.
 definePageMeta({
-  layout: 'embed',
-  layoutClass: 'layout-2'
+  layout: false
 })
 
 useStraitsHead(undefined, {
@@ -9,8 +10,9 @@ useStraitsHead(undefined, {
     { name: 'robots', content: 'noindex, nofollow' }
   ]
 })
+useInfographicSeo('straits')
 </script>
 
 <template>
-  <StraitMap class="strait-map" />
+  <EmbedStage slug="straits" />
 </template>

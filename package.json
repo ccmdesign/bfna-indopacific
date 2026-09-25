@@ -12,6 +12,7 @@
     "postinstall": "nuxt prepare",
     "export:tiles": "node scripts/export-tiles.mjs",
     "export:squarespace": "node scripts/export-tiles.mjs --preset=squarespace",
+    "export:thumbnails": "node scripts/export-thumbnails.mjs",
     "check:cardflip": "node scripts/check-cardflip-flat.mjs"
   },
   "dependencies": {

@@ -26,6 +26,7 @@ useHead({
 })
 
 const { embedCode } = useEmbedCode(() => entry.slug, () => entry.title)
+const aspect = embedAspectFor(entry.slug)
 </script>
 
 <template>
@@ -37,14 +38,23 @@ const { embedCode } = useEmbedCode(() => entry.slug, () => entry.title)
     </header>
 
     <section class="embed-preview-section">
+      <!-- BF-224: same frame the embed code produces, at desktop and phone widths -->
       <div class="iframe-preview">
         <iframe
           :src="`/embed/${entry!.slug}`"
-          width="1280"
-          height="800"
-          style="border:0;max-width:100%;aspect-ratio:16/10"
+          :style="{ aspectRatio: aspect }"
           allowfullscreen
           :title="entry!.title"
+        />
+      </div>
+      <div class="iframe-preview iframe-preview--phone">
+        <p class="iframe-preview__label">Phone width (375px)</p>
+        <iframe
+          :src="`/embed/${entry!.slug}`"
+          :style="{ aspectRatio: EMBED_PHONE_ASPECT }"
+          loading="lazy"
+          allowfullscreen
+          :title="`${entry!.title} (phone)`"
         />
       </div>
 
@@ -102,16 +112,27 @@ const { embedCode } = useEmbedCode(() => entry.slug, () => entry.title)
 }
 
 .iframe-preview {
-  max-height: 60vh;
-  overflow: auto;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
+  overflow: hidden;
   margin-bottom: var(--space-l);
 }
 
 .iframe-preview iframe {
   display: block;
   width: 100%;
+  border: 0;
+}
+
+.iframe-preview--phone {
+  max-width: 375px;
+}
+
+.iframe-preview__label {
+  margin: 0;
+  padding: var(--space-2xs) var(--space-s);
+  font-size: var(--size--1);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .embed-code-block h3 {

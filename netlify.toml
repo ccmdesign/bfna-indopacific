@@ -29,8 +29,7 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=(), fullscreen=(self)"
 
-[[redirects]]
-  # Fallback for SPA-like routing
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# BF-224: no SPA fallback. Every public route is prerendered (strait deep links
+# included), and the old `/* → /index.html 200` rule served the hub page — with its
+# embed-code buttons — for any unknown URL, including inside a host site's iframe.
+# Missing paths now get Nuxt's generated 404.html with a real 404 status.

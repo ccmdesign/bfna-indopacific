@@ -10,6 +10,7 @@ definePageMeta({
 })
 
 useRenewablesHead()
+useInfographicSeo('renewables')
 </script>
 
 <template>

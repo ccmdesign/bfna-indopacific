@@ -284,6 +284,8 @@ const hasQualContent = computed(() =>
   max-width: 600px;
   margin: 0 auto;
   padding: 0 1rem 3rem;
+  /* BF-224: padding inside the 100% width — it overflowed phones by 24px */
+  box-sizing: border-box;
   color: var(--color-text-secondary);
   font-family: 'Encode Sans', sans-serif;
 }

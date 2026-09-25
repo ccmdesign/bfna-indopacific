@@ -1,5 +1,6 @@
 import { publishedInfographics, draftInfographics } from './data/infographics'
 import { COUNTRY_URL_SLUGS } from './data/asean/country-profiles'
+import straitsData from './data/straits/straits.json'
 
 // Netlify CONTEXT: 'production' for main, 'branch-deploy' for other branches, 'deploy-preview' for PRs.
 // Treat anything that isn't an explicit production build as a preview environment so drafts get prerendered.
@@ -44,6 +45,16 @@ const aseanCountryRoutes = aseanIsPrerendered
     ])
   : []
 
+// BF-224: shareable strait deep links (/infographics/straits/<id>). Without these the
+// Netlify fallback served the hub page for a reloaded or shared strait URL.
+const straitDeepLinkRoutes = straitsData.straits.map((s) => `/infographics/straits/${s.id}`)
+
+// BF-224: design-size canvases the embed stage loads in its inner iframe. The stage
+// sets the iframe src on the client, so the crawler never discovers these on its own.
+const embedCanvasRoutes = infographicsToPrerender
+  .filter((i) => i.canvas)
+  .map((i) => `/embed/canvas/${i.slug}`)
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-04-03',
@@ -56,7 +67,10 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      embedPreviewSlugs: infographicsToPrerender.map(i => i.slug)
+      embedPreviewSlugs: infographicsToPrerender.map(i => i.slug),
+      // BF-224: absolute origin for link-preview meta (composables/useInfographicSeo.ts).
+      // Netlify sets URL to the site's main address on every deploy context.
+      siteUrl: (process.env.URL || 'https://bfna-indopacific.netlify.app').replace(/\/+$/, '')
     }
   },
 
@@ -72,7 +86,9 @@ export default defineNuxtConfig({
           `/test/embeds/${i.slug}`,
           `/infographics/${i.slug}`
         ]),
-        ...aseanCountryRoutes
+        ...aseanCountryRoutes,
+        ...straitDeepLinkRoutes,
+        ...embedCanvasRoutes
       ],
       ignore: [/^\/test\/(?!embeds(?:\/|$))/]
     }

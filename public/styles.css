@@ -193,6 +193,17 @@ html {
   pointer-events: none;
 }
 
+/* BF-224: the detail panel now stays inside the canvas, and its close button sits
+   under the top-right logo — fade the logo out while a strait is open. */
+.strait-logo {
+  transition: opacity 0.3s ease;
+}
+
+[data-strait] .strait-logo {
+  opacity: 0;
+  pointer-events: none;
+}
+
 .layout-1 {
   .title {
     font-size: var(--size-5);
@@ -261,6 +272,8 @@ html {
 
 /* layout-home: scrollable hub page — overrides master-grid viewport lock */
 .layout-home {
+  /* BF-224: .master-grid is 100svw, so the padding must sit inside it */
+  box-sizing: border-box;
   height: auto;
   min-height: 100svh;
   overflow: visible;

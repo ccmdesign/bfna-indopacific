@@ -1,6 +1,6 @@
 <template>
   <div v-if="isVisible" class="rotate-overlay">
-    <h1 class="overlay-title">Indo Pacífic Project</h1>
+    <h1 class="overlay-title">Indo-Pacific Project</h1>
     <div class="center-content">
       <div class="phone-animation"></div>
       <p class="message">Please rotate your device</p>

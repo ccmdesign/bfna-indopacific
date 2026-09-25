@@ -1,15 +1,13 @@
 <script setup lang="ts">
 const route = useRoute()
 const layoutClass = computed(() => (route.meta.layoutClass as string) || '')
-// BF-130: the embed per-country detail route sets suppressRotateOverlay (it's a
-// portrait page), same knob the default layout already honours. Existing embed
-// pages don't set it, so their rotate overlay is unchanged.
-const suppressRotateOverlay = computed(() => route.meta.suppressRotateOverlay === true)
+// BF-224: no RotateDeviceOverlay here. An embed lives inside someone else's page,
+// where "Please rotate your device" blocked the whole frame on every portrait
+// phone. Small frames get the embed stage's cover card instead (EmbedStage.vue).
 </script>
 
 <template>
   <div class="page-wrapper | master-grid" :class="layoutClass">
-    <RotateDeviceOverlay v-if="!suppressRotateOverlay" />
     <GridOverlay />
 
     <slot />

@@ -4,7 +4,6 @@ import { useStraitTransition } from '~/composables/useStraitTransition'
 import { straits, LATEST_YEAR, historicalByStrait } from '~/utils/straitsData'
 import { slideDirection, clearSlideDirection } from '~/composables/useSwipeNavigation'
 import type { Strait } from '~/types/strait'
-import bfnaLogo from '~/assets/images/bfna.svg'
 
 definePageMeta({
   layoutClass: 'layout-2',
@@ -60,6 +59,7 @@ const selectedStrait = computed(() =>
 )
 const straitName = computed(() => selectedStrait.value?.name)
 useStraitsHead(straitName)
+useInfographicSeo('straits')
 
 // Historical data for selected strait (used by mobile detail)
 const selectedStraitHistorical = computed(() => {
@@ -78,75 +78,6 @@ function onTransitionAfterEnter() {
   clearSlideDirection()
 }
 
-// --- Size metric with auto-cycle ---
-type SizeMetric = 'tonnage' | 'ships' | 'value'
-const METRICS: SizeMetric[] = ['tonnage', 'ships', 'value']
-const IDLE_TIMEOUT = 7000
-const CYCLE_INTERVAL = 7000
-
-// Track header visibility separately — hashes aren't available during SSR,
-// so straitId is null on server render. This ref is set eagerly on mount.
-const headerHidden = ref(false)
-
-const sizeMetric = ref<SizeMetric>('tonnage')
-const cycling = ref(false)
-// Bump to restart the CSS progress animation on each cycle tick
-const cycleKey = ref(0)
-let idleTimer: ReturnType<typeof setTimeout> | null = null
-let cycleTimer: ReturnType<typeof setInterval> | null = null
-
-function startCycling() {
-  if (cycleTimer) return
-  cycling.value = true
-  cycleKey.value++
-  cycleTimer = setInterval(() => {
-    const i = METRICS.indexOf(sizeMetric.value)
-    sizeMetric.value = METRICS[(i + 1) % METRICS.length]
-    cycleKey.value++
-  }, CYCLE_INTERVAL)
-}
-
-function stopCycling() {
-  if (cycleTimer) { clearInterval(cycleTimer); cycleTimer = null }
-  cycling.value = false
-}
-
-function resetIdleTimer() {
-  stopCycling()
-  if (idleTimer) clearTimeout(idleTimer)
-  if (!straitId.value) {
-    idleTimer = setTimeout(startCycling, IDLE_TIMEOUT)
-  }
-}
-
-watch(straitId, (id) => {
-  headerHidden.value = !!id
-  if (id) {
-    stopCycling()
-    if (idleTimer) { clearTimeout(idleTimer); idleTimer = null }
-  } else {
-    resetIdleTimer()
-  }
-})
-
-onMounted(() => {
-  // Eagerly read hash — route.hash may not be reactive yet after SSR hydration
-  const hash = window.location.hash.replace('#', '')
-  if (hash && VALID_IDS.has(hash)) {
-    headerHidden.value = true
-  }
-  window.addEventListener('mousemove', resetIdleTimer)
-  window.addEventListener('mousedown', resetIdleTimer)
-  resetIdleTimer()
-})
-
-onBeforeUnmount(() => {
-  window.removeEventListener('mousemove', resetIdleTimer)
-  window.removeEventListener('mousedown', resetIdleTimer)
-  stopCycling()
-  if (idleTimer) clearTimeout(idleTimer)
-})
-
 function onSelect(id: string | null) {
   if (id) {
     document.body.dataset.strait = id
@@ -159,25 +90,11 @@ function onSelect(id: string | null) {
 </script>
 
 <template>
-  <a v-if="!isMobile" href="https://bfna.org" target="_blank" rel="noopener noreferrer" class="strait-logo-link">
-    <img :src="bfnaLogo" alt="BFNA" class="strait-logo" />
-  </a>
-  <!-- Desktop: SSR-rendered map (isMobile defaults to false during SSR) -->
-  <StraitMap
+  <!-- Desktop: SSR-rendered map + header (isMobile defaults to false during SSR) -->
+  <StraitsDesktop
     v-if="!isMobile"
     :selected-strait-id="straitId"
-    :size-metric="sizeMetric"
-    class="strait-map"
     @select="onSelect"
-  />
-  <StraitHeader
-    v-if="!isMobile"
-    :is-hidden="headerHidden"
-    :size-metric="sizeMetric"
-    :cycling="cycling"
-    :cycle-duration="CYCLE_INTERVAL"
-    :cycle-key="cycleKey"
-    @update:size-metric="sizeMetric = $event"
   />
   <!-- Mobile: client-only (depends on viewport detection) -->
   <ClientOnly v-if="isMobile">
