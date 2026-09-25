@@ -1,4 +1,19 @@
 import { toValue, type MaybeRefOrGetter } from 'vue'
+import { findInfographic } from '~/data/infographics'
+
+/**
+ * BF-224: phones get a taller frame so the embed's cover card has room for its
+ * visual and copy. Applied from a <style> rule in the snippet — if a CMS strips
+ * <style>, the inline aspect-ratio still sizes the frame and the stage adapts.
+ */
+export const EMBED_PHONE_ASPECT = '4 / 5'
+export const EMBED_PHONE_BREAKPOINT = 640
+
+/** Frame shape for an infographic's embed: its design canvas, or 16:10 without one. */
+export function embedAspectFor(slug: string): string {
+  const canvas = findInfographic(slug)?.canvas
+  return canvas ? `${canvas.width} / ${canvas.height}` : '16 / 10'
+}
 
 /**
  * Escape HTML-special characters to prevent injection when interpolating
@@ -15,8 +30,10 @@ function escapeHtml(str: string): string {
 /**
  * Composable for generating and copying embed code for an infographic.
  *
- * Generates an <iframe> snippet pointing to /embed/<slug> with a
- * responsive aspect-ratio wrapper (16:10, matching the 1280x800 design).
+ * Generates an <iframe> snippet pointing to /embed/<slug>. The frame is
+ * full-width at the infographic's design aspect ratio (4:5 on phones); the
+ * embed stage scales the infographic to whatever size results (BF-224), so
+ * hosts can also size the frame however they like.
  * Provides clipboard copy with reactive feedback and error state.
  *
  * @param slug - A reactive or plain string for the infographic slug
@@ -54,7 +71,9 @@ export function useEmbedCode(
 
   const embedCode = computed(() => {
     const safeTitle = escapeHtml(toValue(title))
-    return `<iframe src="${embedUrl.value}" width="1280" height="800" style="border:0;max-width:100%;aspect-ratio:16/10" loading="lazy" allowfullscreen title="${safeTitle}"></iframe>`
+    const aspect = embedAspectFor(toValue(slug))
+    return `<style>@media (max-width:${EMBED_PHONE_BREAKPOINT}px){iframe.bfna-embed{aspect-ratio:${EMBED_PHONE_ASPECT}!important}}</style>\n`
+      + `<iframe class="bfna-embed" src="${embedUrl.value}" title="${safeTitle}" style="display:block;width:100%;aspect-ratio:${aspect};border:0" loading="lazy" allowfullscreen></iframe>`
   })
 
   // IMPORTANT: clipboard write must be the first await in this function

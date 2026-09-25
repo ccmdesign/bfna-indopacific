@@ -19,6 +19,33 @@ body {
   height: 100svh !important;
 }
 
+/* BF-224 embed canvas (pages/embed/canvas/*). The embed stage sizes this frame
+   to the host frame's shape within the infographic's aspect bounds, so the grid
+   fills the canvas instead of locking to 16:9 — same relaxation as capture mode. */
+.is-embed-canvas .master-grid {
+  aspect-ratio: auto !important;
+  height: 100svh !important;
+}
+
+.is-embed-canvas,
+.is-embed-canvas body {
+  overflow: hidden;
+}
+
+/* The review widget already loads in the embed stage around this canvas; one
+   feedback button per embed is enough. */
+.is-embed-canvas ccm-feedback-widget {
+  display: none !important;
+}
+
+/* BF-224 `?bare` (scripts/export-thumbnails.mjs): the visual only, no text — the
+   teaser images and the embed cover card set their own headline over it. */
+.is-bare .strait-header,
+.is-bare .strait-logo,
+.is-bare .layout-1 .description {
+  visibility: hidden;
+}
+
 .is-capturing,
 .is-capturing * {
   animation-duration: 0s !important;

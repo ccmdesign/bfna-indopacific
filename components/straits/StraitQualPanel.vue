@@ -71,13 +71,15 @@ const emit = defineEmits<{
 </template>
 
 <style scoped>
-/* ─── 3D Glass Plane ─── */
+/* ─── 3D Glass Plane ───
+   BF-224: vertical rhythm tightened (13px body, 14px section gaps) so the
+   longest strait profiles fit a 16:9 canvas without scrolling. */
 .qual-plane {
   width: 100%;
-  max-width: 320px;
+  max-width: 340px;
   max-height: 100%;
   overflow-y: auto;
-  padding: 24px 24px 20px;
+  padding: 16px 24px 12px;
 
   /* Swiss typography base */
   color: #fff;
@@ -105,7 +107,7 @@ const emit = defineEmits<{
   width: 100%;
   height: 1px;
   background: #fff;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   opacity: 0.6;
 }
 
@@ -115,7 +117,7 @@ const emit = defineEmits<{
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .plane-header__name {
@@ -163,17 +165,17 @@ const emit = defineEmits<{
 
 /* ─── Description ─── */
 .plane-desc {
-  margin: 0 0 20px;
-  padding-bottom: 20px;
+  margin: 0 0 14px;
+  padding-bottom: 14px;
   color: rgba(255, 255, 255, 0.55);
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: 13px;
+  line-height: 1.55;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* ─── Section titles ─── */
 .plane-section {
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .plane-section__title {
@@ -182,7 +184,7 @@ const emit = defineEmits<{
   text-transform: uppercase;
   letter-spacing: 0.14em;
   color: rgba(255, 255, 255, 0.35);
-  margin: 0 0 10px;
+  margin: 0 0 8px;
 }
 
 /* ─── Tags (Swiss: rectangular, minimal) ─── */
@@ -220,10 +222,10 @@ const emit = defineEmits<{
 .plane-facts li {
   position: relative;
   padding-left: 14px;
-  margin-bottom: 8px;
+  margin-bottom: 5px;
   color: rgba(255, 255, 255, 0.6);
-  font-size: 14px;
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .plane-facts li::before {

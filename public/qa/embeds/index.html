@@ -1,0 +1,283 @@
+<!doctype html>
+<!--
+  BF-224 embed QA bench: every /embed/<slug> in the frames it meets on real sites.
+  Static on purpose (served from public/), so it works on any deploy of this site
+  and locally via `node scripts/serve-embed-qa.mjs`. Frames are same-origin, which
+  lets each badge read the embed stage's decision back out of its frame.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Embed QA — BFNA Indo-Pacific</title>
+<meta name="robots" content="noindex, nofollow">
+<style>
+  :root { --bg: #f3f3f1; --fg: #16181a; --muted: #6b6f73; --card: #fff; --line: #dcdcd8; --accent: #1f6feb; }
+  :root[data-bg="dark"] { --bg: #1f211d; --fg: #eceee9; --muted: #a0a49c; --card: #2a2d28; --line: #3a3d37; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  header.bar { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center;
+    padding: 12px 20px; background: var(--card); border-bottom: 1px solid var(--line); }
+  header.bar h1 { margin: 0; font-size: 15px; }
+  header.bar label { display: inline-flex; gap: 6px; align-items: center; color: var(--muted); }
+  header.bar select, header.bar button { font: inherit; padding: 4px 8px; }
+  main { padding: 8px 20px 60px; }
+  section.group { margin-top: 28px; }
+  section.group > h2 { margin: 0 0 4px; font-size: 16px; }
+  section.group > p { margin: 0 0 14px; color: var(--muted); max-width: 90ch; }
+  code { font-size: 12px; background: rgba(127,127,127,.15); padding: 1px 4px; border-radius: 3px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 18px; align-items: flex-start; }
+  .spec { background: var(--card); border: 1px solid var(--line); border-radius: 6px; padding: 10px; max-width: 100%; }
+  .spec.full { flex-basis: 100%; }
+  .spec header { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; margin-bottom: 8px; }
+  .spec header strong { font-size: 13px; }
+  .spec header .dim { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .spec header a { font-size: 12px; color: var(--accent); margin-left: auto; }
+  .badge { font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; background: #888; color: #fff; }
+  .badge.stage { background: #1a7f37; }
+  .badge.cover { background: #9a6700; }
+  .badge.page { background: #57606a; }
+  .badge.error { background: #cf222e; }
+  .viewport { position: relative; overflow: hidden; }
+  .host { position: absolute; top: 0; left: 0; transform-origin: 0 0; background: repeating-conic-gradient(rgba(127,127,127,.12) 0 25%, transparent 0 50%) 0 0 / 16px 16px; }
+  .host > iframe, .host > div > iframe { border: 0; }
+  .note { margin-top: 6px; color: var(--muted); font-size: 12px; max-width: 60ch; }
+  .intro { max-width: 78ch; margin: 18px 0 6px; }
+  .intro p { margin: 0 0 8px; }
+  .legend { display: flex; flex-wrap: wrap; gap: 8px 18px; margin: 10px 0 0; color: var(--muted); font-size: 13px; }
+  .legend .badge { margin-right: 6px; }
+  .snippet { max-width: 900px; margin: 0 0 16px; }
+  .snippet pre { margin: 0; padding: 12px; overflow-x: auto; background: #0d1117; color: #e6edf3; border-radius: 6px; font-size: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-all; }
+  .snippet button { margin-top: 6px; font: inherit; padding: 4px 10px; }
+</style>
+</head>
+<body>
+<header class="bar">
+  <h1>BFNA Indo-Pacific · Embed QA</h1>
+  <label>Infographic
+    <select id="slug">
+      <option value="straits">Straits</option>
+      <option value="renewables">Renewables</option>
+    </select>
+  </label>
+  <label>Host background
+    <select id="bg"><option value="light">Light (their site)</option><option value="dark">Dark</option></select>
+  </label>
+  <label><input type="checkbox" id="actual"> Show at 1:1</label>
+  <button id="reload" type="button">Reload frames</button>
+</header>
+<main>
+  <section class="intro">
+    <p>How the BFNA Indo-Pacific infographics behave when embedded, at the frame sizes they meet on real sites. Every frame below is the live embed at its true pixel size (large ones are only scaled down on this page so they fit). Use <em>open ↗</em> to see any frame on its own.</p>
+    <p>Each embed decides for itself how to render:</p>
+    <div class="legend">
+      <span><span class="badge stage">stage</span>the full interactive, scaled to fit the frame</span>
+      <span><span class="badge cover">cover card</span>frame too small to read — a card that opens the full interactive in a new tab</span>
+      <span><span class="badge page">page</span>the full infographic page itself</span>
+    </div>
+  </section>
+  <div id="main"></div>
+</main>
+
+<script>
+const ASPECT = { straits: 1440 / 810, renewables: 1412 / 993 }
+const PHONE_ASPECT = 4 / 5
+
+// [label, width, height, note]
+const GROUPS = [
+  {
+    id: 'marshall',
+    title: 'Current indo-pacificnexus.org code — 100% wide × 85vh container',
+    intro: 'The embed code on the site today. Widths are the Squarespace content column on each device; heights are 85% of that device’s visible screen.',
+    frame: 'marshall',
+    specs: [
+      ['Desktop 1440×900', 1354, 765],
+      ['Laptop 1280×720', 1194, 612],
+      ['iPad portrait', 682, 870],
+      ['iPhone portrait', 343, 564],
+      ['iPhone landscape', 664, 291]
+    ]
+  },
+  {
+    id: 'snippet',
+    title: 'Recommended embed code — full width at the infographic’s own shape, 4:5 on phones',
+    intro: 'Height follows the width, and phones (≤640px) get a taller 4:5 frame so the cover card has room. The code for the selected infographic:',
+    snippet: true,
+    frame: 'snippet',
+    specs: [
+      ['Desktop column', 1354],
+      ['Laptop column', 1194],
+      ['iPad landscape column', 938],
+      ['iPad portrait column', 682],
+      ['Phone landscape', 664],
+      ['Phone portrait', 343]
+    ]
+  },
+  {
+    id: 'edges',
+    title: 'Edge cases',
+    intro: 'Around the stage → cover threshold (fitted scale 0.5), and shapes outside the canvas aspect bounds (these letterbox).',
+    frame: 'plain',
+    specs: [
+      ['Just above threshold', null, null, 'threshold-above'],
+      ['Just below threshold', null, null, 'threshold-below'],
+      ['Ultra-wide strip', 1354, 360],
+      ['Square', 700, 700],
+      ['Tall', 500, 900],
+      ['Tiny 16:9', 300, 169]
+    ]
+  },
+  {
+    id: 'forced',
+    title: 'Forced modes',
+    intro: '<code>?mode=cover</code> and <code>?mode=stage</code> override the automatic choice.',
+    frame: 'plain',
+    specs: [
+      ['Cover at laptop size', 1194, 672, 'mode=cover'],
+      ['Stage at phone size', 343, 429, 'mode=stage']
+    ]
+  },
+  {
+    id: 'destination',
+    title: 'Where the cover card takes phone readers',
+    intro: 'The full infographic page, opened in a new tab from the cover card.',
+    frame: 'page',
+    specs: [
+      ['iPhone 13', 390, 844],
+      ['iPad mini portrait', 768, 1024]
+    ]
+  }
+]
+
+const TITLES = { straits: 'Indo-Pacific Straits', renewables: 'Renewables on the Rise' }
+const RATIO = { straits: '16 / 9', renewables: '1412 / 993' }
+
+// Mirrors composables/useEmbedCode.ts.
+function snippetFor(slug) {
+  return '<style>@media (max-width:640px){iframe.bfna-embed{aspect-ratio:4/5!important}}</style>\n'
+    + '<iframe class="bfna-embed" src="' + location.origin + '/embed/' + slug + '" title="' + TITLES[slug] + '" style="display:block;width:100%;aspect-ratio:' + RATIO[slug] + ';border:0" loading="lazy" allowfullscreen></iframe>'
+}
+
+const $ = (s) => document.querySelector(s)
+const store = {
+  get: (k) => { try { return localStorage.getItem(k) } catch { return null } },
+  set: (k, v) => { try { localStorage.setItem(k, v) } catch {} }
+}
+const state = { slug: store.get('qa-slug') || 'straits', bg: store.get('qa-bg') || 'light', actual: false }
+$('#slug').value = state.slug
+$('#bg').value = state.bg
+document.documentElement.dataset.bg = state.bg
+
+function sizeFor(group, spec, slug) {
+  let [, w, h, extra] = spec
+  const aspect = ASPECT[slug]
+  if (extra === 'threshold-above' || extra === 'threshold-below') {
+    // Scale 0.5 of the design canvas, at the design aspect.
+    const cw = slug === 'straits' ? 1440 : 1412
+    w = Math.round(cw * (extra === 'threshold-above' ? 0.51 : 0.49))
+    h = Math.round(w / aspect)
+  }
+  if (group.frame === 'snippet') h = Math.round(w / (w <= 640 ? PHONE_ASPECT : aspect))
+  return { w, h }
+}
+
+function srcFor(group, spec, slug) {
+  const extra = spec[3]
+  if (group.frame === 'page') return '/infographics/' + slug
+  return '/embed/' + slug + (extra && extra.startsWith('mode=') ? '?' + extra : '')
+}
+
+function frameMarkup(group, src, w, h) {
+  if (group.frame === 'marshall') {
+    // Verbatim from Marshall's email (22 Sep 2026), sized to the device.
+    return '<div class="dashboard-container" style="position: relative; width: ' + w + 'px; height: ' + h + 'px; overflow: auto; -webkit-overflow-scrolling: touch;">'
+      + '<iframe src="' + src + '" width="100%" height="100%" style="border: none; position: absolute; top: 0; left: 0;" allowfullscreen loading="lazy"></iframe></div>'
+  }
+  return '<iframe src="' + src + '" style="display:block;width:' + w + 'px;height:' + h + 'px;border:0" allowfullscreen loading="lazy"></iframe>'
+}
+
+function render() {
+  const slug = state.slug
+  const avail = Math.max(280, $('#main').clientWidth - 22)
+  $('#main').innerHTML = ''
+  for (const group of GROUPS) {
+    const sec = document.createElement('section')
+    sec.className = 'group'
+    sec.innerHTML = '<h2>' + group.title + '</h2><p>' + group.intro + '</p>'
+      + (group.snippet ? '<div class="snippet"><pre></pre><button type="button">Copy code</button></div>' : '')
+      + '<div class="grid"></div>'
+    if (group.snippet) {
+      const code = snippetFor(slug)
+      sec.querySelector('.snippet pre').textContent = code
+      const btn = sec.querySelector('.snippet button')
+      btn.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(code); btn.textContent = 'Copied' } catch { btn.textContent = 'Select and copy the code above' }
+        setTimeout(() => { btn.textContent = 'Copy code' }, 2000)
+      })
+    }
+    const grid = sec.querySelector('.grid')
+    for (const spec of group.specs) {
+      const { w, h } = sizeFor(group, spec, slug)
+      const src = srcFor(group, spec, slug)
+      // Wide frames get a full row; everything is scaled to fit unless 1:1 is on.
+      const wide = w > 720
+      const maxW = wide ? avail : Math.min(avail, 720)
+      const scale = state.actual ? 1 : Math.min(1, maxW / w)
+      const el = document.createElement('div')
+      el.className = 'spec' + (wide ? ' full' : '')
+      el.innerHTML = '<header><strong>' + spec[0] + '</strong>'
+        + '<span class="dim">' + w + '×' + h + (scale < 1 ? ' · shown at ' + Math.round(scale * 100) + '%' : '') + '</span>'
+        + '<span class="badge">loading</span>'
+        + '<a href="' + src + '" target="_blank" rel="noopener">open ↗</a></header>'
+        + '<div class="viewport" style="width:' + Math.ceil(w * scale) + 'px;height:' + Math.ceil(h * scale) + 'px">'
+        + '<div class="host" style="width:' + w + 'px;height:' + h + 'px;transform:scale(' + scale + ')">' + frameMarkup(group, src, w, h) + '</div></div>'
+      grid.appendChild(el)
+      watchBadge(el.querySelector('iframe'), el.querySelector('.badge'), group.frame === 'page')
+    }
+    $('#main').appendChild(sec)
+  }
+}
+
+// Read the stage's decision back out of the frame (same origin).
+function watchBadge(iframe, badge, isPage) {
+  let tries = 0
+  const tick = () => {
+    tries++
+    try {
+      const doc = iframe.contentDocument
+      if (isPage) {
+        if (doc && doc.readyState === 'complete') {
+          const sw = doc.documentElement.scrollWidth, cw = doc.documentElement.clientWidth
+          badge.className = 'badge ' + (sw > cw + 1 ? 'error' : 'page')
+          badge.textContent = sw > cw + 1 ? 'overflows by ' + (sw - cw) + 'px' : 'page'
+          return
+        }
+      } else {
+        const stage = doc && doc.querySelector('.embed-stage')
+        const mode = stage && stage.dataset.mode
+        if (mode === 'stage') {
+          const inner = stage.querySelector('iframe')
+          const m = inner && /scale\(([\d.]+)\)/.exec(inner.style.transform)
+          badge.className = 'badge stage'
+          badge.textContent = 'stage · ' + (m ? Math.round(m[1] * 100) + '%' : '?') + ' · canvas ' + inner.width + '×' + inner.height
+          return
+        }
+        if (mode === 'cover') { badge.className = 'badge cover'; badge.textContent = 'cover card'; return }
+        if (doc && doc.readyState === 'complete' && !stage && tries > 10) { badge.className = 'badge error'; badge.textContent = 'no stage'; return }
+      }
+    } catch (e) { badge.className = 'badge error'; badge.textContent = 'unreadable'; return }
+    if (tries < 120) setTimeout(tick, 500)
+  }
+  iframe.addEventListener('load', () => setTimeout(tick, 300))
+}
+
+$('#slug').addEventListener('change', (e) => { state.slug = e.target.value; store.set('qa-slug', state.slug); render() })
+$('#bg').addEventListener('change', (e) => { state.bg = e.target.value; store.set('qa-bg', state.bg); document.documentElement.dataset.bg = state.bg })
+$('#actual').addEventListener('change', (e) => { state.actual = e.target.checked; render() })
+$('#reload').addEventListener('click', render)
+let resizeTimer
+addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(render, 250) })
+render()
+</script>
+</body>
+</html>

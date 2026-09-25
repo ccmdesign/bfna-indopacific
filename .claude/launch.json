@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "embed-qa",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/serve-embed-qa.mjs"],
+      "port": 4310,
+      "url": "http://localhost:4310"
+    }
+  ]
+}

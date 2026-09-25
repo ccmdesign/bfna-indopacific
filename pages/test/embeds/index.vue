@@ -21,7 +21,7 @@ const { embedPreviewSlugs } = useRuntimeConfig().public
 // useEmbedCode registers onScopeDispose, so create each instance synchronously in setup.
 const embedCodes = infographics.filter(e => embedPreviewSlugs.includes(e.slug)).map(e => {
   const { embedCode } = useEmbedCode(() => e.slug, () => e.title)
-  return { ...e, code: embedCode }
+  return { ...e, code: embedCode, aspect: embedAspectFor(e.slug) }
 })
 </script>
 
@@ -52,9 +52,7 @@ const embedCodes = infographics.filter(e => embedPreviewSlugs.includes(e.slug)).
       <div class="iframe-preview">
         <iframe
           :src="`/embed/${embed.slug}`"
-          width="1280"
-          height="800"
-          style="border:0;max-width:100%;aspect-ratio:16/10"
+          :style="{ display: 'block', width: '100%', border: 0, aspectRatio: embed.aspect }"
           loading="lazy"
           allowfullscreen
           :title="embed.title"
@@ -113,8 +111,7 @@ const embedCodes = infographics.filter(e => embedPreviewSlugs.includes(e.slug)).
 }
 
 .iframe-preview {
-  max-height: 60vh;
-  overflow: auto;
+  overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   margin-bottom: var(--space-l);

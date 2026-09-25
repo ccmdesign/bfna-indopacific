@@ -1,6 +1,8 @@
 <script setup>
 definePageMeta({
   layoutClass: 'layout-1',
+  // BF-224: has a portrait layout now (public/styles.css .layout-1), so no rotate prompt.
+  suppressRotateOverlay: true,
   embedSlug: 'renewables',
   embedTitle: 'Renewables on the Rise',
   footerSource: {
@@ -10,6 +12,7 @@ definePageMeta({
 })
 
 useRenewablesHead()
+useInfographicSeo('renewables')
 </script>
 
 <template>

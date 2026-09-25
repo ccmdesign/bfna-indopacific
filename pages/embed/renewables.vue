@@ -1,7 +1,7 @@
 <script setup>
+// BF-224: scale-to-fit stage — see components/EmbedStage.vue.
 definePageMeta({
-  layout: 'embed',
-  layoutClass: 'layout-1'
+  layout: false
 })
 
 useRenewablesHead({
@@ -9,8 +9,9 @@ useRenewablesHead({
     { name: 'robots', content: 'noindex, nofollow' }
   ]
 })
+useInfographicSeo('renewables')
 </script>
 
 <template>
-  <RenewablesInfographic />
+  <EmbedStage slug="renewables" />
 </template>
