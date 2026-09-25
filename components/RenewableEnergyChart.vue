@@ -28,23 +28,45 @@ onMounted(() => {
     values: data.map(d => d[name])
   }));
 
-  // Chart dimensions
-  const marginTop = 0;
-  const marginRight = 0; // increased to provide more space for labels
-  const marginBottom = 0;
-  const marginLeft = 0;
+  // BF-224: below the layout breakpoint the page stacks (public/styles.css
+  // .layout-1) and the chart has to hold its labels and axes inside the phone's
+  // width — on desktop they hang into the grid columns around it.
+  const compactQuery = window.matchMedia('(max-width: 879px)');
 
   const draw = () => {
     if (!chartContainer.value) return;
     chartContainer.value.innerHTML = '';
 
     const width = chartContainer.value.clientWidth;
-    const height = 600;
+    const compact = compactQuery.matches;
 
     if (width === 0) {
         setTimeout(draw, 100);
         return;
     }
+
+    // Longest end label sets the right-hand gutter in compact mode.
+    const labelText = (s: { name: string, values: number[] }) =>
+      `${s.name} | ${Math.round(s.values[s.values.length - 1])}%`;
+    let labelGutter = 0;
+    if (compact) {
+      const probe = d3.select(chartContainer.value).append('svg').attr('class', 'chart-svg');
+      const probeText = probe.append('text').attr('class', 'line-label');
+      labelGutter = d3.max(series, s => {
+        probeText.text(labelText(s));
+        return (probeText.node() as SVGTextElement).getComputedTextLength();
+      }) ?? 0;
+      probe.remove();
+    }
+
+    // Chart dimensions
+    const marginTop = compact ? 32 : 0;
+    const marginRight = compact ? Math.ceil(labelGutter) + 12 : 0;
+    const marginBottom = compact ? 28 : 0;
+    const marginLeft = compact ? 34 : 0;
+    const height = compact
+      ? Math.round(Math.min(Math.max(width * 1.05, 340), 560))
+      : 600;
 
     // Scales
     const x = d3.scaleTime()
@@ -67,7 +89,9 @@ onMounted(() => {
     const minYear = d3.min(data, d => d.year.getFullYear())!;
     const maxYear = d3.max(data, d => d.year.getFullYear())!;
     const startYear = minYear % 2 === 0 ? minYear : minYear + 1; // Start from first even year
-    const evenYears = d3.range(startYear, maxYear + 1, 2).map(year => new Date(year, 0, 1));
+    // Narrow plots get every fourth year so the tick labels don't collide.
+    const tickStep = width - marginLeft - marginRight < 420 ? 4 : 2;
+    const evenYears = d3.range(startYear, maxYear + 1, tickStep).map(year => new Date(year, 0, 1));
 
     const xAxis = d3.axisBottom(x)
       .tickValues(evenYears)
@@ -106,11 +130,12 @@ onMounted(() => {
       .call((g: any) => g.selectAll('text').attr('class', 'axis-label'));
 
     // Add chart title at the top center
+    // Compact: top-left, above the plot, clear of the end labels.
     svg.append('text')
       .attr('class', 'chart-title')
-      .attr('x', width / 2)
-      .attr('y', marginTop + 20)
-      .attr('text-anchor', 'middle')
+      .attr('x', compact ? 0 : width / 2)
+      .attr('y', compact ? 14 : marginTop + 20)
+      .attr('text-anchor', compact ? 'start' : 'middle')
       .text('Renewable Energy Share');
 
     // Add vertical gradient lines for each year
@@ -198,12 +223,12 @@ onMounted(() => {
       .data(series)
       .join('text')
       .attr('class', 'line-label')
-      .attr('x', (d: any) => width - marginRight + 9) // Position label 9px to the right (was 5px)
+      .attr('x', (d: any) => width - marginRight + (compact ? 6 : 9)) // Position label just right of the line end
       .attr('y', (d: any) => y(d.values[d.values.length - 1])) // Use numeric last value for vertical position
       .attr('dy', '0') // No vertical offset
       .attr('dominant-baseline', 'middle') // Center text vertically on the point
       .attr('text-anchor', 'start') // Align text to the left
-      .text((d: any) => `${d.name} | ${Math.round(d.values[d.values.length - 1])}%`)
+      .text((d: any) => labelText(d))
       .on('mouseenter', function(event, d) {
         // Fade all lines to 30% opacity
         path.classed('chart-line-dimmed', true);
@@ -283,6 +308,31 @@ onMounted(() => {
       }
     });
 
+    // BF-224: touch has no hover — a tap on a line or its label pins the
+    // highlight, a tap anywhere else in the chart clears it.
+    let pinned: string | null = null;
+    const highlight = (name: string | null) => {
+      path.classed('chart-line-dimmed', (d: any) => name !== null && d.name !== name);
+    };
+    const togglePin = (event: PointerEvent, d: any) => {
+      if (event.pointerType === 'mouse') return;
+      event.stopPropagation();
+      pinned = pinned === d.name ? null : d.name;
+      highlight(pinned);
+    };
+    hoverPaths.on('click', togglePin);
+    labels.on('click', togglePin);
+    svg.on('click', (event: PointerEvent) => {
+      if (event.pointerType === 'mouse' || !pinned) return;
+      pinned = null;
+      highlight(null);
+    });
+    hoverPaths.on('mouseleave', () => highlight(pinned));
+    labels.on('mouseleave', () => highlight(pinned));
+
+    // Horizontal drags scrub the tooltip on touch; vertical drags still scroll.
+    svg.style('touch-action', 'pan-y');
+
     // Hover interaction
     const hoverGroup = svg.append('g')
       .attr('class', 'hover-group')
@@ -338,6 +388,8 @@ onMounted(() => {
         if (left + tooltipWidth > width) {
             left = xPos - tooltipWidth - 15;
         }
+        // Narrow charts: neither side has room, so keep it inside the container.
+        left = Math.max(0, Math.min(left, width - tooltipWidth));
 
         tooltip
           .html(tooltipHtml)
@@ -352,12 +404,17 @@ onMounted(() => {
     draw();
   });
   resizeObserver.value.observe(chartContainer.value);
+  compactQuery.addEventListener('change', draw);
+  removeCompactListener = () => compactQuery.removeEventListener('change', draw);
 });
+
+let removeCompactListener: (() => void) | null = null;
 
 onUnmounted(() => {
   if (resizeObserver.value && chartContainer.value) {
     resizeObserver.value.unobserve(chartContainer.value);
   }
+  removeCompactListener?.();
 });
 </script>
 

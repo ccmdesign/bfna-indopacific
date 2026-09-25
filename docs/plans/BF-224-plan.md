@@ -75,14 +75,24 @@ the canvas route where one exists.
 - `useInfographicSeo(slug)` sets OG/Twitter meta + canonical (embeds canonicalise to
   the full page). `siteUrl` comes from Netlify's `URL`.
 
+**Renewables portrait layout** — the cover card sends phone readers to
+`/infographics/renewables`, which had no portrait layout (the grid squeezed the
+600px chart into a ~125px row and ran the intro over it; real phones got the
+rotate overlay). Below 880px `.layout-1` now stacks title, a 4-line intro with
+"Read more", the source note and the chart. `RenewableEnergyChart` gains a
+compact mode (same breakpoint): height follows width (340–560px), a measured
+label gutter keeps the end labels inside the screen, 4-year ticks on narrow
+plots, the chart title moves above the plot, tap pins a line's highlight and
+the scrub tooltip stays inside the container. The footer flows at the end of
+the page on phones and drops "Copy Embed Link" below 480px. Desktop rendering
+is unchanged (the embed canvas and thumbnails render at desktop size).
+
 **Embed code** — `useEmbedCode` now emits a full-width iframe at the infographic's
 design aspect, with a `<style>` rule switching phones to 4:5. Hosts may size the
 frame however they like; the stage adapts.
 
 ## Not done / follow-ups
 
-- Renewables has no portrait layout on its full page; the cover card on phones
-  opens a page that asks to rotate. Worth its own ticket.
 - ASEAN embed (draft) keeps its own BF-130/131 responsive design; it overflows its
   frame by ~5% horizontally and isn't on the stage yet.
 - Squarespace URL-embed (oEmbed) support was not added; the code-block snippet is
