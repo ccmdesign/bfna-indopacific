@@ -140,7 +140,7 @@ const GROUPS = [
   {
     id: 'destination',
     title: 'Where the cover card takes phone readers',
-    intro: 'The full infographic page, opened in a new tab from the cover card.',
+    intro: 'The full infographic page, opened in a new tab from the cover card. It has its own phone and tablet layout.',
     frame: 'page',
     specs: [
       ['iPhone 13', 390, 844],
@@ -187,7 +187,17 @@ function srcFor(group, spec, slug) {
   return '/embed/' + slug + (extra && extra.startsWith('mode=') ? '?' + extra : '')
 }
 
+// Full pages send X-Frame-Options: DENY on the live site (only /embed/* may be
+// framed), so there the destination group links out instead of framing.
+const CAN_FRAME_PAGES = ['localhost', '127.0.0.1'].includes(location.hostname)
+
 function frameMarkup(group, src, w, h) {
+  if (group.frame === 'page' && !CAN_FRAME_PAGES) {
+    return '<div style="width:' + w + 'px;height:' + h + 'px;display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;text-align:center;padding:40px;background:#061223;color:#fff;font-size:22px">'
+      + '<div>Full pages can’t be shown inside this page on the live site — only the embeds allow framing.</div>'
+      + '<a href="' + src + '" target="_blank" rel="noopener" style="color:#9cc9ff">Open ' + src + ' ↗</a>'
+      + '<div style="opacity:.7;font-size:18px">Best viewed on a phone.</div></div>'
+  }
   if (group.frame === 'marshall') {
     // Verbatim from Marshall's email (22 Sep 2026), sized to the device.
     return '<div class="dashboard-container" style="position: relative; width: ' + w + 'px; height: ' + h + 'px; overflow: auto; -webkit-overflow-scrolling: touch;">'
@@ -232,7 +242,9 @@ function render() {
         + '<div class="viewport" style="width:' + Math.ceil(w * scale) + 'px;height:' + Math.ceil(h * scale) + 'px">'
         + '<div class="host" style="width:' + w + 'px;height:' + h + 'px;transform:scale(' + scale + ')">' + frameMarkup(group, src, w, h) + '</div></div>'
       grid.appendChild(el)
-      watchBadge(el.querySelector('iframe'), el.querySelector('.badge'), group.frame === 'page')
+      const frame = el.querySelector('iframe')
+      if (frame) watchBadge(frame, el.querySelector('.badge'), group.frame === 'page')
+      else { el.querySelector('.badge').className = 'badge page'; el.querySelector('.badge').textContent = 'open on your phone' }
     }
     $('#main').appendChild(sec)
   }
