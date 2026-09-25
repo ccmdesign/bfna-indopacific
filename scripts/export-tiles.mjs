@@ -27,18 +27,11 @@
  *   squarespace-snippets.html
  */
 
-import { chromium } from 'playwright'
-import { spawnSync } from 'node:child_process'
-import { createServer } from 'node:http'
-import { readFile, writeFile, mkdir, rm, stat } from 'node:fs/promises'
+import { writeFile, mkdir, rm, readFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import path from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { ROOT, OUTPUT_DIR, EXPORTS_ROOT, runBuild, startServer, launchBrowser } from './lib/static-site.mjs'
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const ROOT = path.resolve(__dirname, '..')
-const OUTPUT_DIR = path.join(ROOT, '.output', 'public')
-const EXPORTS_ROOT = path.join(ROOT, 'exports')
 const PORT = 4174
 
 // Public origin the emitted snippets link to. Override with --base-url when
@@ -188,88 +181,8 @@ function resolvePlan(args) {
   }
 }
 
-const MIME_TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.mjs': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.svg': 'image/svg+xml',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.webp': 'image/webp',
-  '.woff': 'font/woff',
-  '.woff2': 'font/woff2',
-  '.ico': 'image/x-icon',
-  '.txt': 'text/plain; charset=utf-8'
-}
-
 function log(msg) {
   console.log(`[export-tiles] ${msg}`)
-}
-
-function runBuild() {
-  log('Building static site (nuxt generate)...')
-  // Deliberately no CONTEXT env var: infographicsToPrerender in nuxt.config.ts
-  // only excludes drafts (asean) when CONTEXT === 'production', so a plain
-  // local/CI generate prerenders all three routes we need.
-  const env = { ...process.env }
-  delete env.CONTEXT
-  const result = spawnSync('npx', ['nuxt', 'generate'], {
-    cwd: ROOT,
-    stdio: 'inherit',
-    env
-  })
-  if (result.status !== 0) {
-    throw new Error(`nuxt generate failed with exit code ${result.status}`)
-  }
-}
-
-/** Resolve a request path to a file under OUTPUT_DIR (clean-URL aware). */
-async function resolveFile(requestPath) {
-  const cleanPath = requestPath.split('?')[0]
-  const candidates = []
-  if (cleanPath.endsWith('/')) {
-    candidates.push(path.join(OUTPUT_DIR, cleanPath, 'index.html'))
-  } else {
-    candidates.push(path.join(OUTPUT_DIR, cleanPath))
-    candidates.push(path.join(OUTPUT_DIR, cleanPath, 'index.html'))
-    candidates.push(path.join(OUTPUT_DIR, `${cleanPath}.html`))
-  }
-  for (const candidate of candidates) {
-    try {
-      const stats = await stat(candidate)
-      if (stats.isFile()) return candidate
-    } catch {
-      // try next candidate
-    }
-  }
-  return null
-}
-
-function startServer() {
-  const server = createServer(async (req, res) => {
-    try {
-      const filePath = await resolveFile(decodeURIComponent(req.url ?? '/'))
-      if (!filePath) {
-        res.writeHead(404, { 'Content-Type': 'text/plain' })
-        res.end('Not found')
-        return
-      }
-      const ext = path.extname(filePath)
-      const body = await readFile(filePath)
-      res.writeHead(200, { 'Content-Type': MIME_TYPES[ext] ?? 'application/octet-stream' })
-      res.end(body)
-    } catch (err) {
-      res.writeHead(500, { 'Content-Type': 'text/plain' })
-      res.end(String(err))
-    }
-  })
-  return new Promise((resolve, reject) => {
-    server.once('error', reject)
-    server.listen(PORT, () => resolve(server))
-  })
 }
 
 async function exportTile(browser, localUrl, tile, exportDir) {
@@ -281,7 +194,13 @@ async function exportTile(browser, localUrl, tile, exportDir) {
   const page = await context.newPage()
 
   try {
-    await page.goto(`${localUrl}/embed/${tile.slug}?capture`, { waitUntil: 'networkidle' })
+    // BF-224: /embed/<slug> is now a scale-to-fit stage around an inner iframe;
+    // screenshot the design-size canvas itself where one exists, so the tile is
+    // rendered 1:1 at the layout viewport instead of rescaled inside the stage.
+    const route = existsSync(path.join(OUTPUT_DIR, 'embed', 'canvas', tile.slug, 'index.html'))
+      ? `/embed/canvas/${tile.slug}`
+      : `/embed/${tile.slug}`
+    await page.goto(`${localUrl}${route}?capture`, { waitUntil: 'networkidle' })
     await page.evaluate(() => document.fonts.ready)
     // Fixed settle delay: lets the capture-mode class/CSS apply and any
     // Vue enter-transitions on the idle state finish before the shot.
@@ -379,7 +298,7 @@ async function main() {
   if (plan.skipBuild && existsSync(OUTPUT_DIR)) {
     log('--skip-build: reusing existing .output/public')
   } else {
-    runBuild()
+    runBuild(log)
   }
 
   if (!existsSync(OUTPUT_DIR)) {
@@ -387,7 +306,7 @@ async function main() {
   }
 
   log(`Serving ${OUTPUT_DIR} on http://localhost:${PORT}`)
-  const server = await startServer()
+  const server = await startServer(PORT)
   const localUrl = `http://localhost:${PORT}`
   const titles = await readTitles()
 
@@ -402,7 +321,7 @@ async function main() {
   await mkdir(plan.exportDir, { recursive: true })
 
   const entries = []
-  const browser = await chromium.launch()
+  const browser = await launchBrowser(log)
   try {
     for (const tile of plan.targets) {
       const file = await exportTile(browser, localUrl, tile, plan.exportDir)

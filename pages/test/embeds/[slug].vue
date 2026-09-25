@@ -1,7 +1,6 @@
 <!--
-  DEV-ONLY TEST PAGE
   Per-infographic embed preview with iframe simulation and copy-code button.
-  Not included in prerender routes.
+  Prerendered for infographics available on this deployment.
 -->
 <script setup lang="ts">
 import { infographics } from '~/data/infographics'
@@ -12,7 +11,8 @@ definePageMeta({
 })
 
 const route = useRoute()
-const entry = infographics.find(i => i.slug === route.params.slug)
+const { embedPreviewSlugs } = useRuntimeConfig().public
+const entry = infographics.find(i => i.slug === route.params.slug && embedPreviewSlugs.includes(i.slug))
 
 if (!entry) {
   throw createError({ statusCode: 404, statusMessage: 'Infographic not found' })
@@ -26,25 +26,35 @@ useHead({
 })
 
 const { embedCode } = useEmbedCode(() => entry.slug, () => entry.title)
+const aspect = embedAspectFor(entry.slug)
 </script>
 
 <template>
   <main class="embed-preview-page">
     <header class="embed-preview-header">
-      <div class="dev-badge">Dev Only</div>
+      <div class="preview-badge">Embed Preview</div>
       <h1>{{ entry!.title }}</h1>
       <p>Preview how this infographic looks when embedded on an external site.</p>
     </header>
 
     <section class="embed-preview-section">
+      <!-- BF-224: same frame the embed code produces, at desktop and phone widths -->
       <div class="iframe-preview">
         <iframe
           :src="`/embed/${entry!.slug}`"
-          width="1280"
-          height="800"
-          style="border:0;max-width:100%;aspect-ratio:16/10"
+          :style="{ aspectRatio: aspect }"
           allowfullscreen
           :title="entry!.title"
+        />
+      </div>
+      <div class="iframe-preview iframe-preview--phone">
+        <p class="iframe-preview__label">Phone width (375px)</p>
+        <iframe
+          :src="`/embed/${entry!.slug}`"
+          :style="{ aspectRatio: EMBED_PHONE_ASPECT }"
+          loading="lazy"
+          allowfullscreen
+          :title="`${entry!.title} (phone)`"
         />
       </div>
 
@@ -84,7 +94,7 @@ const { embedCode } = useEmbedCode(() => entry.slug, () => entry.title)
   margin: 0 0 var(--space-m) 0;
 }
 
-.dev-badge {
+.preview-badge {
   display: inline-block;
   background: rgba(245, 158, 11, 0.2);
   border: 1px solid rgba(245, 158, 11, 0.5);
@@ -102,16 +112,27 @@ const { embedCode } = useEmbedCode(() => entry.slug, () => entry.title)
 }
 
 .iframe-preview {
-  max-height: 60vh;
-  overflow: auto;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
+  overflow: hidden;
   margin-bottom: var(--space-l);
 }
 
 .iframe-preview iframe {
   display: block;
   width: 100%;
+  border: 0;
+}
+
+.iframe-preview--phone {
+  max-width: 375px;
+}
+
+.iframe-preview__label {
+  margin: 0;
+  padding: var(--space-2xs) var(--space-s);
+  font-size: var(--size--1);
+  color: rgba(255, 255, 255, 0.6);
 }
 
 .embed-code-block h3 {

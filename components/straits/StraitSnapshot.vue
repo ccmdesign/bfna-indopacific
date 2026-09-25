@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, watch, onBeforeUnmount } from 'vue'
-import { straits } from '~/utils/straitsData'
-import { historical, LATEST_YEAR } from '~/utils/straitsData'
-import type { Strait } from '~/types/strait'
 
 const props = defineProps<{
   valueUSD: number
@@ -10,40 +7,6 @@ const props = defineProps<{
   vessels: number
   sizeMetric: 'tonnage' | 'ships' | 'value'
 }>()
-
-// Compute min/max for each metric once from the dataset
-const rangeUSD = (() => {
-  const vals = straits.map((s: Strait) => s.valueUSD)
-  return { min: Math.min(...vals), max: Math.max(...vals) }
-})()
-
-const rangeMt = (() => {
-  const yearData = historical[LATEST_YEAR] ?? {}
-  const vals = Object.values(yearData).map((d) => d.capacityMt)
-  return { min: Math.min(...vals), max: Math.max(...vals) }
-})()
-
-const rangeVessels = (() => {
-  const yearData = historical[LATEST_YEAR] ?? {}
-  const vals = Object.values(yearData).map((d) => d.vessels.total)
-  return { min: Math.min(...vals), max: Math.max(...vals) }
-})()
-
-const FONT_MIN = 14
-const FONT_MAX = 72
-
-function lerp(value: number, min: number, max: number): number {
-  if (max === min) return FONT_MAX
-  const t = (value - min) / (max - min)
-  return Math.round(FONT_MIN + t * (FONT_MAX - FONT_MIN))
-}
-
-/** Hero font size scales linearly with the active metric */
-const heroFontSize = computed(() => {
-  if (props.sizeMetric === 'value') return lerp(props.valueUSD, rangeUSD.min, rangeUSD.max)
-  if (props.sizeMetric === 'ships') return lerp(props.vessels, rangeVessels.min, rangeVessels.max)
-  return lerp(props.capacityMt, rangeMt.min, rangeMt.max)
-})
 
 const heroValue = computed(() => {
   if (props.sizeMetric === 'value') return fmtUsd(props.valueUSD)
@@ -129,7 +92,7 @@ onBeforeUnmount(() => {
 
 <template>
   <div class="snapshot-overlay">
-    <span class="snapshot-hero" :style="{ fontSize: `${heroFontSize}px` }">{{ displayValue }}</span>
+    <span class="snapshot-hero">{{ displayValue }}</span>
     <span class="snapshot-label">{{ heroLabel }}</span>
   </div>
 </template>
@@ -138,6 +101,8 @@ onBeforeUnmount(() => {
 .snapshot-overlay {
   position: absolute;
   inset: 0;
+  /* Size text against this circle, including when the map is embedded. */
+  container-type: inline-size;
   border-radius: 50%;
   display: flex;
   flex-direction: column;
@@ -149,15 +114,19 @@ onBeforeUnmount(() => {
 }
 
 .snapshot-hero {
+  font-size: clamp(14px, 22cqw, 72px);
   font-weight: 700;
   letter-spacing: -0.03em;
   line-height: 1;
   font-variant-numeric: tabular-nums;
-  transition: font-size 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
 }
 
 .snapshot-label {
-  font-size: clamp(10px, 15%, 16px);
+  font-size: clamp(7px, 6cqw, 10px);
+  max-width: 80%;
+  text-align: center;
+  line-height: 1.2;
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.1em;

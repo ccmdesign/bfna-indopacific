@@ -226,6 +226,10 @@ onMounted(() => {
   // Deep link: if a strait is already selected on mount, show panels immediately
   if (effectiveSelectedId.value) {
     panelsVisible.value = true
+    // BF-224: the selection watcher only fires on change, so a deep-linked load
+    // never set data-strait — leaving the logo over the panel's close button.
+    mapRef.value.setAttribute('data-strait', effectiveSelectedId.value)
+    document.body.dataset.strait = effectiveSelectedId.value
   }
 })
 
@@ -497,6 +501,9 @@ function onBackgroundClick(event: MouseEvent) {
 
 
 /* Panels occupy fixed outer columns, sitting above the full-bleed map */
+/* BF-224: panels are capped at the map's height and centred with `safe`, so a
+   panel taller than the canvas scrolls inside itself instead of spilling past
+   the top edge (where it hid the strait name and close button on 16:9 screens). */
 .strait-panel-left {
   grid-column: 1 / 4;
   grid-row: inherit;
@@ -504,9 +511,10 @@ function onBackgroundClick(event: MouseEvent) {
   z-index: 2;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: safe center;
+  max-height: 100%;
   overflow-y: auto;
-  padding-block: var(--space-xl);
+  padding-block: var(--space-l);
   box-sizing: border-box;
   justify-self: end;
 }
@@ -518,10 +526,11 @@ function onBackgroundClick(event: MouseEvent) {
   z-index: 2;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: safe center;
   justify-self: start;
+  max-height: 100%;
   overflow-y: auto;
-  padding-block: var(--space-xl);
+  padding-block: var(--space-l);
   box-sizing: border-box;
 }
 

@@ -1,8 +1,5 @@
 <!--
-  DEV-ONLY TEST PAGE
-  This page is excluded from production builds (not in prerender routes,
-  and routeRules prevents prerendering even with crawlLinks enabled).
-  It is intended for local development and deploy-preview QA only.
+  Public embed previews for infographics available on this deployment.
 -->
 <script setup lang="ts">
 definePageMeta({
@@ -11,7 +8,7 @@ definePageMeta({
 })
 
 useHead({
-  title: 'Embed Testing - BFNA Indo-Pacific',
+  title: 'Embed Previews - BFNA Indo-Pacific',
   meta: [
     { name: 'robots', content: 'noindex, nofollow' }
   ]
@@ -19,26 +16,19 @@ useHead({
 
 import { infographics } from '~/data/infographics'
 
-// Generate embed codes using the same composable as production.
-// NOTE: useEmbedCode uses onScopeDispose, so it must be called
-// synchronously within <script setup>. Do not move this into
-// onMounted or an async callback.
-//
-// KNOWN DUPLICATION: Each embed's useEmbedCode is invoked here (for
-// displaying the code snippet) AND again inside <EmbedCodeButton>
-// (for clipboard functionality). This creates two reactive instances
-// per embed. Acceptable for a 2-item dev tool; revisit if the list grows.
-const embedCodes = infographics.map(e => {
+const { embedPreviewSlugs } = useRuntimeConfig().public
+
+// useEmbedCode registers onScopeDispose, so create each instance synchronously in setup.
+const embedCodes = infographics.filter(e => embedPreviewSlugs.includes(e.slug)).map(e => {
   const { embedCode } = useEmbedCode(() => e.slug, () => e.title)
-  return { ...e, code: embedCode }
+  return { ...e, code: embedCode, aspect: embedAspectFor(e.slug) }
 })
 </script>
 
 <template>
   <main class="embed-test-page">
     <header class="embed-test-header">
-      <div class="dev-badge">Dev Only</div>
-      <h1>Embed Code Testing</h1>
+      <h1>Embed Previews</h1>
       <p>Preview all embeddable infographics and their iframe codes.</p>
     </header>
 
@@ -62,9 +52,7 @@ const embedCodes = infographics.map(e => {
       <div class="iframe-preview">
         <iframe
           :src="`/embed/${embed.slug}`"
-          width="1280"
-          height="800"
-          style="border:0;max-width:100%;aspect-ratio:16/10"
+          :style="{ display: 'block', width: '100%', border: 0, aspectRatio: embed.aspect }"
           loading="lazy"
           allowfullscreen
           :title="embed.title"
@@ -105,19 +93,6 @@ const embedCodes = infographics.map(e => {
   margin: 0 0 var(--space-m) 0;
 }
 
-.dev-badge {
-  display: inline-block;
-  background: rgba(245, 158, 11, 0.2);
-  border: 1px solid rgba(245, 158, 11, 0.5);
-  color: rgba(245, 158, 11, 0.95);
-  font-size: var(--size-0);
-  font-weight: 600;
-  padding: var(--space-3xs) var(--space-s);
-  border-radius: 4px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
 .embed-test-section {
   margin-bottom: var(--space-xl);
   padding-bottom: var(--space-xl);
@@ -136,8 +111,7 @@ const embedCodes = infographics.map(e => {
 }
 
 .iframe-preview {
-  max-height: 60vh;
-  overflow: auto;
+  overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: 8px;
   margin-bottom: var(--space-l);

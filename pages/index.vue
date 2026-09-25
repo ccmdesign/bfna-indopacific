@@ -1,7 +1,12 @@
 <script setup lang="ts">
 import { publishedInfographics } from '~/data/infographics'
 
-const cards = publishedInfographics.map(({ status, ...rest }) => rest)
+// Pass only the card's props — anything else would fall through as DOM attributes.
+const cards = publishedInfographics.map(({ slug, title, description, thumbnail, embedTitle }) => (
+  { slug, title, description, thumbnail, embedTitle }
+))
+
+const { siteUrl } = useRuntimeConfig().public
 
 definePageMeta({
   layoutClass: 'layout-home',
@@ -16,7 +21,11 @@ useSeoMeta({
   description: 'Interactive data visualizations exploring energy, trade, and geopolitics across the Indo-Pacific region.',
   ogTitle: 'BFNA Indo-Pacific',
   ogDescription: 'Interactive data visualizations exploring energy, trade, and geopolitics across the Indo-Pacific region.',
-  ogType: 'website'
+  ogType: 'website',
+  ogImage: `${siteUrl}/thumbnails/straits-og.jpg`,
+  ogImageWidth: 1200,
+  ogImageHeight: 630,
+  twitterCard: 'summary_large_image'
 })
 </script>
 

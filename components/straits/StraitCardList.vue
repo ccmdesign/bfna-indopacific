@@ -26,6 +26,8 @@ import { sortedStraits } from '~/utils/straitsData'
   max-width: 600px;
   margin: 0 auto;
   padding: 1rem 1rem 2rem;
+  /* BF-224: padding inside the 100% width — it overflowed phones by 24px */
+  box-sizing: border-box;
 }
 
 .strait-card-list__header {
